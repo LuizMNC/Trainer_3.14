@@ -1,0 +1,235 @@
+"use client";
+
+import React, { useState } from "react";
+import { CheckCircle2, Eye, EyeOff, KeyRound, Loader2, X } from "lucide-react";
+
+interface SettingsModalProps {
+  isOpen: boolean;
+  apiKey: string;
+  model: string;
+  hasEnvKey: boolean;
+  onSave: (apiKey: string, model: string) => void;
+  onClose: () => void;
+}
+
+const MODEL_OPTIONS = [
+  {
+    id: "gemini-3.8-flash",
+    label: "Gemini 3.8 Flash (Recomendado)",
+    desc: "Equilíbrio ideal entre velocidade, custo e análise multimodal.",
+  },
+  {
+    id: "gemini-3.5-flash-lite",
+    label: "Gemini 3.5 Flash Lite",
+    desc: "Respostas instantâneas para feedback rápido durante o grind.",
+  },
+  {
+    id: "gemini-4-argon",
+    label: "Gemini 4 Argon",
+    desc: "Raciocínio estratégico mais profundo para spots complexos.",
+  },
+  {
+    id: "gemini-4-carbon",
+    label: "Gemini 4 Carbon",
+    desc: "Modelo avançado para revisão detalhada de livros e mãos.",
+  },
+];
+
+export function SettingsModal({
+  isOpen,
+  apiKey,
+  model,
+  hasEnvKey,
+  onSave,
+  onClose,
+}: SettingsModalProps) {
+  const [draftKey, setDraftKey] = useState(apiKey);
+  const [draftModel, setDraftModel] = useState(model);
+  const [showKey, setShowKey] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    ok: boolean;
+    message: string;
+  } | null>(null);
+
+  if (!isOpen) return null;
+
+  const handleTest = async () => {
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/coach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt:
+            "Responda apenas com: Conexão com AI Poker Coach OK! (1 linha).",
+          model: draftModel,
+          apiKey: draftKey.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setTestResult({
+          ok: false,
+          message: data.error ?? "Falha ao autenticar no Google AI Studio.",
+        });
+      } else {
+        setTestResult({
+          ok: true,
+          message: `Conectado com sucesso (${data.model})!`,
+        });
+      }
+    } catch {
+      setTestResult({
+        ok: false,
+        message: "Erro de conexão com o servidor local.",
+      });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <KeyRound className="w-4 h-4 text-emerald-400" />
+            <h2 className="text-sm font-bold text-slate-100">
+              Configurações — Google AI Studio (Gemini API)
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {hasEnvKey && (
+            <div className="rounded-xl bg-emerald-950/40 border border-emerald-700/50 p-3 text-xs text-emerald-300 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>
+                Chave <code>GEMINI_API_KEY</code> detectada automaticamente via{" "}
+                <code>.env.local</code>. O campo abaixo é opcional para
+                sobrescrever na sessão.
+              </span>
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-300 block">
+              API Key do Google AI Studio
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type={showKey ? "text" : "password"}
+                value={draftKey}
+                onChange={(e) => setDraftKey(e.target.value)}
+                placeholder="AIzaSy..."
+                className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowKey((s) => !s)}
+                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
+                title={showKey ? "Ocultar" : "Mostrar"}
+              >
+                {showKey ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Salva apenas no seu navegador (<code>localStorage</code>) ou no
+              arquivo local{" "}
+              <code className="text-slate-400">app/.env.local</code>. Obtenha em{" "}
+              <a
+                href="https://aistudio.google.com/apikey"
+                target="_blank"
+                rel="noreferrer"
+                className="text-emerald-400 underline"
+              >
+                aistudio.google.com/apikey
+              </a>
+              .
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-300 block">
+              Modelo Gemini
+            </label>
+            <div className="space-y-2">
+              {MODEL_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setDraftModel(opt.id)}
+                  className={`w-full text-left p-2.5 rounded-xl border transition ${
+                    draftModel === opt.id
+                      ? "bg-emerald-950/50 border-emerald-500 text-slate-100"
+                      : "bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700"
+                  }`}
+                >
+                  <div className="text-xs font-bold">{opt.label}</div>
+                  <div className="text-[11px] text-slate-400">{opt.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {testResult && (
+            <div
+              className={`rounded-xl p-3 text-xs border ${
+                testResult.ok
+                  ? "bg-emerald-950/40 border-emerald-700/60 text-emerald-300"
+                  : "bg-rose-950/40 border-rose-700/60 text-rose-300"
+              }`}
+            >
+              {testResult.message}
+            </div>
+          )}
+        </div>
+
+        <div className="px-5 py-3.5 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={handleTest}
+            disabled={testing}
+            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition"
+          >
+            {testing && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            Testar Conexão
+          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-3 py-2 rounded-xl text-slate-400 hover:text-white text-xs font-semibold"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onSave(draftKey.trim(), draftModel);
+                onClose();
+              }}
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition"
+            >
+              Salvar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

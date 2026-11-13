@@ -1,0 +1,3 @@
+# Preserva integridade byte-a-byte (SHA-256) de artefatos de solver e bases JSON auditadas
+pipeline/solver_runs/** -text
+app/src/data/*.json -text

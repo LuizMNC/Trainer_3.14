@@ -1,0 +1,262 @@
+{
+  "metadata": {
+    "research_date": "2026-11-12",
+    "channel": "Reg Life",
+    "channel_handle": "@RegLife",
+    "channel_id": "UCVqx1385YLBq1N1Cc9WfVjQ",
+    "channel_video_count_snapshot": 600,
+    "coverage_note": "Amostra de vídeos recentes/populares; a série Spot 01-18 foi catalogada. Não é uma auditoria completa de 600 vídeos. Transcrições acessíveis para 15/18 episódios e 7 vídeos complementares."
+  },
+  "spots": [
+    {
+      "spot": 1,
+      "video_id": "_Wl17geMXmc",
+      "title": "Quais mãos ABRIR em cada POSIÇÃO no poker?",
+      "published_date": "2026-06-02",
+      "url": "https://www.youtube.com/watch?v=_Wl17geMXmc",
+      "module": "RFI por posição",
+      "transcript_status": "indisponível",
+      "summary_original": "Treinar ranges RFI por posição, tamanho de stack e ante; só o título foi confirmado, não a explicação.",
+      "public_source": "vidIQ metadata only"
+    },
+    {
+      "spot": 2,
+      "video_id": "8TlB6tdjaGQ",
+      "title": "Como jogar com poucas fichas no poker",
+      "published_date": "2026-06-04",
+      "url": "https://www.youtube.com/watch?v=8TlB6tdjaGQ",
+      "module": "RFI short stack",
+      "transcript_status": "analisada",
+      "summary_original": "RFI e shove/fold em stacks curtos; comparação de estruturas e escolhas de fold/open/shove; o trainer da escola visa fixar aulas, sem expor EV detalhado.",
+      "public_source": "vidIQ transcript"
+    },
+    {
+      "spot": 3,
+      "video_id": "MDqwP3-j1wk",
+      "title": "Como SIMPLIFICAR sua estratégia de Continuation Bet no poker",
+      "published_date": "2026-06-05",
+      "url": "https://www.youtube.com/watch?v=MDqwP3-j1wk",
+      "module": "C-bet flop IP vs BB",
+      "transcript_status": "analisada",
+      "summary_original": "Vantagem de range, diferença UTG versus BTN, textura média vs high-card, sizings de 1/3 a 1/2 pot e simplificação com pequena perda de EV em certos spots.",
+      "public_source": "vidIQ transcript"
+    },
+    {
+      "spot": 4,
+      "video_id": "XhPmzrQhFlY",
+      "title": "Quando continuar apostando no TURN?",
+      "published_date": "2026-06-06",
+      "url": "https://www.youtube.com/watch?v=XhPmzrQhFlY",
+      "module": "Double barrel turn",
+      "transcript_status": "analisada",
+      "summary_original": "Após C-bet flop e call do BB; separar mãos fortes para valor, mãos médias de showdown e bluffs com bloqueadores/equity. Comparar sizings e EV.",
+      "public_source": "vidIQ transcript"
+    },
+    {
+      "spot": 5,
+      "video_id": "bmN0dwGdWSE",
+      "title": "A ARTE de apostar no RIVER",
+      "published_date": "2026-06-07",
+      "url": "https://www.youtube.com/watch?v=bmN0dwGdWSE",
+      "module": "River e polarização",
+      "transcript_status": "analisada",
+      "summary_original": "River IP vs BB: polarização, valor vs pior range pagador, seleção de blefes pelo bottom do range, blockers de nuts e unblockers dos folds.",
+      "public_source": "vidIQ transcript"
+    },
+    {
+      "spot": 6,
+      "video_id": "XD0Y_ZeNSKk",
+      "title": "Range Linear ou Polarizado? Aprenda de Uma Vez",
+      "published_date": "2026-06-07",
+      "url": "https://www.youtube.com/watch?v=XD0Y_ZeNSKk",
+      "module": "Vs RFI / 3-bet",
+      "transcript_status": "analisada",
+      "summary_original": "Estrutura de 3-bet, escolha de sizing conforme profundidade, blockers, ranges polarizados e linhas call/3-bet/shove; preservar condicionantes.",
+      "public_source": "vidIQ transcript"
+    },
+    {
+      "spot": 7,
+      "video_id": "teUFXaRa27E",
+      "title": "Como dominar a posição mais LUCRATIVA do poker",
+      "published_date": "2026-06-10",
+      "url": "https://www.youtube.com/watch?v=teUFXaRa27E",
+      "module": "Posição (tema a validar)",
+      "transcript_status": "indisponível",
+      "summary_original": "Somente título confirmado; não afirmar quais decisões/posições são ensinadas sem transcrição.",
+      "public_source": "vidIQ metadata only"
+    },
+    {
+      "spot": 8,
+      "video_id": "CUNOCNobeZo",
+      "title": "O Guia Definitivo do Small Blind",
+      "published_date": "2026-06-11",
+      "url": "https://www.youtube.com/watch?v=CUNOCNobeZo",
+      "module": "Small Blind",
+      "transcript_status": "indisponível",
+      "summary_original": "Somente título confirmado; preparar módulo SB e validar conteúdo antes de citar instruções específicas.",
+      "public_source": "vidIQ metadata only"
+    },
+    {
+      "spot": 9,
+      "video_id": "XFedj2lGVag",
+      "title": "O ERRO MAIS CARO do poker está no BIG BLIND",
+      "published_date": "2026-06-12",
+      "url": "https://www.youtube.com/watch?v=XFedj2lGVag",
+      "module": "Defesa BB vs RFI",
+      "transcript_status": "analisada",
+      "summary_original": "Defesa BB muda com posição do abridor, stack e chipEV/ICM; mãos suited, Axs, 3-bets polarizadas e borda de defesa.",
+      "public_source": "vidIQ transcript"
+    },
+    {
+      "spot": 10,
+      "video_id": "wcOJ7SiU67A",
+      "title": "O spot que MAIS CONFUNDE jogadores de poker",
+      "published_date": "2026-06-15",
+      "url": "https://www.youtube.com/watch?v=wcOJ7SiU67A",
+      "module": "Blind War / SB",
+      "transcript_status": "analisada",
+      "summary_original": "Treino SB vs BB: decidir primeiro jogar ou foldar, depois escolher limp, raise e shove; larguras de ranges dependem de stacks e da posição.",
+      "public_source": "vidIQ transcript"
+    },
+    {
+      "spot": 11,
+      "video_id": "rSJlFHUlIQE",
+      "title": "O que fazer do Big Blind quando tomar uma C-Bet",
+      "published_date": "2026-06-18",
+      "url": "https://www.youtube.com/watch?v=rSJlFHUlIQE",
+      "module": "Defesa BB vs C-bet",
+      "transcript_status": "analisada",
+      "summary_original": "Classificar par/overs/draws; comparar check-call, check-raise e fold; size do adversário, equity e possibilidade de valor/semiblefe.",
+      "public_source": "vidIQ transcript"
+    },
+    {
+      "spot": 12,
+      "video_id": "3rQpUIKUUgc",
+      "title": "O erro silencioso dos potes MULTIWAY",
+      "published_date": "2026-06-19",
+      "url": "https://www.youtube.com/watch?v=3rQpUIKUUgc",
+      "module": "Multiway pré-flop/BB",
+      "transcript_status": "analisada",
+      "summary_original": "Defesa BB contra abertura e caller, realização de equidade, odds, squeeze e diferenças entre posição final e inicial.",
+      "public_source": "vidIQ transcript"
+    },
+    {
+      "spot": 13,
+      "video_id": "qGBrI6k9JDg",
+      "title": "Um erro aqui custa CARO",
+      "published_date": "2026-06-20",
+      "url": "https://www.youtube.com/watch?v=qGBrI6k9JDg",
+      "module": "Resposta a 3-bet",
+      "transcript_status": "analisada",
+      "summary_original": "Defender contra 3-bet fora de posição, jogabilidade suited, pares, 4-bet, shove; distinguir middle position e late position.",
+      "public_source": "vidIQ transcript"
+    },
+    {
+      "spot": 14,
+      "video_id": "LWmqhJqCIcw",
+      "title": "O maior LUCRO do poker vem DAQUI",
+      "published_date": "2026-06-24",
+      "url": "https://www.youtube.com/watch?v=LWmqhJqCIcw",
+      "module": "Vs C-bet em posição",
+      "transcript_status": "analisada",
+      "summary_original": "Drill de defesa a C-bet IP; tamanho da aposta, força relativa, backdoors e frequências fold/call/raise; estado pré-flop já determinado.",
+      "public_source": "vidIQ transcript"
+    },
+    {
+      "spot": 15,
+      "video_id": "7DQn3EMEwCA",
+      "title": "Como ajustar seus ranges para torneios PKOs",
+      "published_date": "2026-06-25",
+      "url": "https://www.youtube.com/watch?v=7DQn3EMEwCA",
+      "module": "PKO RFI",
+      "transcript_status": "analisada",
+      "summary_original": "RFI PKO varia conforme jogadores cobertos à esquerda, bounties e capacidade de defender 3-bets; não confundir com ranges Vanilla.",
+      "public_source": "vidIQ transcript"
+    },
+    {
+      "spot": 16,
+      "video_id": "uHVh5p-KGeI",
+      "title": "Como ajustar seus OPEN RAISES em torneios Vanilla",
+      "published_date": "2026-06-26",
+      "url": "https://www.youtube.com/watch?v=uHVh5p-KGeI",
+      "module": "Vanilla RFI / ICM",
+      "transcript_status": "analisada",
+      "summary_original": "Vanilla com pressão de ICM; cobertura sem bounty não traz mesmo incentivo de jogar mais loose do PKO; comparar etapas e stacks.",
+      "public_source": "vidIQ transcript"
+    },
+    {
+      "spot": 17,
+      "video_id": "gH3KxLljdts",
+      "title": "Como enfrentar open raises em PKOs",
+      "published_date": "2026-06-27",
+      "url": "https://www.youtube.com/watch?v=gH3KxLljdts",
+      "module": "PKO vs RFI",
+      "transcript_status": "analisada",
+      "summary_original": "Responder ao open considerando stack do abridor e dos demais, quem cobre quem e incentives de bounty; expandir e contrair a defesa.",
+      "public_source": "vidIQ transcript"
+    },
+    {
+      "spot": 18,
+      "video_id": "hE4XL3gMEls",
+      "title": "O Erro de ICM Que Está Custando Seu Lucro",
+      "published_date": "2026-06-28",
+      "url": "https://www.youtube.com/watch?v=hE4XL3gMEls",
+      "module": "ICM / vs RFI",
+      "transcript_status": "analisada",
+      "summary_original": "Diferença chipEV vs situação 50% left; exemplos de mistura 71% call/29% raise com EV aproximado igual num spot particular; teoria como base.",
+      "public_source": "vidIQ transcript"
+    }
+  ],
+  "supplemental_videos": [
+    {
+      "video_id": "OhSfmpjRgg8",
+      "title": "O robô que venceu os melhores do mundo nunca tentou EXPLORAR ninguém",
+      "url": "https://www.youtube.com/watch?v=OhSfmpjRgg8",
+      "summary_original": "GTO como base, cautela com exploits sem amostras; menção a Libratus e Pluribus; a descrição do robô é argumento do apresentador, não validação independente.",
+      "transcript_status": "analisada"
+    },
+    {
+      "video_id": "7BSZPyqKUHI",
+      "title": "O jeito CERTO de BLEFAR no POKER",
+      "url": "https://www.youtube.com/watch?v=7BSZPyqKUHI",
+      "summary_original": "MDF em heads-up river simplificado e frequência ótima de blefe segundo sizing; distinguir pot odds, MDF e composição do range de aposta.",
+      "transcript_status": "analisada"
+    },
+    {
+      "video_id": "zzviYVuIk5o",
+      "title": "Você está ERRANDO no PKO",
+      "url": "https://www.youtube.com/watch?v=zzviYVuIk5o",
+      "summary_original": "Incentivos de bounty, cobertura, risco de ser eliminado e diferença entre início e final do torneio; valores heurísticos de conversão de bounty não são soluções universais.",
+      "transcript_status": "analisada"
+    },
+    {
+      "video_id": "bsBVa-tQE7g",
+      "title": "2 softwares de POKER que você PRECISA usar",
+      "url": "https://www.youtube.com/watch?v=bsBVa-tQE7g",
+      "summary_original": "Palestrante cita Holdem Resources Calculator/HRC para pré-flop e multiway e GTO Wizard para pós-flop heads-up; são menções, não licença de integração.",
+      "transcript_status": "analisada"
+    },
+    {
+      "video_id": "0KWMp6iTIBU",
+      "title": "Do open raise ao ICM: por que jogar pela glória custa dinheiro",
+      "url": "https://www.youtube.com/watch?v=0KWMp6iTIBU",
+      "summary_original": "Decisões como maximização de EV/$EV em vez de priorizar colocação; módulo de custo de erro sob ICM.",
+      "transcript_status": "analisada"
+    },
+    {
+      "video_id": "jYlP-mJcjUg",
+      "title": "RTA, IA e trapaceiros: O futuro do poker online",
+      "url": "https://www.youtube.com/watch?v=jYlP-mJcjUg",
+      "summary_original": "Distinguir estudo legítimo de RTA/assistência em tempo real; o software proposto deve impedir uso assistivo em mesas ativas.",
+      "transcript_status": "analisada"
+    },
+    {
+      "video_id": "In1WBxeHEn8",
+      "title": "O conceito que TODO JOGADOR de poker precisa entender",
+      "url": "https://www.youtube.com/watch?v=In1WBxeHEn8",
+      "summary_original": "Exemplos de VPIP, read de ranges, uso de randomização para frequências mistas; cautela com explorações baseadas em amostra.",
+      "transcript_status": "analisada"
+    }
+  ],
+  "disclaimer": "Os resumos são paráfrases originais de materiais públicos; não constituem ranges numéricos ou saídas de solver licenciadas. Não converter heurísticas das aulas em GTO exato."
+}

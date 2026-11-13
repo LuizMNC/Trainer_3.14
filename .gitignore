@@ -1,0 +1,27 @@
+# Dependências, builds e ambiente Node/Next.js
+node_modules/
+.next/
+out/
+.env.local
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+
+# Python cache
+__pycache__/
+*.pyc
+.venv/
+
+# Executáveis/binários externos de solvers (AGPL-3.0, fora do controle de versão)
+*.exe
+*.dll
+
+# Materiais de estudo pesados e PDFs de referência (mantidos apenas localmente / OneDrive)
+4. Pré-Flop/
+Estudo do POKER/
+livros/
+*.pdf
+
+# Sistema operacional
+Thumbs.db
+.DS_Store

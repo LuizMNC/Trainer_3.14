@@ -1,0 +1,184 @@
+{
+  "schema": "texassolver_run_manifest_v1",
+  "generatedAtIso": "2026-11-12T23:49:26.900054+00:00",
+  "solver": {
+    "name": "TexasSolver",
+    "version": "0.2.0",
+    "license": "AGPL-3.0",
+    "executableName": "console_solver.exe",
+    "executableSha256": "8b74cd6f687387a9ea6c567591642cfe0bfca88360a1748ff7c7db769d0c5c1a",
+    "evExportedByCli": false
+  },
+  "scenario": {
+    "spotId": "verified_texassolver_mtt_8max_30bb_btn_vs_bb_srp_ahkd7c_cbet",
+    "spotName": "BTN vs BB SRP 30BB chipEV \u2014 Flop Ah Kd 7c (BTN C-Bet IP)",
+    "format": "MTT",
+    "variant": "NLHE",
+    "playersInitial": 8,
+    "postflopPlayers": 2,
+    "heroPosition": "BTN",
+    "villainPosition": "BB",
+    "street": "FLOP",
+    "board": [
+      "Ah",
+      "Kd",
+      "7c"
+    ],
+    "blinds": {
+      "sbBb": 0.5,
+      "bbBb": 1.0
+    },
+    "anteBbPerPlayer": 0.125,
+    "rakePct": 0.0,
+    "startingStackBb": 30.0,
+    "openRaiseBb": 2.1,
+    "potSizeBb": 5.7,
+    "effectiveStackBb": 27.9,
+    "solverUnitsScaleFactor": 10.0,
+    "actionHistory": [
+      {
+        "street": "PREFLOP",
+        "position": "UTG",
+        "action": "Fold"
+      },
+      {
+        "street": "PREFLOP",
+        "position": "MP",
+        "action": "Fold"
+      },
+      {
+        "street": "PREFLOP",
+        "position": "LJ",
+        "action": "Fold"
+      },
+      {
+        "street": "PREFLOP",
+        "position": "HJ",
+        "action": "Fold"
+      },
+      {
+        "street": "PREFLOP",
+        "position": "CO",
+        "action": "Fold"
+      },
+      {
+        "street": "PREFLOP",
+        "position": "BTN",
+        "action": "Raise",
+        "sizeBb": 2.1
+      },
+      {
+        "street": "PREFLOP",
+        "position": "SB",
+        "action": "Fold"
+      },
+      {
+        "street": "PREFLOP",
+        "position": "BB",
+        "action": "Call",
+        "sizeBb": 2.1
+      },
+      {
+        "street": "FLOP",
+        "position": "BB",
+        "action": "Check"
+      }
+    ],
+    "rangesSource": {
+      "file": "app/src/data/ranges_gto.json",
+      "fileSha256": "d46652c5bfe3ced09073fa68544e134683499f18eabdabef8202d9ee351cb60e",
+      "ipSpotId": "30bb_rfi_btn",
+      "ipAction": "Raise",
+      "ipClassesCount": 101,
+      "ipCombosSolvedNode": 563,
+      "oopSpotId": "30bb_bb_vs_btn_rfi",
+      "oopAction": "Call",
+      "oopClassesCount": 132,
+      "note": "Preflop 8-Max 30BB extracted from 'PDF - Ranges RFI e vs RFI.pdf' (BTN open 2.1bb p.82; BB vs BTN call p.83)."
+    }
+  },
+  "treeParameters": {
+    "oopFlop": "check-only (donk omitted) / check-raise 100%",
+    "ipFlop": "bet 33,75% / raise 100%",
+    "turnSizes": "bet 66% / raise 100%",
+    "riverSizes": "bet 75% / raise 100%",
+    "allinThreshold": 0.67,
+    "useIsomorphism": true,
+    "resolvedNodePath": [
+      "CHECK"
+    ],
+    "nodeActions": [
+      {
+        "rawAction": "CHECK",
+        "actionName": "Check",
+        "color": "#22c55e",
+        "sizeBb": 0.0,
+        "sizePctPot": 0.0
+      },
+      {
+        "rawAction": "BET 19.000000",
+        "actionName": "Bet_33pct",
+        "color": "#f43f5e",
+        "sizeBb": 1.9,
+        "sizePctPot": 33.3
+      },
+      {
+        "rawAction": "BET 43.000000",
+        "actionName": "Bet_75pct",
+        "color": "#dc2626",
+        "sizeBb": 4.3,
+        "sizePctPot": 75.4
+      }
+    ]
+  },
+  "convergence": {
+    "targetExploitabilityPct": 0.5,
+    "maxIterationsConfigured": 100,
+    "achievedExploitabilityPct": 0.41485,
+    "finalStdoutLine": "Total exploitability 0.41485 precent",
+    "logRecords": [
+      {
+        "exploitibility": 11.919278144836426,
+        "iteration": 10,
+        "time_ms": 62601
+      },
+      {
+        "exploitibility": 4.352470874786377,
+        "iteration": 20,
+        "time_ms": 98016
+      },
+      {
+        "exploitibility": 1.8135639429092407,
+        "iteration": 30,
+        "time_ms": 134828
+      },
+      {
+        "exploitibility": 0.9559413194656372,
+        "iteration": 40,
+        "time_ms": 170738
+      },
+      {
+        "exploitibility": 0.6006625294685364,
+        "iteration": 50,
+        "time_ms": 205124
+      },
+      {
+        "exploitibility": 0.41484999656677246,
+        "iteration": 60,
+        "time_ms": 239388
+      }
+    ]
+  },
+  "runtime": {
+    "elapsedSeconds": 272.83,
+    "threads": 4,
+    "maxWorkingSetMb": 1603.2,
+    "maxPrivateMemoryMb": 1771.3
+  },
+  "hashes": {
+    "solverInputSha256": "3320c8f95a9fd2e72f13d45d0fba8e3d090496dac726d286ee8ad32275581baa",
+    "rawOutputSha256": "b12c254b27653b943c7e03d3a37dd744f4f691b1ce46ef14a689070a36ded187",
+    "convergenceLogSha256": "3c03ac7b2512c6f461d53ded4e8e1bb192b71cdd248995f54493f48353dbf043",
+    "rangesSourceSha256": "d46652c5bfe3ced09073fa68544e134683499f18eabdabef8202d9ee351cb60e"
+  }
+}

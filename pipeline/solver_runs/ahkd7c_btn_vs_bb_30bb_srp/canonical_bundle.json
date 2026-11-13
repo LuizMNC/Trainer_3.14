@@ -1,0 +1,3739 @@
+{
+  "schemaVersion": "1.1.0",
+  "bundleType": "TEXASSOLVER_NODE_FREQUENCIES_ONLY",
+  "manifest": {
+    "schema": "texassolver_run_manifest_v1",
+    "generatedAtIso": "2026-11-12T23:49:26.900054+00:00",
+    "solver": {
+      "name": "TexasSolver",
+      "version": "0.2.0",
+      "license": "AGPL-3.0",
+      "executableName": "console_solver.exe",
+      "executableSha256": "8b74cd6f687387a9ea6c567591642cfe0bfca88360a1748ff7c7db769d0c5c1a",
+      "evExportedByCli": false
+    },
+    "scenario": {
+      "spotId": "verified_texassolver_mtt_8max_30bb_btn_vs_bb_srp_ahkd7c_cbet",
+      "spotName": "BTN vs BB SRP 30BB chipEV \u2014 Flop Ah Kd 7c (BTN C-Bet IP)",
+      "format": "MTT",
+      "variant": "NLHE",
+      "playersInitial": 8,
+      "postflopPlayers": 2,
+      "heroPosition": "BTN",
+      "villainPosition": "BB",
+      "street": "FLOP",
+      "board": [
+        "Ah",
+        "Kd",
+        "7c"
+      ],
+      "blinds": {
+        "sbBb": 0.5,
+        "bbBb": 1.0
+      },
+      "anteBbPerPlayer": 0.125,
+      "rakePct": 0.0,
+      "startingStackBb": 30.0,
+      "openRaiseBb": 2.1,
+      "potSizeBb": 5.7,
+      "effectiveStackBb": 27.9,
+      "solverUnitsScaleFactor": 10.0,
+      "actionHistory": [
+        {
+          "street": "PREFLOP",
+          "position": "UTG",
+          "action": "Fold"
+        },
+        {
+          "street": "PREFLOP",
+          "position": "MP",
+          "action": "Fold"
+        },
+        {
+          "street": "PREFLOP",
+          "position": "LJ",
+          "action": "Fold"
+        },
+        {
+          "street": "PREFLOP",
+          "position": "HJ",
+          "action": "Fold"
+        },
+        {
+          "street": "PREFLOP",
+          "position": "CO",
+          "action": "Fold"
+        },
+        {
+          "street": "PREFLOP",
+          "position": "BTN",
+          "action": "Raise",
+          "sizeBb": 2.1
+        },
+        {
+          "street": "PREFLOP",
+          "position": "SB",
+          "action": "Fold"
+        },
+        {
+          "street": "PREFLOP",
+          "position": "BB",
+          "action": "Call",
+          "sizeBb": 2.1
+        },
+        {
+          "street": "FLOP",
+          "position": "BB",
+          "action": "Check"
+        }
+      ],
+      "rangesSource": {
+        "file": "app/src/data/ranges_gto.json",
+        "fileSha256": "d46652c5bfe3ced09073fa68544e134683499f18eabdabef8202d9ee351cb60e",
+        "ipSpotId": "30bb_rfi_btn",
+        "ipAction": "Raise",
+        "ipClassesCount": 101,
+        "ipCombosSolvedNode": 563,
+        "oopSpotId": "30bb_bb_vs_btn_rfi",
+        "oopAction": "Call",
+        "oopClassesCount": 132,
+        "note": "Preflop 8-Max 30BB extracted from 'PDF - Ranges RFI e vs RFI.pdf' (BTN open 2.1bb p.82; BB vs BTN call p.83)."
+      }
+    },
+    "treeParameters": {
+      "oopFlop": "check-only (donk omitted) / check-raise 100%",
+      "ipFlop": "bet 33,75% / raise 100%",
+      "turnSizes": "bet 66% / raise 100%",
+      "riverSizes": "bet 75% / raise 100%",
+      "allinThreshold": 0.67,
+      "useIsomorphism": true,
+      "resolvedNodePath": [
+        "CHECK"
+      ],
+      "nodeActions": [
+        {
+          "rawAction": "CHECK",
+          "actionName": "Check",
+          "color": "#22c55e",
+          "sizeBb": 0.0,
+          "sizePctPot": 0.0
+        },
+        {
+          "rawAction": "BET 19.000000",
+          "actionName": "Bet_33pct",
+          "color": "#f43f5e",
+          "sizeBb": 1.9,
+          "sizePctPot": 33.3
+        },
+        {
+          "rawAction": "BET 43.000000",
+          "actionName": "Bet_75pct",
+          "color": "#dc2626",
+          "sizeBb": 4.3,
+          "sizePctPot": 75.4
+        }
+      ]
+    },
+    "convergence": {
+      "targetExploitabilityPct": 0.5,
+      "maxIterationsConfigured": 100,
+      "achievedExploitabilityPct": 0.41485,
+      "finalStdoutLine": "Total exploitability 0.41485 precent",
+      "logRecords": [
+        {
+          "exploitibility": 11.919278144836426,
+          "iteration": 10,
+          "time_ms": 62601
+        },
+        {
+          "exploitibility": 4.352470874786377,
+          "iteration": 20,
+          "time_ms": 98016
+        },
+        {
+          "exploitibility": 1.8135639429092407,
+          "iteration": 30,
+          "time_ms": 134828
+        },
+        {
+          "exploitibility": 0.9559413194656372,
+          "iteration": 40,
+          "time_ms": 170738
+        },
+        {
+          "exploitibility": 0.6006625294685364,
+          "iteration": 50,
+          "time_ms": 205124
+        },
+        {
+          "exploitibility": 0.41484999656677246,
+          "iteration": 60,
+          "time_ms": 239388
+        }
+      ]
+    },
+    "runtime": {
+      "elapsedSeconds": 272.83,
+      "threads": 4,
+      "maxWorkingSetMb": 1603.2,
+      "maxPrivateMemoryMb": 1771.3
+    },
+    "hashes": {
+      "solverInputSha256": "3320c8f95a9fd2e72f13d45d0fba8e3d090496dac726d286ee8ad32275581baa",
+      "rawOutputSha256": "b12c254b27653b943c7e03d3a37dd744f4f691b1ce46ef14a689070a36ded187",
+      "convergenceLogSha256": "3c03ac7b2512c6f461d53ded4e8e1bb192b71cdd248995f54493f48353dbf043",
+      "rangesSourceSha256": "d46652c5bfe3ced09073fa68544e134683499f18eabdabef8202d9ee351cb60e"
+    }
+  },
+  "ipActionSpecs": [
+    {
+      "rawAction": "CHECK",
+      "actionName": "Check",
+      "color": "#22c55e",
+      "sizeBb": 0.0,
+      "sizePctPot": 0.0
+    },
+    {
+      "rawAction": "BET 19.000000",
+      "actionName": "Bet_33pct",
+      "color": "#f43f5e",
+      "sizeBb": 1.9,
+      "sizePctPot": 33.3
+    },
+    {
+      "rawAction": "BET 43.000000",
+      "actionName": "Bet_75pct",
+      "color": "#dc2626",
+      "sizeBb": 4.3,
+      "sizePctPot": 75.4
+    }
+  ],
+  "matrixFrequencies": {
+    "33": {
+      "Check": 0.000255,
+      "Bet_33pct": 0.336566,
+      "Bet_75pct": 0.66318
+    },
+    "44": {
+      "Check": 0.002313,
+      "Bet_33pct": 0.408707,
+      "Bet_75pct": 0.58898
+    },
+    "54o": {
+      "Check": 0.0127,
+      "Bet_33pct": 0.388065,
+      "Bet_75pct": 0.599235
+    },
+    "54s": {
+      "Check": 0.002484,
+      "Bet_33pct": 0.258361,
+      "Bet_75pct": 0.739155
+    },
+    "55": {
+      "Check": 0.014361,
+      "Bet_33pct": 0.436541,
+      "Bet_75pct": 0.549098
+    },
+    "64s": {
+      "Check": 0.000925,
+      "Bet_33pct": 0.276454,
+      "Bet_75pct": 0.722621
+    },
+    "65s": {
+      "Check": 0.002967,
+      "Bet_33pct": 0.200535,
+      "Bet_75pct": 0.796498
+    },
+    "66": {
+      "Check": 0.015397,
+      "Bet_33pct": 0.365629,
+      "Bet_75pct": 0.618975
+    },
+    "75s": {
+      "Check": 0.009915,
+      "Bet_33pct": 0.165504,
+      "Bet_75pct": 0.824581
+    },
+    "76s": {
+      "Check": 0.008619,
+      "Bet_33pct": 0.220395,
+      "Bet_75pct": 0.770986
+    },
+    "77": {
+      "Check": 0.001246,
+      "Bet_33pct": 0.622423,
+      "Bet_75pct": 0.37633
+    },
+    "85s": {
+      "Check": 0.003776,
+      "Bet_33pct": 0.291126,
+      "Bet_75pct": 0.705098
+    },
+    "86s": {
+      "Check": 0.001661,
+      "Bet_33pct": 0.188092,
+      "Bet_75pct": 0.810247
+    },
+    "87s": {
+      "Check": 0.013237,
+      "Bet_33pct": 0.195243,
+      "Bet_75pct": 0.79152
+    },
+    "88": {
+      "Check": 0.005727,
+      "Bet_33pct": 0.757999,
+      "Bet_75pct": 0.236273
+    },
+    "95s": {
+      "Check": 0.002459,
+      "Bet_33pct": 0.393219,
+      "Bet_75pct": 0.604322
+    },
+    "96s": {
+      "Check": 0.002324,
+      "Bet_33pct": 0.321685,
+      "Bet_75pct": 0.675991
+    },
+    "97s": {
+      "Check": 0.012044,
+      "Bet_33pct": 0.142469,
+      "Bet_75pct": 0.845488
+    },
+    "98o": {
+      "Check": 0.001379,
+      "Bet_33pct": 0.423909,
+      "Bet_75pct": 0.574711
+    },
+    "98s": {
+      "Check": 0.002867,
+      "Bet_33pct": 0.296804,
+      "Bet_75pct": 0.700329
+    },
+    "99": {
+      "Check": 0.011677,
+      "Bet_33pct": 0.768765,
+      "Bet_75pct": 0.219557
+    },
+    "A2o": {
+      "Check": 0.000716,
+      "Bet_33pct": 0.163789,
+      "Bet_75pct": 0.835495
+    },
+    "A2s": {
+      "Check": 0.016345,
+      "Bet_33pct": 0.20733,
+      "Bet_75pct": 0.776324
+    },
+    "A3o": {
+      "Check": 0.000643,
+      "Bet_33pct": 0.119351,
+      "Bet_75pct": 0.880006
+    },
+    "A3s": {
+      "Check": 0.00474,
+      "Bet_33pct": 0.170816,
+      "Bet_75pct": 0.824444
+    },
+    "A4o": {
+      "Check": 0.000827,
+      "Bet_33pct": 0.126753,
+      "Bet_75pct": 0.872421
+    },
+    "A4s": {
+      "Check": 0.006366,
+      "Bet_33pct": 0.174445,
+      "Bet_75pct": 0.819189
+    },
+    "A5o": {
+      "Check": 0.000885,
+      "Bet_33pct": 0.132879,
+      "Bet_75pct": 0.866236
+    },
+    "A5s": {
+      "Check": 0.005209,
+      "Bet_33pct": 0.179635,
+      "Bet_75pct": 0.815156
+    },
+    "A6o": {
+      "Check": 0.000704,
+      "Bet_33pct": 0.149752,
+      "Bet_75pct": 0.849544
+    },
+    "A6s": {
+      "Check": 0.002976,
+      "Bet_33pct": 0.196204,
+      "Bet_75pct": 0.80082
+    },
+    "A7o": {
+      "Check": 0.002038,
+      "Bet_33pct": 0.68243,
+      "Bet_75pct": 0.315531
+    },
+    "A7s": {
+      "Check": 0.003514,
+      "Bet_33pct": 0.702835,
+      "Bet_75pct": 0.293651
+    },
+    "A8o": {
+      "Check": 0.000367,
+      "Bet_33pct": 0.166547,
+      "Bet_75pct": 0.833085
+    },
+    "A8s": {
+      "Check": 0.000386,
+      "Bet_33pct": 0.222458,
+      "Bet_75pct": 0.777157
+    },
+    "A9o": {
+      "Check": 0.000333,
+      "Bet_33pct": 0.177288,
+      "Bet_75pct": 0.822378
+    },
+    "A9s": {
+      "Check": 0.000348,
+      "Bet_33pct": 0.233508,
+      "Bet_75pct": 0.766144
+    },
+    "AA": {
+      "Check": 0.033357,
+      "Bet_33pct": 0.723422,
+      "Bet_75pct": 0.243221
+    },
+    "AJo": {
+      "Check": 0.000321,
+      "Bet_33pct": 0.126449,
+      "Bet_75pct": 0.873229
+    },
+    "AJs": {
+      "Check": 0.000334,
+      "Bet_33pct": 0.198708,
+      "Bet_75pct": 0.800958
+    },
+    "AKo": {
+      "Check": 0.000777,
+      "Bet_33pct": 0.603628,
+      "Bet_75pct": 0.395595
+    },
+    "AKs": {
+      "Check": 0.000986,
+      "Bet_33pct": 0.632291,
+      "Bet_75pct": 0.366723
+    },
+    "AQo": {
+      "Check": 0.000315,
+      "Bet_33pct": 0.091042,
+      "Bet_75pct": 0.908643
+    },
+    "AQs": {
+      "Check": 0.000328,
+      "Bet_33pct": 0.171008,
+      "Bet_75pct": 0.828665
+    },
+    "ATo": {
+      "Check": 0.000331,
+      "Bet_33pct": 0.133505,
+      "Bet_75pct": 0.866164
+    },
+    "ATs": {
+      "Check": 0.000344,
+      "Bet_33pct": 0.206861,
+      "Bet_75pct": 0.792795
+    },
+    "J3s": {
+      "Check": 0.000732,
+      "Bet_33pct": 0.406222,
+      "Bet_75pct": 0.593046
+    },
+    "J4s": {
+      "Check": 0.006186,
+      "Bet_33pct": 0.437968,
+      "Bet_75pct": 0.555846
+    },
+    "J5s": {
+      "Check": 0.016675,
+      "Bet_33pct": 0.445844,
+      "Bet_75pct": 0.537481
+    },
+    "J6s": {
+      "Check": 0.008229,
+      "Bet_33pct": 0.411767,
+      "Bet_75pct": 0.580004
+    },
+    "J7s": {
+      "Check": 0.014623,
+      "Bet_33pct": 0.296677,
+      "Bet_75pct": 0.688699
+    },
+    "J8o": {
+      "Check": 0.005287,
+      "Bet_33pct": 0.503009,
+      "Bet_75pct": 0.491704
+    },
+    "J8s": {
+      "Check": 0.001421,
+      "Bet_33pct": 0.420247,
+      "Bet_75pct": 0.578332
+    },
+    "J9o": {
+      "Check": 0.006313,
+      "Bet_33pct": 0.510142,
+      "Bet_75pct": 0.483545
+    },
+    "J9s": {
+      "Check": 0.001791,
+      "Bet_33pct": 0.427066,
+      "Bet_75pct": 0.571143
+    },
+    "JJ": {
+      "Check": 0.041046,
+      "Bet_33pct": 0.521694,
+      "Bet_75pct": 0.43726
+    },
+    "JTo": {
+      "Check": 0.00331,
+      "Bet_33pct": 0.042149,
+      "Bet_75pct": 0.954541
+    },
+    "JTs": {
+      "Check": 0.006237,
+      "Bet_33pct": 0.181198,
+      "Bet_75pct": 0.812565
+    },
+    "K2s": {
+      "Check": 0.034928,
+      "Bet_33pct": 0.363717,
+      "Bet_75pct": 0.601355
+    },
+    "K3s": {
+      "Check": 0.042173,
+      "Bet_33pct": 0.364538,
+      "Bet_75pct": 0.593289
+    },
+    "K4s": {
+      "Check": 0.056314,
+      "Bet_33pct": 0.369311,
+      "Bet_75pct": 0.574375
+    },
+    "K5s": {
+      "Check": 0.047957,
+      "Bet_33pct": 0.393424,
+      "Bet_75pct": 0.558619
+    },
+    "K6o": {
+      "Check": 0.015112,
+      "Bet_33pct": 0.242341,
+      "Bet_75pct": 0.742547
+    },
+    "K6s": {
+      "Check": 0.025847,
+      "Bet_33pct": 0.43764,
+      "Bet_75pct": 0.536513
+    },
+    "K7o": {
+      "Check": 0.003077,
+      "Bet_33pct": 0.709257,
+      "Bet_75pct": 0.287666
+    },
+    "K7s": {
+      "Check": 0.004048,
+      "Bet_33pct": 0.752481,
+      "Bet_75pct": 0.243472
+    },
+    "K8o": {
+      "Check": 0.005364,
+      "Bet_33pct": 0.342666,
+      "Bet_75pct": 0.651971
+    },
+    "K8s": {
+      "Check": 0.008689,
+      "Bet_33pct": 0.546156,
+      "Bet_75pct": 0.445155
+    },
+    "K9o": {
+      "Check": 0.00389,
+      "Bet_33pct": 0.371909,
+      "Bet_75pct": 0.624201
+    },
+    "K9s": {
+      "Check": 0.006091,
+      "Bet_33pct": 0.525746,
+      "Bet_75pct": 0.468163
+    },
+    "KJo": {
+      "Check": 0.002388,
+      "Bet_33pct": 0.404949,
+      "Bet_75pct": 0.592663
+    },
+    "KJs": {
+      "Check": 0.005844,
+      "Bet_33pct": 0.463888,
+      "Bet_75pct": 0.530268
+    },
+    "KK": {
+      "Check": 0.019752,
+      "Bet_33pct": 0.964992,
+      "Bet_75pct": 0.015255
+    },
+    "KQo": {
+      "Check": 0.001713,
+      "Bet_33pct": 0.328357,
+      "Bet_75pct": 0.66993
+    },
+    "KQs": {
+      "Check": 0.003314,
+      "Bet_33pct": 0.380837,
+      "Bet_75pct": 0.61585
+    },
+    "KTo": {
+      "Check": 0.008231,
+      "Bet_33pct": 0.491766,
+      "Bet_75pct": 0.500003
+    },
+    "KTs": {
+      "Check": 0.019248,
+      "Bet_33pct": 0.588616,
+      "Bet_75pct": 0.392136
+    },
+    "Q2s": {
+      "Check": 0.000836,
+      "Bet_33pct": 0.432286,
+      "Bet_75pct": 0.566878
+    },
+    "Q3s": {
+      "Check": 0.001436,
+      "Bet_33pct": 0.444994,
+      "Bet_75pct": 0.55357
+    },
+    "Q4s": {
+      "Check": 0.004684,
+      "Bet_33pct": 0.486488,
+      "Bet_75pct": 0.508828
+    },
+    "Q5s": {
+      "Check": 0.007969,
+      "Bet_33pct": 0.498332,
+      "Bet_75pct": 0.493699
+    },
+    "Q6s": {
+      "Check": 0.004433,
+      "Bet_33pct": 0.473659,
+      "Bet_75pct": 0.521908
+    },
+    "Q7s": {
+      "Check": 0.014828,
+      "Bet_33pct": 0.399644,
+      "Bet_75pct": 0.585528
+    },
+    "Q8o": {
+      "Check": 0.015254,
+      "Bet_33pct": 0.560081,
+      "Bet_75pct": 0.424666
+    },
+    "Q8s": {
+      "Check": 0.00579,
+      "Bet_33pct": 0.485802,
+      "Bet_75pct": 0.508408
+    },
+    "Q9o": {
+      "Check": 0.018229,
+      "Bet_33pct": 0.56802,
+      "Bet_75pct": 0.413751
+    },
+    "Q9s": {
+      "Check": 0.009711,
+      "Bet_33pct": 0.491814,
+      "Bet_75pct": 0.498475
+    },
+    "QJo": {
+      "Check": 0.002794,
+      "Bet_33pct": 0.099248,
+      "Bet_75pct": 0.897959
+    },
+    "QJs": {
+      "Check": 0.027887,
+      "Bet_33pct": 0.195523,
+      "Bet_75pct": 0.776591
+    },
+    "QQ": {
+      "Check": 0.093635,
+      "Bet_33pct": 0.532542,
+      "Bet_75pct": 0.373823
+    },
+    "QTo": {
+      "Check": 0.00369,
+      "Bet_33pct": 0.15877,
+      "Bet_75pct": 0.83754
+    },
+    "QTs": {
+      "Check": 0.012248,
+      "Bet_33pct": 0.217355,
+      "Bet_75pct": 0.770397
+    },
+    "T4s": {
+      "Check": 0.005243,
+      "Bet_33pct": 0.417048,
+      "Bet_75pct": 0.577709
+    },
+    "T5s": {
+      "Check": 0.013917,
+      "Bet_33pct": 0.428616,
+      "Bet_75pct": 0.557468
+    },
+    "T6s": {
+      "Check": 0.000506,
+      "Bet_33pct": 0.35404,
+      "Bet_75pct": 0.645454
+    },
+    "T7s": {
+      "Check": 0.011417,
+      "Bet_33pct": 0.112515,
+      "Bet_75pct": 0.876068
+    },
+    "T8o": {
+      "Check": 0.002339,
+      "Bet_33pct": 0.429807,
+      "Bet_75pct": 0.567854
+    },
+    "T8s": {
+      "Check": 0.004114,
+      "Bet_33pct": 0.330652,
+      "Bet_75pct": 0.665233
+    },
+    "T9o": {
+      "Check": 0.001944,
+      "Bet_33pct": 0.442769,
+      "Bet_75pct": 0.555286
+    },
+    "T9s": {
+      "Check": 0.004514,
+      "Bet_33pct": 0.349447,
+      "Bet_75pct": 0.646039
+    },
+    "TT": {
+      "Check": 0.014015,
+      "Bet_33pct": 0.506693,
+      "Bet_75pct": 0.479291
+    }
+  },
+  "comboBreakdown": {
+    "33": {
+      "3d3c": {
+        "Check": 0.000257,
+        "Bet_33pct": 0.356555,
+        "Bet_75pct": 0.643189
+      },
+      "3h3c": {
+        "Check": 0.000256,
+        "Bet_33pct": 0.359691,
+        "Bet_75pct": 0.640054
+      },
+      "3h3d": {
+        "Check": 0.000263,
+        "Bet_33pct": 0.36177,
+        "Bet_75pct": 0.637967
+      },
+      "3s3c": {
+        "Check": 0.000246,
+        "Bet_33pct": 0.310732,
+        "Bet_75pct": 0.689022
+      },
+      "3s3d": {
+        "Check": 0.000253,
+        "Bet_33pct": 0.313099,
+        "Bet_75pct": 0.686648
+      },
+      "3s3h": {
+        "Check": 0.000252,
+        "Bet_33pct": 0.317548,
+        "Bet_75pct": 0.682199
+      }
+    },
+    "44": {
+      "4d4c": {
+        "Check": 0.002254,
+        "Bet_33pct": 0.418483,
+        "Bet_75pct": 0.579263
+      },
+      "4h4c": {
+        "Check": 0.002495,
+        "Bet_33pct": 0.431665,
+        "Bet_75pct": 0.56584
+      },
+      "4h4d": {
+        "Check": 0.002767,
+        "Bet_33pct": 0.427123,
+        "Bet_75pct": 0.57011
+      },
+      "4s4c": {
+        "Check": 0.001918,
+        "Bet_33pct": 0.390105,
+        "Bet_75pct": 0.607978
+      },
+      "4s4d": {
+        "Check": 0.002121,
+        "Bet_33pct": 0.385574,
+        "Bet_75pct": 0.612305
+      },
+      "4s4h": {
+        "Check": 0.002324,
+        "Bet_33pct": 0.399291,
+        "Bet_75pct": 0.598386
+      }
+    },
+    "54o": {
+      "5c4d": {
+        "Check": 0.003446,
+        "Bet_33pct": 0.419148,
+        "Bet_75pct": 0.577406
+      },
+      "5c4h": {
+        "Check": 0.03579,
+        "Bet_33pct": 0.415601,
+        "Bet_75pct": 0.548609
+      },
+      "5c4s": {
+        "Check": 0.010902,
+        "Bet_33pct": 0.363051,
+        "Bet_75pct": 0.626048
+      },
+      "5d4c": {
+        "Check": 0.002095,
+        "Bet_33pct": 0.422672,
+        "Bet_75pct": 0.575233
+      },
+      "5d4h": {
+        "Check": 0.010093,
+        "Bet_33pct": 0.421601,
+        "Bet_75pct": 0.568306
+      },
+      "5d4s": {
+        "Check": 0.001776,
+        "Bet_33pct": 0.360031,
+        "Bet_75pct": 0.638193
+      },
+      "5h4c": {
+        "Check": 0.021137,
+        "Bet_33pct": 0.424877,
+        "Bet_75pct": 0.553986
+      },
+      "5h4d": {
+        "Check": 0.006874,
+        "Bet_33pct": 0.423298,
+        "Bet_75pct": 0.569828
+      },
+      "5h4s": {
+        "Check": 0.021304,
+        "Bet_33pct": 0.366071,
+        "Bet_75pct": 0.612625
+      },
+      "5s4c": {
+        "Check": 0.008523,
+        "Bet_33pct": 0.350061,
+        "Bet_75pct": 0.641417
+      },
+      "5s4d": {
+        "Check": 0.002452,
+        "Bet_33pct": 0.342617,
+        "Bet_75pct": 0.654931
+      },
+      "5s4h": {
+        "Check": 0.02801,
+        "Bet_33pct": 0.347748,
+        "Bet_75pct": 0.624242
+      }
+    },
+    "54s": {
+      "5c4c": {
+        "Check": 0.001513,
+        "Bet_33pct": 0.274626,
+        "Bet_75pct": 0.723861
+      },
+      "5d4d": {
+        "Check": 0.001042,
+        "Bet_33pct": 0.239695,
+        "Bet_75pct": 0.759264
+      },
+      "5h4h": {
+        "Check": 0.000944,
+        "Bet_33pct": 0.240711,
+        "Bet_75pct": 0.758345
+      },
+      "5s4s": {
+        "Check": 0.006436,
+        "Bet_33pct": 0.278412,
+        "Bet_75pct": 0.715152
+      }
+    },
+    "55": {
+      "5d5c": {
+        "Check": 0.013617,
+        "Bet_33pct": 0.450605,
+        "Bet_75pct": 0.535777
+      },
+      "5h5c": {
+        "Check": 0.017796,
+        "Bet_33pct": 0.463057,
+        "Bet_75pct": 0.519147
+      },
+      "5h5d": {
+        "Check": 0.015064,
+        "Bet_33pct": 0.4619,
+        "Bet_75pct": 0.523036
+      },
+      "5s5c": {
+        "Check": 0.013227,
+        "Bet_33pct": 0.411392,
+        "Bet_75pct": 0.575382
+      },
+      "5s5d": {
+        "Check": 0.011441,
+        "Bet_33pct": 0.409225,
+        "Bet_75pct": 0.579334
+      },
+      "5s5h": {
+        "Check": 0.015019,
+        "Bet_33pct": 0.423067,
+        "Bet_75pct": 0.561914
+      }
+    },
+    "64s": {
+      "6c4c": {
+        "Check": 0.001245,
+        "Bet_33pct": 0.287653,
+        "Bet_75pct": 0.711102
+      },
+      "6d4d": {
+        "Check": 0.000872,
+        "Bet_33pct": 0.276987,
+        "Bet_75pct": 0.722141
+      },
+      "6h4h": {
+        "Check": 0.000702,
+        "Bet_33pct": 0.252983,
+        "Bet_75pct": 0.746315
+      },
+      "6s4s": {
+        "Check": 0.000882,
+        "Bet_33pct": 0.288192,
+        "Bet_75pct": 0.710925
+      }
+    },
+    "65s": {
+      "6c5c": {
+        "Check": 0.002148,
+        "Bet_33pct": 0.219895,
+        "Bet_75pct": 0.777957
+      },
+      "6d5d": {
+        "Check": 0.001575,
+        "Bet_33pct": 0.20641,
+        "Bet_75pct": 0.792015
+      },
+      "6h5h": {
+        "Check": 0.001239,
+        "Bet_33pct": 0.184262,
+        "Bet_75pct": 0.814499
+      },
+      "6s5s": {
+        "Check": 0.006905,
+        "Bet_33pct": 0.191574,
+        "Bet_75pct": 0.801521
+      }
+    },
+    "66": {
+      "6d6c": {
+        "Check": 0.016787,
+        "Bet_33pct": 0.393513,
+        "Bet_75pct": 0.5897
+      },
+      "6h6c": {
+        "Check": 0.019993,
+        "Bet_33pct": 0.390572,
+        "Bet_75pct": 0.589436
+      },
+      "6h6d": {
+        "Check": 0.013813,
+        "Bet_33pct": 0.402273,
+        "Bet_75pct": 0.583913
+      },
+      "6s6c": {
+        "Check": 0.015929,
+        "Bet_33pct": 0.328518,
+        "Bet_75pct": 0.655553
+      },
+      "6s6d": {
+        "Check": 0.012158,
+        "Bet_33pct": 0.341029,
+        "Bet_75pct": 0.646813
+      },
+      "6s6h": {
+        "Check": 0.0137,
+        "Bet_33pct": 0.337866,
+        "Bet_75pct": 0.648434
+      }
+    },
+    "75s": {
+      "7d5d": {
+        "Check": 0.010813,
+        "Bet_33pct": 0.130741,
+        "Bet_75pct": 0.858446
+      },
+      "7h5h": {
+        "Check": 0.010096,
+        "Bet_33pct": 0.09598,
+        "Bet_75pct": 0.893924
+      },
+      "7s5s": {
+        "Check": 0.008836,
+        "Bet_33pct": 0.269792,
+        "Bet_75pct": 0.721372
+      }
+    },
+    "76s": {
+      "7d6d": {
+        "Check": 0.009357,
+        "Bet_33pct": 0.185271,
+        "Bet_75pct": 0.805372
+      },
+      "7h6h": {
+        "Check": 0.008912,
+        "Bet_33pct": 0.164578,
+        "Bet_75pct": 0.82651
+      },
+      "7s6s": {
+        "Check": 0.007589,
+        "Bet_33pct": 0.311336,
+        "Bet_75pct": 0.681075
+      }
+    },
+    "77": {
+      "7h7d": {
+        "Check": 0.00155,
+        "Bet_33pct": 0.673175,
+        "Bet_75pct": 0.325275
+      },
+      "7s7d": {
+        "Check": 0.001091,
+        "Bet_33pct": 0.588508,
+        "Bet_75pct": 0.410401
+      },
+      "7s7h": {
+        "Check": 0.001098,
+        "Bet_33pct": 0.605587,
+        "Bet_75pct": 0.393315
+      }
+    },
+    "85s": {
+      "8c5c": {
+        "Check": 0.001532,
+        "Bet_33pct": 0.282544,
+        "Bet_75pct": 0.715924
+      },
+      "8d5d": {
+        "Check": 0.001161,
+        "Bet_33pct": 0.262802,
+        "Bet_75pct": 0.736037
+      },
+      "8h5h": {
+        "Check": 0.000828,
+        "Bet_33pct": 0.274686,
+        "Bet_75pct": 0.724486
+      },
+      "8s5s": {
+        "Check": 0.011584,
+        "Bet_33pct": 0.344469,
+        "Bet_75pct": 0.643946
+      }
+    },
+    "86s": {
+      "8c6c": {
+        "Check": 0.002073,
+        "Bet_33pct": 0.175383,
+        "Bet_75pct": 0.822544
+      },
+      "8d6d": {
+        "Check": 0.001625,
+        "Bet_33pct": 0.167136,
+        "Bet_75pct": 0.831239
+      },
+      "8h6h": {
+        "Check": 0.001169,
+        "Bet_33pct": 0.149973,
+        "Bet_75pct": 0.848859
+      },
+      "8s6s": {
+        "Check": 0.001776,
+        "Bet_33pct": 0.259877,
+        "Bet_75pct": 0.738347
+      }
+    },
+    "87s": {
+      "8d7d": {
+        "Check": 0.014809,
+        "Bet_33pct": 0.185669,
+        "Bet_75pct": 0.799522
+      },
+      "8h7h": {
+        "Check": 0.013039,
+        "Bet_33pct": 0.15081,
+        "Bet_75pct": 0.836151
+      },
+      "8s7s": {
+        "Check": 0.011865,
+        "Bet_33pct": 0.249249,
+        "Bet_75pct": 0.738886
+      }
+    },
+    "88": {
+      "8d8c": {
+        "Check": 0.005868,
+        "Bet_33pct": 0.761137,
+        "Bet_75pct": 0.232995
+      },
+      "8h8c": {
+        "Check": 0.005878,
+        "Bet_33pct": 0.767089,
+        "Bet_75pct": 0.227033
+      },
+      "8h8d": {
+        "Check": 0.005809,
+        "Bet_33pct": 0.77538,
+        "Bet_75pct": 0.218811
+      },
+      "8s8c": {
+        "Check": 0.005641,
+        "Bet_33pct": 0.741198,
+        "Bet_75pct": 0.253161
+      },
+      "8s8d": {
+        "Check": 0.005581,
+        "Bet_33pct": 0.748873,
+        "Bet_75pct": 0.245546
+      },
+      "8s8h": {
+        "Check": 0.005589,
+        "Bet_33pct": 0.754318,
+        "Bet_75pct": 0.240093
+      }
+    },
+    "95s": {
+      "9c5c": {
+        "Check": 0.00281,
+        "Bet_33pct": 0.379129,
+        "Bet_75pct": 0.618061
+      },
+      "9d5d": {
+        "Check": 0.002322,
+        "Bet_33pct": 0.360257,
+        "Bet_75pct": 0.637421
+      },
+      "9h5h": {
+        "Check": 0.001886,
+        "Bet_33pct": 0.38172,
+        "Bet_75pct": 0.616394
+      },
+      "9s5s": {
+        "Check": 0.002818,
+        "Bet_33pct": 0.45177,
+        "Bet_75pct": 0.545412
+      }
+    },
+    "96s": {
+      "9c6c": {
+        "Check": 0.00312,
+        "Bet_33pct": 0.308185,
+        "Bet_75pct": 0.688695
+      },
+      "9d6d": {
+        "Check": 0.002654,
+        "Bet_33pct": 0.298918,
+        "Bet_75pct": 0.698428
+      },
+      "9h6h": {
+        "Check": 0.002026,
+        "Bet_33pct": 0.300485,
+        "Bet_75pct": 0.697489
+      },
+      "9s6s": {
+        "Check": 0.001495,
+        "Bet_33pct": 0.379151,
+        "Bet_75pct": 0.619354
+      }
+    },
+    "97s": {
+      "9d7d": {
+        "Check": 0.013944,
+        "Bet_33pct": 0.161929,
+        "Bet_75pct": 0.824127
+      },
+      "9h7h": {
+        "Check": 0.012659,
+        "Bet_33pct": 0.088517,
+        "Bet_75pct": 0.898825
+      },
+      "9s7s": {
+        "Check": 0.009528,
+        "Bet_33pct": 0.176961,
+        "Bet_75pct": 0.813511
+      }
+    },
+    "98o": {
+      "9c8d": {
+        "Check": 0.001454,
+        "Bet_33pct": 0.427418,
+        "Bet_75pct": 0.571128
+      },
+      "9c8h": {
+        "Check": 0.001446,
+        "Bet_33pct": 0.432822,
+        "Bet_75pct": 0.565733
+      },
+      "9c8s": {
+        "Check": 0.001487,
+        "Bet_33pct": 0.416293,
+        "Bet_75pct": 0.58222
+      },
+      "9d8c": {
+        "Check": 0.00137,
+        "Bet_33pct": 0.423272,
+        "Bet_75pct": 0.575358
+      },
+      "9d8h": {
+        "Check": 0.001186,
+        "Bet_33pct": 0.423178,
+        "Bet_75pct": 0.575637
+      },
+      "9d8s": {
+        "Check": 0.001225,
+        "Bet_33pct": 0.407402,
+        "Bet_75pct": 0.591373
+      },
+      "9h8c": {
+        "Check": 0.00155,
+        "Bet_33pct": 0.438213,
+        "Bet_75pct": 0.560237
+      },
+      "9h8d": {
+        "Check": 0.001352,
+        "Bet_33pct": 0.43302,
+        "Bet_75pct": 0.565629
+      },
+      "9h8s": {
+        "Check": 0.001381,
+        "Bet_33pct": 0.421137,
+        "Bet_75pct": 0.577482
+      },
+      "9s8c": {
+        "Check": 0.001491,
+        "Bet_33pct": 0.423144,
+        "Bet_75pct": 0.575365
+      },
+      "9s8d": {
+        "Check": 0.001309,
+        "Bet_33pct": 0.418018,
+        "Bet_75pct": 0.580673
+      },
+      "9s8h": {
+        "Check": 0.0013,
+        "Bet_33pct": 0.422999,
+        "Bet_75pct": 0.575701
+      }
+    },
+    "98s": {
+      "9c8c": {
+        "Check": 0.003978,
+        "Bet_33pct": 0.271433,
+        "Bet_75pct": 0.724589
+      },
+      "9d8d": {
+        "Check": 0.003384,
+        "Bet_33pct": 0.253105,
+        "Bet_75pct": 0.743511
+      },
+      "9h8h": {
+        "Check": 0.002712,
+        "Bet_33pct": 0.257006,
+        "Bet_75pct": 0.740282
+      },
+      "9s8s": {
+        "Check": 0.001395,
+        "Bet_33pct": 0.405673,
+        "Bet_75pct": 0.592933
+      }
+    },
+    "99": {
+      "9d9c": {
+        "Check": 0.012172,
+        "Bet_33pct": 0.763372,
+        "Bet_75pct": 0.224456
+      },
+      "9h9c": {
+        "Check": 0.012453,
+        "Bet_33pct": 0.779096,
+        "Bet_75pct": 0.208451
+      },
+      "9h9d": {
+        "Check": 0.012675,
+        "Bet_33pct": 0.784254,
+        "Bet_75pct": 0.203071
+      },
+      "9s9c": {
+        "Check": 0.010752,
+        "Bet_33pct": 0.753796,
+        "Bet_75pct": 0.235452
+      },
+      "9s9d": {
+        "Check": 0.010926,
+        "Bet_33pct": 0.758286,
+        "Bet_75pct": 0.230788
+      },
+      "9s9h": {
+        "Check": 0.011086,
+        "Bet_33pct": 0.773787,
+        "Bet_75pct": 0.215126
+      }
+    },
+    "A2o": {
+      "Ac2d": {
+        "Check": 0.000877,
+        "Bet_33pct": 0.162447,
+        "Bet_75pct": 0.836676
+      },
+      "Ac2h": {
+        "Check": 0.000878,
+        "Bet_33pct": 0.170437,
+        "Bet_75pct": 0.828685
+      },
+      "Ac2s": {
+        "Check": 0.000657,
+        "Bet_33pct": 0.230238,
+        "Bet_75pct": 0.769105
+      },
+      "Ad2c": {
+        "Check": 0.000619,
+        "Bet_33pct": 0.115948,
+        "Bet_75pct": 0.883433
+      },
+      "Ad2h": {
+        "Check": 0.000784,
+        "Bet_33pct": 0.153193,
+        "Bet_75pct": 0.846023
+      },
+      "Ad2s": {
+        "Check": 0.000619,
+        "Bet_33pct": 0.214711,
+        "Bet_75pct": 0.78467
+      },
+      "As2c": {
+        "Check": 0.000603,
+        "Bet_33pct": 0.120248,
+        "Bet_75pct": 0.879149
+      },
+      "As2d": {
+        "Check": 0.000706,
+        "Bet_33pct": 0.14926,
+        "Bet_75pct": 0.850034
+      },
+      "As2h": {
+        "Check": 0.000702,
+        "Bet_33pct": 0.157621,
+        "Bet_75pct": 0.841677
+      }
+    },
+    "A2s": {
+      "Ac2c": {
+        "Check": 0.002493,
+        "Bet_33pct": 0.187916,
+        "Bet_75pct": 0.809591
+      },
+      "Ad2d": {
+        "Check": 0.045942,
+        "Bet_33pct": 0.213397,
+        "Bet_75pct": 0.740662
+      },
+      "As2s": {
+        "Check": 0.000602,
+        "Bet_33pct": 0.220678,
+        "Bet_75pct": 0.778721
+      }
+    },
+    "A3o": {
+      "Ac3d": {
+        "Check": 0.000763,
+        "Bet_33pct": 0.121364,
+        "Bet_75pct": 0.877873
+      },
+      "Ac3h": {
+        "Check": 0.000725,
+        "Bet_33pct": 0.125819,
+        "Bet_75pct": 0.873456
+      },
+      "Ac3s": {
+        "Check": 0.000586,
+        "Bet_33pct": 0.180275,
+        "Bet_75pct": 0.81914
+      },
+      "Ad3c": {
+        "Check": 0.000585,
+        "Bet_33pct": 0.076425,
+        "Bet_75pct": 0.92299
+      },
+      "Ad3h": {
+        "Check": 0.000674,
+        "Bet_33pct": 0.106137,
+        "Bet_75pct": 0.893189
+      },
+      "Ad3s": {
+        "Check": 0.000572,
+        "Bet_33pct": 0.162613,
+        "Bet_75pct": 0.836815
+      },
+      "As3c": {
+        "Check": 0.000588,
+        "Bet_33pct": 0.08203,
+        "Bet_75pct": 0.917382
+      },
+      "As3d": {
+        "Check": 0.000652,
+        "Bet_33pct": 0.107487,
+        "Bet_75pct": 0.891861
+      },
+      "As3h": {
+        "Check": 0.000643,
+        "Bet_33pct": 0.112012,
+        "Bet_75pct": 0.887345
+      }
+    },
+    "A3s": {
+      "Ac3c": {
+        "Check": 0.001771,
+        "Bet_33pct": 0.155994,
+        "Bet_75pct": 0.842235
+      },
+      "Ad3d": {
+        "Check": 0.011869,
+        "Bet_33pct": 0.187078,
+        "Bet_75pct": 0.801054
+      },
+      "As3s": {
+        "Check": 0.00058,
+        "Bet_33pct": 0.169378,
+        "Bet_75pct": 0.830042
+      }
+    },
+    "A4o": {
+      "Ac4d": {
+        "Check": 0.001107,
+        "Bet_33pct": 0.129234,
+        "Bet_75pct": 0.869659
+      },
+      "Ac4h": {
+        "Check": 0.000975,
+        "Bet_33pct": 0.138499,
+        "Bet_75pct": 0.860525
+      },
+      "Ac4s": {
+        "Check": 0.000745,
+        "Bet_33pct": 0.175803,
+        "Bet_75pct": 0.823451
+      },
+      "Ad4c": {
+        "Check": 0.000743,
+        "Bet_33pct": 0.087842,
+        "Bet_75pct": 0.911415
+      },
+      "Ad4h": {
+        "Check": 0.000874,
+        "Bet_33pct": 0.122587,
+        "Bet_75pct": 0.876539
+      },
+      "Ad4s": {
+        "Check": 0.000687,
+        "Bet_33pct": 0.160653,
+        "Bet_75pct": 0.83866
+      },
+      "As4c": {
+        "Check": 0.000686,
+        "Bet_33pct": 0.088982,
+        "Bet_75pct": 0.910332
+      },
+      "As4d": {
+        "Check": 0.000852,
+        "Bet_33pct": 0.113795,
+        "Bet_75pct": 0.885353
+      },
+      "As4h": {
+        "Check": 0.00077,
+        "Bet_33pct": 0.123377,
+        "Bet_75pct": 0.875852
+      }
+    },
+    "A4s": {
+      "Ac4c": {
+        "Check": 0.002659,
+        "Bet_33pct": 0.163226,
+        "Bet_75pct": 0.834115
+      },
+      "Ad4d": {
+        "Check": 0.015783,
+        "Bet_33pct": 0.196075,
+        "Bet_75pct": 0.788142
+      },
+      "As4s": {
+        "Check": 0.000655,
+        "Bet_33pct": 0.164035,
+        "Bet_75pct": 0.83531
+      }
+    },
+    "A5o": {
+      "Ac5d": {
+        "Check": 0.00123,
+        "Bet_33pct": 0.131101,
+        "Bet_75pct": 0.867669
+      },
+      "Ac5h": {
+        "Check": 0.001046,
+        "Bet_33pct": 0.13836,
+        "Bet_75pct": 0.860594
+      },
+      "Ac5s": {
+        "Check": 0.000745,
+        "Bet_33pct": 0.195474,
+        "Bet_75pct": 0.803781
+      },
+      "Ad5c": {
+        "Check": 0.000854,
+        "Bet_33pct": 0.09404,
+        "Bet_75pct": 0.905106
+      },
+      "Ad5h": {
+        "Check": 0.000913,
+        "Bet_33pct": 0.12309,
+        "Bet_75pct": 0.875998
+      },
+      "Ad5s": {
+        "Check": 0.000681,
+        "Bet_33pct": 0.181833,
+        "Bet_75pct": 0.817486
+      },
+      "As5c": {
+        "Check": 0.000759,
+        "Bet_33pct": 0.094165,
+        "Bet_75pct": 0.905076
+      },
+      "As5d": {
+        "Check": 0.000931,
+        "Bet_33pct": 0.115415,
+        "Bet_75pct": 0.883654
+      },
+      "As5h": {
+        "Check": 0.000805,
+        "Bet_33pct": 0.122433,
+        "Bet_75pct": 0.876762
+      }
+    },
+    "A5s": {
+      "Ac5c": {
+        "Check": 0.003095,
+        "Bet_33pct": 0.162575,
+        "Bet_75pct": 0.83433
+      },
+      "Ad5d": {
+        "Check": 0.011881,
+        "Bet_33pct": 0.19257,
+        "Bet_75pct": 0.795549
+      },
+      "As5s": {
+        "Check": 0.00065,
+        "Bet_33pct": 0.18376,
+        "Bet_75pct": 0.815589
+      }
+    },
+    "A6o": {
+      "Ac6d": {
+        "Check": 0.000901,
+        "Bet_33pct": 0.151094,
+        "Bet_75pct": 0.848004
+      },
+      "Ac6h": {
+        "Check": 0.000823,
+        "Bet_33pct": 0.145564,
+        "Bet_75pct": 0.853613
+      },
+      "Ac6s": {
+        "Check": 0.000606,
+        "Bet_33pct": 0.212031,
+        "Bet_75pct": 0.787363
+      },
+      "Ad6c": {
+        "Check": 0.000691,
+        "Bet_33pct": 0.116513,
+        "Bet_75pct": 0.882796
+      },
+      "Ad6h": {
+        "Check": 0.000728,
+        "Bet_33pct": 0.131343,
+        "Bet_75pct": 0.867929
+      },
+      "Ad6s": {
+        "Check": 0.000576,
+        "Bet_33pct": 0.200315,
+        "Bet_75pct": 0.799109
+      },
+      "As6c": {
+        "Check": 0.000639,
+        "Bet_33pct": 0.118472,
+        "Bet_75pct": 0.880889
+      },
+      "As6d": {
+        "Check": 0.000704,
+        "Bet_33pct": 0.139266,
+        "Bet_75pct": 0.86003
+      },
+      "As6h": {
+        "Check": 0.000667,
+        "Bet_33pct": 0.133167,
+        "Bet_75pct": 0.866166
+      }
+    },
+    "A6s": {
+      "Ac6c": {
+        "Check": 0.002035,
+        "Bet_33pct": 0.178422,
+        "Bet_75pct": 0.819544
+      },
+      "Ad6d": {
+        "Check": 0.006317,
+        "Bet_33pct": 0.207984,
+        "Bet_75pct": 0.785699
+      },
+      "As6s": {
+        "Check": 0.000576,
+        "Bet_33pct": 0.202207,
+        "Bet_75pct": 0.797217
+      }
+    },
+    "A7o": {
+      "Ac7d": {
+        "Check": 0.002121,
+        "Bet_33pct": 0.693407,
+        "Bet_75pct": 0.304472
+      },
+      "Ac7h": {
+        "Check": 0.002343,
+        "Bet_33pct": 0.707053,
+        "Bet_75pct": 0.290604
+      },
+      "Ac7s": {
+        "Check": 0.001275,
+        "Bet_33pct": 0.631362,
+        "Bet_75pct": 0.367362
+      },
+      "Ad7h": {
+        "Check": 0.002344,
+        "Bet_33pct": 0.708432,
+        "Bet_75pct": 0.289224
+      },
+      "Ad7s": {
+        "Check": 0.001286,
+        "Bet_33pct": 0.632294,
+        "Bet_75pct": 0.36642
+      },
+      "As7d": {
+        "Check": 0.002322,
+        "Bet_33pct": 0.695469,
+        "Bet_75pct": 0.302209
+      },
+      "As7h": {
+        "Check": 0.002577,
+        "Bet_33pct": 0.708994,
+        "Bet_75pct": 0.288429
+      }
+    },
+    "A7s": {
+      "Ad7d": {
+        "Check": 0.005218,
+        "Bet_33pct": 0.767828,
+        "Bet_75pct": 0.226955
+      },
+      "As7s": {
+        "Check": 0.00181,
+        "Bet_33pct": 0.637842,
+        "Bet_75pct": 0.360348
+      }
+    },
+    "A8o": {
+      "Ac8d": {
+        "Check": 0.000368,
+        "Bet_33pct": 0.166231,
+        "Bet_75pct": 0.833401
+      },
+      "Ac8h": {
+        "Check": 0.000371,
+        "Bet_33pct": 0.162404,
+        "Bet_75pct": 0.837226
+      },
+      "Ac8s": {
+        "Check": 0.000363,
+        "Bet_33pct": 0.187136,
+        "Bet_75pct": 0.812501
+      },
+      "Ad8c": {
+        "Check": 0.000368,
+        "Bet_33pct": 0.159619,
+        "Bet_75pct": 0.840012
+      },
+      "Ad8h": {
+        "Check": 0.00037,
+        "Bet_33pct": 0.161112,
+        "Bet_75pct": 0.838518
+      },
+      "Ad8s": {
+        "Check": 0.000362,
+        "Bet_33pct": 0.186286,
+        "Bet_75pct": 0.813351
+      },
+      "As8c": {
+        "Check": 0.000368,
+        "Bet_33pct": 0.156553,
+        "Bet_75pct": 0.843079
+      },
+      "As8d": {
+        "Check": 0.000366,
+        "Bet_33pct": 0.161858,
+        "Bet_75pct": 0.837776
+      },
+      "As8h": {
+        "Check": 0.000369,
+        "Bet_33pct": 0.157727,
+        "Bet_75pct": 0.841904
+      }
+    },
+    "A8s": {
+      "Ac8c": {
+        "Check": 0.000389,
+        "Bet_33pct": 0.22922,
+        "Bet_75pct": 0.770391
+      },
+      "Ad8d": {
+        "Check": 0.000406,
+        "Bet_33pct": 0.254925,
+        "Bet_75pct": 0.74467
+      },
+      "As8s": {
+        "Check": 0.000361,
+        "Bet_33pct": 0.183229,
+        "Bet_75pct": 0.816409
+      }
+    },
+    "A9o": {
+      "Ac9d": {
+        "Check": 0.000334,
+        "Bet_33pct": 0.176907,
+        "Bet_75pct": 0.822759
+      },
+      "Ac9h": {
+        "Check": 0.000336,
+        "Bet_33pct": 0.176425,
+        "Bet_75pct": 0.823239
+      },
+      "Ac9s": {
+        "Check": 0.000329,
+        "Bet_33pct": 0.18803,
+        "Bet_75pct": 0.811641
+      },
+      "Ad9c": {
+        "Check": 0.000333,
+        "Bet_33pct": 0.169734,
+        "Bet_75pct": 0.829932
+      },
+      "Ad9h": {
+        "Check": 0.000336,
+        "Bet_33pct": 0.176917,
+        "Bet_75pct": 0.822747
+      },
+      "Ad9s": {
+        "Check": 0.00033,
+        "Bet_33pct": 0.188693,
+        "Bet_75pct": 0.810978
+      },
+      "As9c": {
+        "Check": 0.000332,
+        "Bet_33pct": 0.167927,
+        "Bet_75pct": 0.831741
+      },
+      "As9d": {
+        "Check": 0.000334,
+        "Bet_33pct": 0.175685,
+        "Bet_75pct": 0.823981
+      },
+      "As9h": {
+        "Check": 0.000335,
+        "Bet_33pct": 0.175276,
+        "Bet_75pct": 0.824389
+      }
+    },
+    "A9s": {
+      "Ac9c": {
+        "Check": 0.000351,
+        "Bet_33pct": 0.242373,
+        "Bet_75pct": 0.757276
+      },
+      "Ad9d": {
+        "Check": 0.000365,
+        "Bet_33pct": 0.271118,
+        "Bet_75pct": 0.728517
+      },
+      "As9s": {
+        "Check": 0.000329,
+        "Bet_33pct": 0.187032,
+        "Bet_75pct": 0.812639
+      }
+    },
+    "AA": {
+      "AdAc": {
+        "Check": 0.022406,
+        "Bet_33pct": 0.73026,
+        "Bet_75pct": 0.247333
+      },
+      "AsAc": {
+        "Check": 0.043883,
+        "Bet_33pct": 0.714344,
+        "Bet_75pct": 0.241773
+      },
+      "AsAd": {
+        "Check": 0.033782,
+        "Bet_33pct": 0.725662,
+        "Bet_75pct": 0.240557
+      }
+    },
+    "AJo": {
+      "AcJd": {
+        "Check": 0.000322,
+        "Bet_33pct": 0.130296,
+        "Bet_75pct": 0.869382
+      },
+      "AcJh": {
+        "Check": 0.000323,
+        "Bet_33pct": 0.122482,
+        "Bet_75pct": 0.877195
+      },
+      "AcJs": {
+        "Check": 0.000318,
+        "Bet_33pct": 0.141465,
+        "Bet_75pct": 0.858217
+      },
+      "AdJc": {
+        "Check": 0.000322,
+        "Bet_33pct": 0.115324,
+        "Bet_75pct": 0.884354
+      },
+      "AdJh": {
+        "Check": 0.000324,
+        "Bet_33pct": 0.125358,
+        "Bet_75pct": 0.874318
+      },
+      "AdJs": {
+        "Check": 0.000319,
+        "Bet_33pct": 0.144018,
+        "Bet_75pct": 0.855663
+      },
+      "AsJc": {
+        "Check": 0.000321,
+        "Bet_33pct": 0.110248,
+        "Bet_75pct": 0.889431
+      },
+      "AsJd": {
+        "Check": 0.000322,
+        "Bet_33pct": 0.128244,
+        "Bet_75pct": 0.871434
+      },
+      "AsJh": {
+        "Check": 0.000323,
+        "Bet_33pct": 0.120609,
+        "Bet_75pct": 0.879068
+      }
+    },
+    "AJs": {
+      "AcJc": {
+        "Check": 0.000337,
+        "Bet_33pct": 0.210438,
+        "Bet_75pct": 0.789225
+      },
+      "AdJd": {
+        "Check": 0.000347,
+        "Bet_33pct": 0.246536,
+        "Bet_75pct": 0.753117
+      },
+      "AsJs": {
+        "Check": 0.000318,
+        "Bet_33pct": 0.13915,
+        "Bet_75pct": 0.860533
+      }
+    },
+    "AKo": {
+      "AcKh": {
+        "Check": 0.000743,
+        "Bet_33pct": 0.597531,
+        "Bet_75pct": 0.401726
+      },
+      "AcKs": {
+        "Check": 0.000772,
+        "Bet_33pct": 0.614359,
+        "Bet_75pct": 0.384869
+      },
+      "AdKc": {
+        "Check": 0.000787,
+        "Bet_33pct": 0.597621,
+        "Bet_75pct": 0.401592
+      },
+      "AdKh": {
+        "Check": 0.000754,
+        "Bet_33pct": 0.600665,
+        "Bet_75pct": 0.39858
+      },
+      "AdKs": {
+        "Check": 0.000784,
+        "Bet_33pct": 0.617349,
+        "Bet_75pct": 0.381866
+      },
+      "AsKc": {
+        "Check": 0.000813,
+        "Bet_33pct": 0.597373,
+        "Bet_75pct": 0.401814
+      },
+      "AsKh": {
+        "Check": 0.000782,
+        "Bet_33pct": 0.600501,
+        "Bet_75pct": 0.398717
+      }
+    },
+    "AKs": {
+      "AcKc": {
+        "Check": 0.001087,
+        "Bet_33pct": 0.647705,
+        "Bet_75pct": 0.351208
+      },
+      "AsKs": {
+        "Check": 0.000885,
+        "Bet_33pct": 0.616877,
+        "Bet_75pct": 0.382238
+      }
+    },
+    "AQo": {
+      "AcQd": {
+        "Check": 0.000316,
+        "Bet_33pct": 0.090917,
+        "Bet_75pct": 0.908767
+      },
+      "AcQh": {
+        "Check": 0.000316,
+        "Bet_33pct": 0.084176,
+        "Bet_75pct": 0.915507
+      },
+      "AcQs": {
+        "Check": 0.000311,
+        "Bet_33pct": 0.107207,
+        "Bet_75pct": 0.892483
+      },
+      "AdQc": {
+        "Check": 0.000316,
+        "Bet_33pct": 0.087104,
+        "Bet_75pct": 0.912581
+      },
+      "AdQh": {
+        "Check": 0.000317,
+        "Bet_33pct": 0.086503,
+        "Bet_75pct": 0.913179
+      },
+      "AdQs": {
+        "Check": 0.000312,
+        "Bet_33pct": 0.109202,
+        "Bet_75pct": 0.890486
+      },
+      "AsQc": {
+        "Check": 0.000315,
+        "Bet_33pct": 0.082802,
+        "Bet_75pct": 0.916883
+      },
+      "AsQd": {
+        "Check": 0.000316,
+        "Bet_33pct": 0.088892,
+        "Bet_75pct": 0.910792
+      },
+      "AsQh": {
+        "Check": 0.000316,
+        "Bet_33pct": 0.082577,
+        "Bet_75pct": 0.917107
+      }
+    },
+    "AQs": {
+      "AcQc": {
+        "Check": 0.000332,
+        "Bet_33pct": 0.18784,
+        "Bet_75pct": 0.811828
+      },
+      "AdQd": {
+        "Check": 0.00034,
+        "Bet_33pct": 0.220302,
+        "Bet_75pct": 0.779358
+      },
+      "AsQs": {
+        "Check": 0.000311,
+        "Bet_33pct": 0.104882,
+        "Bet_75pct": 0.894808
+      }
+    },
+    "ATo": {
+      "AcTd": {
+        "Check": 0.000332,
+        "Bet_33pct": 0.135443,
+        "Bet_75pct": 0.864226
+      },
+      "AcTh": {
+        "Check": 0.000333,
+        "Bet_33pct": 0.12707,
+        "Bet_75pct": 0.872597
+      },
+      "AcTs": {
+        "Check": 0.000327,
+        "Bet_33pct": 0.157919,
+        "Bet_75pct": 0.841754
+      },
+      "AdTc": {
+        "Check": 0.000332,
+        "Bet_33pct": 0.117547,
+        "Bet_75pct": 0.882121
+      },
+      "AdTh": {
+        "Check": 0.000334,
+        "Bet_33pct": 0.130488,
+        "Bet_75pct": 0.869177
+      },
+      "AdTs": {
+        "Check": 0.000329,
+        "Bet_33pct": 0.160953,
+        "Bet_75pct": 0.838718
+      },
+      "AsTc": {
+        "Check": 0.000329,
+        "Bet_33pct": 0.112408,
+        "Bet_75pct": 0.887263
+      },
+      "AsTd": {
+        "Check": 0.000331,
+        "Bet_33pct": 0.134103,
+        "Bet_75pct": 0.865566
+      },
+      "AsTh": {
+        "Check": 0.000332,
+        "Bet_33pct": 0.125613,
+        "Bet_75pct": 0.874055
+      }
+    },
+    "ATs": {
+      "AcTc": {
+        "Check": 0.000347,
+        "Bet_33pct": 0.212323,
+        "Bet_75pct": 0.787329
+      },
+      "AdTd": {
+        "Check": 0.000358,
+        "Bet_33pct": 0.25203,
+        "Bet_75pct": 0.747612
+      },
+      "AsTs": {
+        "Check": 0.000327,
+        "Bet_33pct": 0.156231,
+        "Bet_75pct": 0.843443
+      }
+    },
+    "J3s": {
+      "Jc3c": {
+        "Check": 0.00034,
+        "Bet_33pct": 0.418323,
+        "Bet_75pct": 0.581337
+      },
+      "Jd3d": {
+        "Check": 0.000379,
+        "Bet_33pct": 0.407387,
+        "Bet_75pct": 0.592234
+      },
+      "Jh3h": {
+        "Check": 0.000251,
+        "Bet_33pct": 0.378556,
+        "Bet_75pct": 0.621193
+      },
+      "Js3s": {
+        "Check": 0.001956,
+        "Bet_33pct": 0.420622,
+        "Bet_75pct": 0.577422
+      }
+    },
+    "J4s": {
+      "Jc4c": {
+        "Check": 0.001102,
+        "Bet_33pct": 0.449611,
+        "Bet_75pct": 0.549287
+      },
+      "Jd4d": {
+        "Check": 0.001432,
+        "Bet_33pct": 0.43615,
+        "Bet_75pct": 0.562419
+      },
+      "Jh4h": {
+        "Check": 0.000608,
+        "Bet_33pct": 0.419032,
+        "Bet_75pct": 0.58036
+      },
+      "Js4s": {
+        "Check": 0.021604,
+        "Bet_33pct": 0.447078,
+        "Bet_75pct": 0.531318
+      }
+    },
+    "J5s": {
+      "Jc5c": {
+        "Check": 0.001782,
+        "Bet_33pct": 0.460518,
+        "Bet_75pct": 0.5377
+      },
+      "Jd5d": {
+        "Check": 0.002806,
+        "Bet_33pct": 0.451254,
+        "Bet_75pct": 0.54594
+      },
+      "Jh5h": {
+        "Check": 0.001562,
+        "Bet_33pct": 0.435887,
+        "Bet_75pct": 0.56255
+      },
+      "Js5s": {
+        "Check": 0.06055,
+        "Bet_33pct": 0.435717,
+        "Bet_75pct": 0.503733
+      }
+    },
+    "J6s": {
+      "Jc6c": {
+        "Check": 0.000708,
+        "Bet_33pct": 0.425081,
+        "Bet_75pct": 0.57421
+      },
+      "Jd6d": {
+        "Check": 0.002191,
+        "Bet_33pct": 0.422713,
+        "Bet_75pct": 0.575096
+      },
+      "Jh6h": {
+        "Check": 0.000322,
+        "Bet_33pct": 0.395564,
+        "Bet_75pct": 0.604114
+      },
+      "Js6s": {
+        "Check": 0.029695,
+        "Bet_33pct": 0.403711,
+        "Bet_75pct": 0.566594
+      }
+    },
+    "J7s": {
+      "Jd7d": {
+        "Check": 0.019063,
+        "Bet_33pct": 0.364025,
+        "Bet_75pct": 0.616912
+      },
+      "Jh7h": {
+        "Check": 0.015055,
+        "Bet_33pct": 0.336915,
+        "Bet_75pct": 0.648029
+      },
+      "Js7s": {
+        "Check": 0.009751,
+        "Bet_33pct": 0.189092,
+        "Bet_75pct": 0.801157
+      }
+    },
+    "J8o": {
+      "Jc8d": {
+        "Check": 0.007004,
+        "Bet_33pct": 0.511246,
+        "Bet_75pct": 0.48175
+      },
+      "Jc8h": {
+        "Check": 0.009809,
+        "Bet_33pct": 0.51255,
+        "Bet_75pct": 0.477641
+      },
+      "Jc8s": {
+        "Check": 0.005132,
+        "Bet_33pct": 0.500166,
+        "Bet_75pct": 0.494702
+      },
+      "Jd8c": {
+        "Check": 0.005458,
+        "Bet_33pct": 0.509062,
+        "Bet_75pct": 0.48548
+      },
+      "Jd8h": {
+        "Check": 0.005284,
+        "Bet_33pct": 0.508361,
+        "Bet_75pct": 0.486355
+      },
+      "Jd8s": {
+        "Check": 0.003983,
+        "Bet_33pct": 0.493022,
+        "Bet_75pct": 0.502996
+      },
+      "Jh8c": {
+        "Check": 0.005565,
+        "Bet_33pct": 0.507363,
+        "Bet_75pct": 0.487072
+      },
+      "Jh8d": {
+        "Check": 0.005012,
+        "Bet_33pct": 0.504097,
+        "Bet_75pct": 0.490891
+      },
+      "Jh8s": {
+        "Check": 0.003958,
+        "Bet_33pct": 0.492204,
+        "Bet_75pct": 0.503839
+      },
+      "Js8c": {
+        "Check": 0.004301,
+        "Bet_33pct": 0.50099,
+        "Bet_75pct": 0.494709
+      },
+      "Js8d": {
+        "Check": 0.003957,
+        "Bet_33pct": 0.497298,
+        "Bet_75pct": 0.498746
+      },
+      "Js8h": {
+        "Check": 0.003979,
+        "Bet_33pct": 0.499754,
+        "Bet_75pct": 0.496267
+      }
+    },
+    "J8s": {
+      "Jc8c": {
+        "Check": 0.000775,
+        "Bet_33pct": 0.409257,
+        "Bet_75pct": 0.589968
+      },
+      "Jd8d": {
+        "Check": 0.001033,
+        "Bet_33pct": 0.404406,
+        "Bet_75pct": 0.594561
+      },
+      "Jh8h": {
+        "Check": 0.000409,
+        "Bet_33pct": 0.383484,
+        "Bet_75pct": 0.616107
+      },
+      "Js8s": {
+        "Check": 0.003465,
+        "Bet_33pct": 0.483842,
+        "Bet_75pct": 0.512694
+      }
+    },
+    "J9o": {
+      "Jc9d": {
+        "Check": 0.007503,
+        "Bet_33pct": 0.515445,
+        "Bet_75pct": 0.477052
+      },
+      "Jc9h": {
+        "Check": 0.010651,
+        "Bet_33pct": 0.523755,
+        "Bet_75pct": 0.465593
+      },
+      "Jc9s": {
+        "Check": 0.006219,
+        "Bet_33pct": 0.510569,
+        "Bet_75pct": 0.483211
+      },
+      "Jd9c": {
+        "Check": 0.006819,
+        "Bet_33pct": 0.513813,
+        "Bet_75pct": 0.479368
+      },
+      "Jd9h": {
+        "Check": 0.006731,
+        "Bet_33pct": 0.517883,
+        "Bet_75pct": 0.475386
+      },
+      "Jd9s": {
+        "Check": 0.004829,
+        "Bet_33pct": 0.502262,
+        "Bet_75pct": 0.492909
+      },
+      "Jh9c": {
+        "Check": 0.007079,
+        "Bet_33pct": 0.512662,
+        "Bet_75pct": 0.480259
+      },
+      "Jh9d": {
+        "Check": 0.005913,
+        "Bet_33pct": 0.507411,
+        "Bet_75pct": 0.486677
+      },
+      "Jh9s": {
+        "Check": 0.004848,
+        "Bet_33pct": 0.501895,
+        "Bet_75pct": 0.493258
+      },
+      "Js9c": {
+        "Check": 0.005407,
+        "Bet_33pct": 0.50614,
+        "Bet_75pct": 0.488453
+      },
+      "Js9d": {
+        "Check": 0.00461,
+        "Bet_33pct": 0.500297,
+        "Bet_75pct": 0.495093
+      },
+      "Js9h": {
+        "Check": 0.005152,
+        "Bet_33pct": 0.509568,
+        "Bet_75pct": 0.485279
+      }
+    },
+    "J9s": {
+      "Jc9c": {
+        "Check": 0.001085,
+        "Bet_33pct": 0.414512,
+        "Bet_75pct": 0.584402
+      },
+      "Jd9d": {
+        "Check": 0.001465,
+        "Bet_33pct": 0.407388,
+        "Bet_75pct": 0.591147
+      },
+      "Jh9h": {
+        "Check": 0.000509,
+        "Bet_33pct": 0.391987,
+        "Bet_75pct": 0.607504
+      },
+      "Js9s": {
+        "Check": 0.004103,
+        "Bet_33pct": 0.494376,
+        "Bet_75pct": 0.50152
+      }
+    },
+    "JJ": {
+      "JdJc": {
+        "Check": 0.041951,
+        "Bet_33pct": 0.528547,
+        "Bet_75pct": 0.429503
+      },
+      "JhJc": {
+        "Check": 0.043438,
+        "Bet_33pct": 0.528775,
+        "Bet_75pct": 0.427787
+      },
+      "JhJd": {
+        "Check": 0.03846,
+        "Bet_33pct": 0.541532,
+        "Bet_75pct": 0.420009
+      },
+      "JsJc": {
+        "Check": 0.043955,
+        "Bet_33pct": 0.501311,
+        "Bet_75pct": 0.454734
+      },
+      "JsJd": {
+        "Check": 0.038563,
+        "Bet_33pct": 0.514483,
+        "Bet_75pct": 0.446954
+      },
+      "JsJh": {
+        "Check": 0.039909,
+        "Bet_33pct": 0.515515,
+        "Bet_75pct": 0.444576
+      }
+    },
+    "JTo": {
+      "JcTd": {
+        "Check": 0.003384,
+        "Bet_33pct": 0.049005,
+        "Bet_75pct": 0.947611
+      },
+      "JcTh": {
+        "Check": 0.003356,
+        "Bet_33pct": 0.048094,
+        "Bet_75pct": 0.94855
+      },
+      "JcTs": {
+        "Check": 0.003421,
+        "Bet_33pct": 0.049361,
+        "Bet_75pct": 0.947218
+      },
+      "JdTc": {
+        "Check": 0.003386,
+        "Bet_33pct": 0.052948,
+        "Bet_75pct": 0.943666
+      },
+      "JdTh": {
+        "Check": 0.003218,
+        "Bet_33pct": 0.038829,
+        "Bet_75pct": 0.957953
+      },
+      "JdTs": {
+        "Check": 0.00328,
+        "Bet_33pct": 0.039333,
+        "Bet_75pct": 0.957387
+      },
+      "JhTc": {
+        "Check": 0.00336,
+        "Bet_33pct": 0.049778,
+        "Bet_75pct": 0.946863
+      },
+      "JhTd": {
+        "Check": 0.003219,
+        "Bet_33pct": 0.037484,
+        "Bet_75pct": 0.959297
+      },
+      "JhTs": {
+        "Check": 0.003253,
+        "Bet_33pct": 0.036977,
+        "Bet_75pct": 0.95977
+      },
+      "JsTc": {
+        "Check": 0.003384,
+        "Bet_33pct": 0.040929,
+        "Bet_75pct": 0.955687
+      },
+      "JsTd": {
+        "Check": 0.003243,
+        "Bet_33pct": 0.031824,
+        "Bet_75pct": 0.964933
+      },
+      "JsTh": {
+        "Check": 0.003215,
+        "Bet_33pct": 0.031232,
+        "Bet_75pct": 0.965553
+      }
+    },
+    "JTs": {
+      "JcTc": {
+        "Check": 0.007858,
+        "Bet_33pct": 0.252339,
+        "Bet_75pct": 0.739803
+      },
+      "JdTd": {
+        "Check": 0.007726,
+        "Bet_33pct": 0.221671,
+        "Bet_75pct": 0.770603
+      },
+      "JhTh": {
+        "Check": 0.006213,
+        "Bet_33pct": 0.225058,
+        "Bet_75pct": 0.768729
+      },
+      "JsTs": {
+        "Check": 0.003151,
+        "Bet_33pct": 0.025725,
+        "Bet_75pct": 0.971124
+      }
+    },
+    "K2s": {
+      "Kc2c": {
+        "Check": 0.042229,
+        "Bet_33pct": 0.434795,
+        "Bet_75pct": 0.522976
+      },
+      "Kh2h": {
+        "Check": 0.04714,
+        "Bet_33pct": 0.440983,
+        "Bet_75pct": 0.511877
+      },
+      "Ks2s": {
+        "Check": 0.015414,
+        "Bet_33pct": 0.215373,
+        "Bet_75pct": 0.769213
+      }
+    },
+    "K3s": {
+      "Kc3c": {
+        "Check": 0.051338,
+        "Bet_33pct": 0.426412,
+        "Bet_75pct": 0.52225
+      },
+      "Kh3h": {
+        "Check": 0.056668,
+        "Bet_33pct": 0.438259,
+        "Bet_75pct": 0.505073
+      },
+      "Ks3s": {
+        "Check": 0.018512,
+        "Bet_33pct": 0.228944,
+        "Bet_75pct": 0.752544
+      }
+    },
+    "K4s": {
+      "Kc4c": {
+        "Check": 0.067645,
+        "Bet_33pct": 0.432481,
+        "Bet_75pct": 0.499874
+      },
+      "Kh4h": {
+        "Check": 0.073197,
+        "Bet_33pct": 0.433579,
+        "Bet_75pct": 0.493223
+      },
+      "Ks4s": {
+        "Check": 0.0281,
+        "Bet_33pct": 0.241871,
+        "Bet_75pct": 0.730029
+      }
+    },
+    "K5s": {
+      "Kc5c": {
+        "Check": 0.060541,
+        "Bet_33pct": 0.454127,
+        "Bet_75pct": 0.485332
+      },
+      "Kh5h": {
+        "Check": 0.054591,
+        "Bet_33pct": 0.458881,
+        "Bet_75pct": 0.486528
+      },
+      "Ks5s": {
+        "Check": 0.02874,
+        "Bet_33pct": 0.267263,
+        "Bet_75pct": 0.703998
+      }
+    },
+    "K6o": {
+      "Kc6d": {
+        "Check": 0.015459,
+        "Bet_33pct": 0.226454,
+        "Bet_75pct": 0.758087
+      },
+      "Kc6h": {
+        "Check": 0.013109,
+        "Bet_33pct": 0.217829,
+        "Bet_75pct": 0.769063
+      },
+      "Kc6s": {
+        "Check": 0.010647,
+        "Bet_33pct": 0.263963,
+        "Bet_75pct": 0.72539
+      },
+      "Kh6c": {
+        "Check": 0.012727,
+        "Bet_33pct": 0.199279,
+        "Bet_75pct": 0.787993
+      },
+      "Kh6d": {
+        "Check": 0.016361,
+        "Bet_33pct": 0.218494,
+        "Bet_75pct": 0.765146
+      },
+      "Kh6s": {
+        "Check": 0.010874,
+        "Bet_33pct": 0.250724,
+        "Bet_75pct": 0.738402
+      },
+      "Ks6c": {
+        "Check": 0.015603,
+        "Bet_33pct": 0.260603,
+        "Bet_75pct": 0.723794
+      },
+      "Ks6d": {
+        "Check": 0.02438,
+        "Bet_33pct": 0.275263,
+        "Bet_75pct": 0.700357
+      },
+      "Ks6h": {
+        "Check": 0.01685,
+        "Bet_33pct": 0.26846,
+        "Bet_75pct": 0.71469
+      }
+    },
+    "K6s": {
+      "Kc6c": {
+        "Check": 0.035439,
+        "Bet_33pct": 0.501857,
+        "Bet_75pct": 0.462704
+      },
+      "Kh6h": {
+        "Check": 0.02815,
+        "Bet_33pct": 0.506198,
+        "Bet_75pct": 0.465652
+      },
+      "Ks6s": {
+        "Check": 0.013952,
+        "Bet_33pct": 0.304865,
+        "Bet_75pct": 0.681182
+      }
+    },
+    "K7o": {
+      "Kc7d": {
+        "Check": 0.003104,
+        "Bet_33pct": 0.710859,
+        "Bet_75pct": 0.286037
+      },
+      "Kc7h": {
+        "Check": 0.003547,
+        "Bet_33pct": 0.736292,
+        "Bet_75pct": 0.26016
+      },
+      "Kc7s": {
+        "Check": 0.002298,
+        "Bet_33pct": 0.646602,
+        "Bet_75pct": 0.351099
+      },
+      "Kh7d": {
+        "Check": 0.003078,
+        "Bet_33pct": 0.707639,
+        "Bet_75pct": 0.289283
+      },
+      "Kh7s": {
+        "Check": 0.002271,
+        "Bet_33pct": 0.64374,
+        "Bet_75pct": 0.35399
+      },
+      "Ks7d": {
+        "Check": 0.003372,
+        "Bet_33pct": 0.745826,
+        "Bet_75pct": 0.250802
+      },
+      "Ks7h": {
+        "Check": 0.003869,
+        "Bet_33pct": 0.773839,
+        "Bet_75pct": 0.222293
+      }
+    },
+    "K7s": {
+      "Kh7h": {
+        "Check": 0.005636,
+        "Bet_33pct": 0.828266,
+        "Bet_75pct": 0.166099
+      },
+      "Ks7s": {
+        "Check": 0.002459,
+        "Bet_33pct": 0.676696,
+        "Bet_75pct": 0.320845
+      }
+    },
+    "K8o": {
+      "Kc8d": {
+        "Check": 0.004626,
+        "Bet_33pct": 0.337574,
+        "Bet_75pct": 0.657799
+      },
+      "Kc8h": {
+        "Check": 0.004616,
+        "Bet_33pct": 0.336999,
+        "Bet_75pct": 0.658384
+      },
+      "Kc8s": {
+        "Check": 0.004231,
+        "Bet_33pct": 0.358025,
+        "Bet_75pct": 0.637744
+      },
+      "Kh8c": {
+        "Check": 0.004509,
+        "Bet_33pct": 0.318609,
+        "Bet_75pct": 0.676882
+      },
+      "Kh8d": {
+        "Check": 0.004743,
+        "Bet_33pct": 0.321344,
+        "Bet_75pct": 0.673913
+      },
+      "Kh8s": {
+        "Check": 0.004206,
+        "Bet_33pct": 0.340826,
+        "Bet_75pct": 0.654968
+      },
+      "Ks8c": {
+        "Check": 0.006291,
+        "Bet_33pct": 0.355144,
+        "Bet_75pct": 0.638565
+      },
+      "Ks8d": {
+        "Check": 0.008604,
+        "Bet_33pct": 0.357459,
+        "Bet_75pct": 0.633937
+      },
+      "Ks8h": {
+        "Check": 0.006444,
+        "Bet_33pct": 0.358009,
+        "Bet_75pct": 0.635546
+      }
+    },
+    "K8s": {
+      "Kc8c": {
+        "Check": 0.013776,
+        "Bet_33pct": 0.625763,
+        "Bet_75pct": 0.36046
+      },
+      "Kh8h": {
+        "Check": 0.007358,
+        "Bet_33pct": 0.633902,
+        "Bet_75pct": 0.35874
+      },
+      "Ks8s": {
+        "Check": 0.004932,
+        "Bet_33pct": 0.378802,
+        "Bet_75pct": 0.616266
+      }
+    },
+    "K9o": {
+      "Kc9d": {
+        "Check": 0.00401,
+        "Bet_33pct": 0.372751,
+        "Bet_75pct": 0.623239
+      },
+      "Kc9h": {
+        "Check": 0.004134,
+        "Bet_33pct": 0.351449,
+        "Bet_75pct": 0.644416
+      },
+      "Kc9s": {
+        "Check": 0.003678,
+        "Bet_33pct": 0.386498,
+        "Bet_75pct": 0.609824
+      },
+      "Kh9c": {
+        "Check": 0.003826,
+        "Bet_33pct": 0.362597,
+        "Bet_75pct": 0.633577
+      },
+      "Kh9d": {
+        "Check": 0.003964,
+        "Bet_33pct": 0.360063,
+        "Bet_75pct": 0.635973
+      },
+      "Kh9s": {
+        "Check": 0.003635,
+        "Bet_33pct": 0.373407,
+        "Bet_75pct": 0.622958
+      },
+      "Ks9c": {
+        "Check": 0.0038,
+        "Bet_33pct": 0.389039,
+        "Bet_75pct": 0.607162
+      },
+      "Ks9d": {
+        "Check": 0.003935,
+        "Bet_33pct": 0.386986,
+        "Bet_75pct": 0.609078
+      },
+      "Ks9h": {
+        "Check": 0.004027,
+        "Bet_33pct": 0.364391,
+        "Bet_75pct": 0.631582
+      }
+    },
+    "K9s": {
+      "Kc9c": {
+        "Check": 0.009096,
+        "Bet_33pct": 0.590285,
+        "Bet_75pct": 0.40062
+      },
+      "Kh9h": {
+        "Check": 0.005572,
+        "Bet_33pct": 0.587108,
+        "Bet_75pct": 0.407319
+      },
+      "Ks9s": {
+        "Check": 0.003606,
+        "Bet_33pct": 0.399844,
+        "Bet_75pct": 0.59655
+      }
+    },
+    "KJo": {
+      "KcJd": {
+        "Check": 0.002439,
+        "Bet_33pct": 0.398122,
+        "Bet_75pct": 0.599439
+      },
+      "KcJh": {
+        "Check": 0.002505,
+        "Bet_33pct": 0.398066,
+        "Bet_75pct": 0.599429
+      },
+      "KcJs": {
+        "Check": 0.002236,
+        "Bet_33pct": 0.405278,
+        "Bet_75pct": 0.592485
+      },
+      "KhJc": {
+        "Check": 0.002361,
+        "Bet_33pct": 0.392997,
+        "Bet_75pct": 0.604642
+      },
+      "KhJd": {
+        "Check": 0.002412,
+        "Bet_33pct": 0.395521,
+        "Bet_75pct": 0.602068
+      },
+      "KhJs": {
+        "Check": 0.002217,
+        "Bet_33pct": 0.402456,
+        "Bet_75pct": 0.595327
+      },
+      "KsJc": {
+        "Check": 0.002381,
+        "Bet_33pct": 0.415542,
+        "Bet_75pct": 0.582078
+      },
+      "KsJd": {
+        "Check": 0.002434,
+        "Bet_33pct": 0.418342,
+        "Bet_75pct": 0.579225
+      },
+      "KsJh": {
+        "Check": 0.002504,
+        "Bet_33pct": 0.418221,
+        "Bet_75pct": 0.579274
+      }
+    },
+    "KJs": {
+      "KcJc": {
+        "Check": 0.01043,
+        "Bet_33pct": 0.488849,
+        "Bet_75pct": 0.500721
+      },
+      "KhJh": {
+        "Check": 0.004879,
+        "Bet_33pct": 0.478162,
+        "Bet_75pct": 0.516959
+      },
+      "KsJs": {
+        "Check": 0.002222,
+        "Bet_33pct": 0.424655,
+        "Bet_75pct": 0.573123
+      }
+    },
+    "KK": {
+      "KhKc": {
+        "Check": 0.018846,
+        "Bet_33pct": 0.964396,
+        "Bet_75pct": 0.016758
+      },
+      "KsKc": {
+        "Check": 0.0204,
+        "Bet_33pct": 0.965176,
+        "Bet_75pct": 0.014424
+      },
+      "KsKh": {
+        "Check": 0.020011,
+        "Bet_33pct": 0.965405,
+        "Bet_75pct": 0.014584
+      }
+    },
+    "KQo": {
+      "KcQd": {
+        "Check": 0.001768,
+        "Bet_33pct": 0.317502,
+        "Bet_75pct": 0.68073
+      },
+      "KcQh": {
+        "Check": 0.001793,
+        "Bet_33pct": 0.317111,
+        "Bet_75pct": 0.681095
+      },
+      "KcQs": {
+        "Check": 0.001616,
+        "Bet_33pct": 0.335254,
+        "Bet_75pct": 0.663131
+      },
+      "KhQc": {
+        "Check": 0.0017,
+        "Bet_33pct": 0.321099,
+        "Bet_75pct": 0.677202
+      },
+      "KhQd": {
+        "Check": 0.001717,
+        "Bet_33pct": 0.320472,
+        "Bet_75pct": 0.677811
+      },
+      "KhQs": {
+        "Check": 0.001572,
+        "Bet_33pct": 0.338533,
+        "Bet_75pct": 0.659895
+      },
+      "KsQc": {
+        "Check": 0.001729,
+        "Bet_33pct": 0.335159,
+        "Bet_75pct": 0.663112
+      },
+      "KsQd": {
+        "Check": 0.001749,
+        "Bet_33pct": 0.335398,
+        "Bet_75pct": 0.662854
+      },
+      "KsQh": {
+        "Check": 0.001772,
+        "Bet_33pct": 0.334691,
+        "Bet_75pct": 0.663537
+      }
+    },
+    "KQs": {
+      "KcQc": {
+        "Check": 0.005118,
+        "Bet_33pct": 0.40276,
+        "Bet_75pct": 0.592122
+      },
+      "KhQh": {
+        "Check": 0.003229,
+        "Bet_33pct": 0.38842,
+        "Bet_75pct": 0.608351
+      },
+      "KsQs": {
+        "Check": 0.001594,
+        "Bet_33pct": 0.35133,
+        "Bet_75pct": 0.647076
+      }
+    },
+    "KTo": {
+      "KcTd": {
+        "Check": 0.004281,
+        "Bet_33pct": 0.489189,
+        "Bet_75pct": 0.50653
+      },
+      "KcTh": {
+        "Check": 0.005046,
+        "Bet_33pct": 0.488087,
+        "Bet_75pct": 0.506867
+      },
+      "KcTs": {
+        "Check": 0.003444,
+        "Bet_33pct": 0.496965,
+        "Bet_75pct": 0.499591
+      },
+      "KhTc": {
+        "Check": 0.006339,
+        "Bet_33pct": 0.479597,
+        "Bet_75pct": 0.514064
+      },
+      "KhTd": {
+        "Check": 0.005868,
+        "Bet_33pct": 0.4854,
+        "Bet_75pct": 0.508732
+      },
+      "KhTs": {
+        "Check": 0.00372,
+        "Bet_33pct": 0.493545,
+        "Bet_75pct": 0.502735
+      },
+      "KsTc": {
+        "Check": 0.010377,
+        "Bet_33pct": 0.496541,
+        "Bet_75pct": 0.493082
+      },
+      "KsTd": {
+        "Check": 0.014645,
+        "Bet_33pct": 0.499986,
+        "Bet_75pct": 0.485369
+      },
+      "KsTh": {
+        "Check": 0.020356,
+        "Bet_33pct": 0.496584,
+        "Bet_75pct": 0.48306
+      }
+    },
+    "KTs": {
+      "KcTc": {
+        "Check": 0.03931,
+        "Bet_33pct": 0.622357,
+        "Bet_75pct": 0.338333
+      },
+      "KhTh": {
+        "Check": 0.014133,
+        "Bet_33pct": 0.631582,
+        "Bet_75pct": 0.354286
+      },
+      "KsTs": {
+        "Check": 0.004301,
+        "Bet_33pct": 0.511909,
+        "Bet_75pct": 0.483791
+      }
+    },
+    "Q2s": {
+      "Qc2c": {
+        "Check": 0.000444,
+        "Bet_33pct": 0.430949,
+        "Bet_75pct": 0.568607
+      },
+      "Qd2d": {
+        "Check": 0.000572,
+        "Bet_33pct": 0.424517,
+        "Bet_75pct": 0.574912
+      },
+      "Qh2h": {
+        "Check": 0.000277,
+        "Bet_33pct": 0.406902,
+        "Bet_75pct": 0.592821
+      },
+      "Qs2s": {
+        "Check": 0.002052,
+        "Bet_33pct": 0.466774,
+        "Bet_75pct": 0.531174
+      }
+    },
+    "Q3s": {
+      "Qc3c": {
+        "Check": 0.000776,
+        "Bet_33pct": 0.442018,
+        "Bet_75pct": 0.557206
+      },
+      "Qd3d": {
+        "Check": 0.001234,
+        "Bet_33pct": 0.438402,
+        "Bet_75pct": 0.560364
+      },
+      "Qh3h": {
+        "Check": 0.00034,
+        "Bet_33pct": 0.416949,
+        "Bet_75pct": 0.582712
+      },
+      "Qs3s": {
+        "Check": 0.003394,
+        "Bet_33pct": 0.482606,
+        "Bet_75pct": 0.514
+      }
+    },
+    "Q4s": {
+      "Qc4c": {
+        "Check": 0.00258,
+        "Bet_33pct": 0.48516,
+        "Bet_75pct": 0.51226
+      },
+      "Qd4d": {
+        "Check": 0.004022,
+        "Bet_33pct": 0.475839,
+        "Bet_75pct": 0.520139
+      },
+      "Qh4h": {
+        "Check": 0.002362,
+        "Bet_33pct": 0.463332,
+        "Bet_75pct": 0.534307
+      },
+      "Qs4s": {
+        "Check": 0.009772,
+        "Bet_33pct": 0.521622,
+        "Bet_75pct": 0.468606
+      }
+    },
+    "Q5s": {
+      "Qc5c": {
+        "Check": 0.003646,
+        "Bet_33pct": 0.49875,
+        "Bet_75pct": 0.497604
+      },
+      "Qd5d": {
+        "Check": 0.005615,
+        "Bet_33pct": 0.490327,
+        "Bet_75pct": 0.504058
+      },
+      "Qh5h": {
+        "Check": 0.003417,
+        "Bet_33pct": 0.4788,
+        "Bet_75pct": 0.517783
+      },
+      "Qs5s": {
+        "Check": 0.019198,
+        "Bet_33pct": 0.525451,
+        "Bet_75pct": 0.455351
+      }
+    },
+    "Q6s": {
+      "Qc6c": {
+        "Check": 0.002251,
+        "Bet_33pct": 0.474445,
+        "Bet_75pct": 0.523304
+      },
+      "Qd6d": {
+        "Check": 0.003867,
+        "Bet_33pct": 0.472929,
+        "Bet_75pct": 0.523204
+      },
+      "Qh6h": {
+        "Check": 0.001251,
+        "Bet_33pct": 0.451607,
+        "Bet_75pct": 0.547142
+      },
+      "Qs6s": {
+        "Check": 0.010364,
+        "Bet_33pct": 0.495655,
+        "Bet_75pct": 0.493981
+      }
+    },
+    "Q7s": {
+      "Qd7d": {
+        "Check": 0.018702,
+        "Bet_33pct": 0.465741,
+        "Bet_75pct": 0.515557
+      },
+      "Qh7h": {
+        "Check": 0.015897,
+        "Bet_33pct": 0.445044,
+        "Bet_75pct": 0.539059
+      },
+      "Qs7s": {
+        "Check": 0.009885,
+        "Bet_33pct": 0.288147,
+        "Bet_75pct": 0.701969
+      }
+    },
+    "Q8o": {
+      "Qc8d": {
+        "Check": 0.017885,
+        "Bet_33pct": 0.568364,
+        "Bet_75pct": 0.413751
+      },
+      "Qc8h": {
+        "Check": 0.018479,
+        "Bet_33pct": 0.569608,
+        "Bet_75pct": 0.411913
+      },
+      "Qc8s": {
+        "Check": 0.014125,
+        "Bet_33pct": 0.556249,
+        "Bet_75pct": 0.429627
+      },
+      "Qd8c": {
+        "Check": 0.015658,
+        "Bet_33pct": 0.568514,
+        "Bet_75pct": 0.415828
+      },
+      "Qd8h": {
+        "Check": 0.015885,
+        "Bet_33pct": 0.566817,
+        "Bet_75pct": 0.417298
+      },
+      "Qd8s": {
+        "Check": 0.012349,
+        "Bet_33pct": 0.553243,
+        "Bet_75pct": 0.434408
+      },
+      "Qh8c": {
+        "Check": 0.017421,
+        "Bet_33pct": 0.566461,
+        "Bet_75pct": 0.416119
+      },
+      "Qh8d": {
+        "Check": 0.017221,
+        "Bet_33pct": 0.563306,
+        "Bet_75pct": 0.419473
+      },
+      "Qh8s": {
+        "Check": 0.013436,
+        "Bet_33pct": 0.551729,
+        "Bet_75pct": 0.434835
+      },
+      "Qs8c": {
+        "Check": 0.013581,
+        "Bet_33pct": 0.553909,
+        "Bet_75pct": 0.43251
+      },
+      "Qs8d": {
+        "Check": 0.013488,
+        "Bet_33pct": 0.550701,
+        "Bet_75pct": 0.43581
+      },
+      "Qs8h": {
+        "Check": 0.013517,
+        "Bet_33pct": 0.552068,
+        "Bet_75pct": 0.434415
+      }
+    },
+    "Q8s": {
+      "Qc8c": {
+        "Check": 0.003766,
+        "Bet_33pct": 0.477149,
+        "Bet_75pct": 0.519085
+      },
+      "Qd8d": {
+        "Check": 0.005942,
+        "Bet_33pct": 0.4737,
+        "Bet_75pct": 0.520359
+      },
+      "Qh8h": {
+        "Check": 0.002314,
+        "Bet_33pct": 0.456556,
+        "Bet_75pct": 0.54113
+      },
+      "Qs8s": {
+        "Check": 0.01114,
+        "Bet_33pct": 0.535803,
+        "Bet_75pct": 0.453056
+      }
+    },
+    "Q9o": {
+      "Qc9d": {
+        "Check": 0.020346,
+        "Bet_33pct": 0.572658,
+        "Bet_75pct": 0.406996
+      },
+      "Qc9h": {
+        "Check": 0.021862,
+        "Bet_33pct": 0.579505,
+        "Bet_75pct": 0.398634
+      },
+      "Qc9s": {
+        "Check": 0.016291,
+        "Bet_33pct": 0.566719,
+        "Bet_75pct": 0.416991
+      },
+      "Qd9c": {
+        "Check": 0.019069,
+        "Bet_33pct": 0.574033,
+        "Bet_75pct": 0.406899
+      },
+      "Qd9h": {
+        "Check": 0.019784,
+        "Bet_33pct": 0.577306,
+        "Bet_75pct": 0.40291
+      },
+      "Qd9s": {
+        "Check": 0.014737,
+        "Bet_33pct": 0.564175,
+        "Bet_75pct": 0.421087
+      },
+      "Qh9c": {
+        "Check": 0.021158,
+        "Bet_33pct": 0.572051,
+        "Bet_75pct": 0.40679
+      },
+      "Qh9d": {
+        "Check": 0.02042,
+        "Bet_33pct": 0.568191,
+        "Bet_75pct": 0.411389
+      },
+      "Qh9s": {
+        "Check": 0.016074,
+        "Bet_33pct": 0.562695,
+        "Bet_75pct": 0.421231
+      },
+      "Qs9c": {
+        "Check": 0.016674,
+        "Bet_33pct": 0.55985,
+        "Bet_75pct": 0.423476
+      },
+      "Qs9d": {
+        "Check": 0.015809,
+        "Bet_33pct": 0.556174,
+        "Bet_75pct": 0.428017
+      },
+      "Qs9h": {
+        "Check": 0.016519,
+        "Bet_33pct": 0.562885,
+        "Bet_75pct": 0.420596
+      }
+    },
+    "Q9s": {
+      "Qc9c": {
+        "Check": 0.007575,
+        "Bet_33pct": 0.480419,
+        "Bet_75pct": 0.512006
+      },
+      "Qd9d": {
+        "Check": 0.012391,
+        "Bet_33pct": 0.475203,
+        "Bet_75pct": 0.512406
+      },
+      "Qh9h": {
+        "Check": 0.005527,
+        "Bet_33pct": 0.463663,
+        "Bet_75pct": 0.530809
+      },
+      "Qs9s": {
+        "Check": 0.01335,
+        "Bet_33pct": 0.54797,
+        "Bet_75pct": 0.43868
+      }
+    },
+    "QJo": {
+      "QcJd": {
+        "Check": 0.002877,
+        "Bet_33pct": 0.105418,
+        "Bet_75pct": 0.891705
+      },
+      "QcJh": {
+        "Check": 0.002828,
+        "Bet_33pct": 0.10498,
+        "Bet_75pct": 0.892192
+      },
+      "QcJs": {
+        "Check": 0.002825,
+        "Bet_33pct": 0.093393,
+        "Bet_75pct": 0.903782
+      },
+      "QdJc": {
+        "Check": 0.002873,
+        "Bet_33pct": 0.118259,
+        "Bet_75pct": 0.878868
+      },
+      "QdJh": {
+        "Check": 0.002724,
+        "Bet_33pct": 0.102292,
+        "Bet_75pct": 0.894984
+      },
+      "QdJs": {
+        "Check": 0.002718,
+        "Bet_33pct": 0.090945,
+        "Bet_75pct": 0.906338
+      },
+      "QhJc": {
+        "Check": 0.002861,
+        "Bet_33pct": 0.117115,
+        "Bet_75pct": 0.880024
+      },
+      "QhJd": {
+        "Check": 0.00276,
+        "Bet_33pct": 0.101754,
+        "Bet_75pct": 0.895486
+      },
+      "QhJs": {
+        "Check": 0.002707,
+        "Bet_33pct": 0.089825,
+        "Bet_75pct": 0.907468
+      },
+      "QsJc": {
+        "Check": 0.002866,
+        "Bet_33pct": 0.099279,
+        "Bet_75pct": 0.897855
+      },
+      "QsJd": {
+        "Check": 0.002765,
+        "Bet_33pct": 0.083994,
+        "Bet_75pct": 0.91324
+      },
+      "QsJh": {
+        "Check": 0.002719,
+        "Bet_33pct": 0.083718,
+        "Bet_75pct": 0.913563
+      }
+    },
+    "QJs": {
+      "QcJc": {
+        "Check": 0.030221,
+        "Bet_33pct": 0.242134,
+        "Bet_75pct": 0.727645
+      },
+      "QdJd": {
+        "Check": 0.061365,
+        "Bet_33pct": 0.234603,
+        "Bet_75pct": 0.704032
+      },
+      "QhJh": {
+        "Check": 0.017241,
+        "Bet_33pct": 0.232473,
+        "Bet_75pct": 0.750286
+      },
+      "QsJs": {
+        "Check": 0.002719,
+        "Bet_33pct": 0.072881,
+        "Bet_75pct": 0.9244
+      }
+    },
+    "QQ": {
+      "QdQc": {
+        "Check": 0.091198,
+        "Bet_33pct": 0.532442,
+        "Bet_75pct": 0.37636
+      },
+      "QhQc": {
+        "Check": 0.097297,
+        "Bet_33pct": 0.539246,
+        "Bet_75pct": 0.363457
+      },
+      "QhQd": {
+        "Check": 0.085735,
+        "Bet_33pct": 0.545345,
+        "Bet_75pct": 0.36892
+      },
+      "QsQc": {
+        "Check": 0.102202,
+        "Bet_33pct": 0.518818,
+        "Bet_75pct": 0.37898
+      },
+      "QsQd": {
+        "Check": 0.089572,
+        "Bet_33pct": 0.525671,
+        "Bet_75pct": 0.384757
+      },
+      "QsQh": {
+        "Check": 0.095806,
+        "Bet_33pct": 0.533732,
+        "Bet_75pct": 0.370463
+      }
+    },
+    "QTo": {
+      "QcTd": {
+        "Check": 0.00383,
+        "Bet_33pct": 0.165793,
+        "Bet_75pct": 0.830376
+      },
+      "QcTh": {
+        "Check": 0.00376,
+        "Bet_33pct": 0.165623,
+        "Bet_75pct": 0.830617
+      },
+      "QcTs": {
+        "Check": 0.003777,
+        "Bet_33pct": 0.160891,
+        "Bet_75pct": 0.835332
+      },
+      "QdTc": {
+        "Check": 0.00378,
+        "Bet_33pct": 0.17674,
+        "Bet_75pct": 0.81948
+      },
+      "QdTh": {
+        "Check": 0.003589,
+        "Bet_33pct": 0.16426,
+        "Bet_75pct": 0.832151
+      },
+      "QdTs": {
+        "Check": 0.003601,
+        "Bet_33pct": 0.159077,
+        "Bet_75pct": 0.837322
+      },
+      "QhTc": {
+        "Check": 0.003757,
+        "Bet_33pct": 0.171534,
+        "Bet_75pct": 0.824709
+      },
+      "QhTd": {
+        "Check": 0.003639,
+        "Bet_33pct": 0.159332,
+        "Bet_75pct": 0.837029
+      },
+      "QhTs": {
+        "Check": 0.003578,
+        "Bet_33pct": 0.153602,
+        "Bet_75pct": 0.84282
+      },
+      "QsTc": {
+        "Check": 0.003762,
+        "Bet_33pct": 0.151922,
+        "Bet_75pct": 0.844316
+      },
+      "QsTd": {
+        "Check": 0.003635,
+        "Bet_33pct": 0.138394,
+        "Bet_75pct": 0.857971
+      },
+      "QsTh": {
+        "Check": 0.003571,
+        "Bet_33pct": 0.138077,
+        "Bet_75pct": 0.858352
+      }
+    },
+    "QTs": {
+      "QcTc": {
+        "Check": 0.014971,
+        "Bet_33pct": 0.251206,
+        "Bet_75pct": 0.733823
+      },
+      "QdTd": {
+        "Check": 0.020227,
+        "Bet_33pct": 0.248259,
+        "Bet_75pct": 0.731515
+      },
+      "QhTh": {
+        "Check": 0.010205,
+        "Bet_33pct": 0.235853,
+        "Bet_75pct": 0.753942
+      },
+      "QsTs": {
+        "Check": 0.003588,
+        "Bet_33pct": 0.134103,
+        "Bet_75pct": 0.862309
+      }
+    },
+    "T4s": {
+      "Tc4c": {
+        "Check": 0.000545,
+        "Bet_33pct": 0.419696,
+        "Bet_75pct": 0.579759
+      },
+      "Td4d": {
+        "Check": 0.00052,
+        "Bet_33pct": 0.402916,
+        "Bet_75pct": 0.596564
+      },
+      "Th4h": {
+        "Check": 0.000388,
+        "Bet_33pct": 0.387224,
+        "Bet_75pct": 0.612388
+      },
+      "Ts4s": {
+        "Check": 0.019519,
+        "Bet_33pct": 0.458357,
+        "Bet_75pct": 0.522124
+      }
+    },
+    "T5s": {
+      "Tc5c": {
+        "Check": 0.000844,
+        "Bet_33pct": 0.435157,
+        "Bet_75pct": 0.564
+      },
+      "Td5d": {
+        "Check": 0.000785,
+        "Bet_33pct": 0.421707,
+        "Bet_75pct": 0.577509
+      },
+      "Th5h": {
+        "Check": 0.000576,
+        "Bet_33pct": 0.408221,
+        "Bet_75pct": 0.591203
+      },
+      "Ts5s": {
+        "Check": 0.053463,
+        "Bet_33pct": 0.449377,
+        "Bet_75pct": 0.49716
+      }
+    },
+    "T6s": {
+      "Tc6c": {
+        "Check": 0.000559,
+        "Bet_33pct": 0.355095,
+        "Bet_75pct": 0.644347
+      },
+      "Td6d": {
+        "Check": 0.000551,
+        "Bet_33pct": 0.352698,
+        "Bet_75pct": 0.646751
+      },
+      "Th6h": {
+        "Check": 0.000454,
+        "Bet_33pct": 0.32103,
+        "Bet_75pct": 0.678517
+      },
+      "Ts6s": {
+        "Check": 0.000459,
+        "Bet_33pct": 0.387339,
+        "Bet_75pct": 0.612202
+      }
+    },
+    "T7s": {
+      "Td7d": {
+        "Check": 0.013795,
+        "Bet_33pct": 0.175071,
+        "Bet_75pct": 0.811134
+      },
+      "Th7h": {
+        "Check": 0.01233,
+        "Bet_33pct": 0.138976,
+        "Bet_75pct": 0.848694
+      },
+      "Ts7s": {
+        "Check": 0.008125,
+        "Bet_33pct": 0.023499,
+        "Bet_75pct": 0.968376
+      }
+    },
+    "T8o": {
+      "Tc8d": {
+        "Check": 0.002488,
+        "Bet_33pct": 0.442994,
+        "Bet_75pct": 0.554518
+      },
+      "Tc8h": {
+        "Check": 0.003975,
+        "Bet_33pct": 0.445816,
+        "Bet_75pct": 0.550209
+      },
+      "Tc8s": {
+        "Check": 0.002812,
+        "Bet_33pct": 0.421666,
+        "Bet_75pct": 0.575522
+      },
+      "Td8c": {
+        "Check": 0.001858,
+        "Bet_33pct": 0.437824,
+        "Bet_75pct": 0.560319
+      },
+      "Td8h": {
+        "Check": 0.002247,
+        "Bet_33pct": 0.437644,
+        "Bet_75pct": 0.560109
+      },
+      "Td8s": {
+        "Check": 0.001416,
+        "Bet_33pct": 0.412386,
+        "Bet_75pct": 0.586198
+      },
+      "Th8c": {
+        "Check": 0.002284,
+        "Bet_33pct": 0.440416,
+        "Bet_75pct": 0.557301
+      },
+      "Th8d": {
+        "Check": 0.001581,
+        "Bet_33pct": 0.43736,
+        "Bet_75pct": 0.561058
+      },
+      "Th8s": {
+        "Check": 0.00184,
+        "Bet_33pct": 0.416085,
+        "Bet_75pct": 0.582075
+      },
+      "Ts8c": {
+        "Check": 0.002767,
+        "Bet_33pct": 0.423422,
+        "Bet_75pct": 0.573811
+      },
+      "Ts8d": {
+        "Check": 0.001839,
+        "Bet_33pct": 0.419683,
+        "Bet_75pct": 0.578478
+      },
+      "Ts8h": {
+        "Check": 0.002966,
+        "Bet_33pct": 0.422382,
+        "Bet_75pct": 0.574653
+      }
+    },
+    "T8s": {
+      "Tc8c": {
+        "Check": 0.0056,
+        "Bet_33pct": 0.324719,
+        "Bet_75pct": 0.669681
+      },
+      "Td8d": {
+        "Check": 0.005734,
+        "Bet_33pct": 0.312656,
+        "Bet_75pct": 0.68161
+      },
+      "Th8h": {
+        "Check": 0.00297,
+        "Bet_33pct": 0.289415,
+        "Bet_75pct": 0.707615
+      },
+      "Ts8s": {
+        "Check": 0.002152,
+        "Bet_33pct": 0.39582,
+        "Bet_75pct": 0.602027
+      }
+    },
+    "T9o": {
+      "Tc9d": {
+        "Check": 0.002019,
+        "Bet_33pct": 0.45286,
+        "Bet_75pct": 0.545121
+      },
+      "Tc9h": {
+        "Check": 0.004032,
+        "Bet_33pct": 0.460014,
+        "Bet_75pct": 0.535953
+      },
+      "Tc9s": {
+        "Check": 0.002119,
+        "Bet_33pct": 0.438515,
+        "Bet_75pct": 0.559366
+      },
+      "Td9c": {
+        "Check": 0.001428,
+        "Bet_33pct": 0.449302,
+        "Bet_75pct": 0.54927
+      },
+      "Td9h": {
+        "Check": 0.001795,
+        "Bet_33pct": 0.451779,
+        "Bet_75pct": 0.546426
+      },
+      "Td9s": {
+        "Check": 0.001055,
+        "Bet_33pct": 0.428869,
+        "Bet_75pct": 0.570076
+      },
+      "Th9c": {
+        "Check": 0.002079,
+        "Bet_33pct": 0.452418,
+        "Bet_75pct": 0.545503
+      },
+      "Th9d": {
+        "Check": 0.001316,
+        "Bet_33pct": 0.447354,
+        "Bet_75pct": 0.551329
+      },
+      "Th9s": {
+        "Check": 0.001432,
+        "Bet_33pct": 0.433002,
+        "Bet_75pct": 0.565566
+      },
+      "Ts9c": {
+        "Check": 0.002293,
+        "Bet_33pct": 0.434265,
+        "Bet_75pct": 0.563442
+      },
+      "Ts9d": {
+        "Check": 0.001272,
+        "Bet_33pct": 0.429009,
+        "Bet_75pct": 0.569719
+      },
+      "Ts9h": {
+        "Check": 0.002492,
+        "Bet_33pct": 0.435842,
+        "Bet_75pct": 0.561666
+      }
+    },
+    "T9s": {
+      "Tc9c": {
+        "Check": 0.005577,
+        "Bet_33pct": 0.343285,
+        "Bet_75pct": 0.651138
+      },
+      "Td9d": {
+        "Check": 0.007805,
+        "Bet_33pct": 0.328994,
+        "Bet_75pct": 0.663201
+      },
+      "Th9h": {
+        "Check": 0.002986,
+        "Bet_33pct": 0.311454,
+        "Bet_75pct": 0.68556
+      },
+      "Ts9s": {
+        "Check": 0.001688,
+        "Bet_33pct": 0.414055,
+        "Bet_75pct": 0.584257
+      }
+    },
+    "TT": {
+      "TdTc": {
+        "Check": 0.014274,
+        "Bet_33pct": 0.517516,
+        "Bet_75pct": 0.46821
+      },
+      "ThTc": {
+        "Check": 0.014891,
+        "Bet_33pct": 0.517616,
+        "Bet_75pct": 0.467493
+      },
+      "ThTd": {
+        "Check": 0.013841,
+        "Bet_33pct": 0.526917,
+        "Bet_75pct": 0.459243
+      },
+      "TsTc": {
+        "Check": 0.014209,
+        "Bet_33pct": 0.485688,
+        "Bet_75pct": 0.500103
+      },
+      "TsTd": {
+        "Check": 0.013162,
+        "Bet_33pct": 0.496167,
+        "Bet_75pct": 0.490671
+      },
+      "TsTh": {
+        "Check": 0.013715,
+        "Bet_33pct": 0.496256,
+        "Bet_75pct": 0.490029
+      }
+    }
+  },
+  "matrixEv": null,
+  "evUnit": null
+}
