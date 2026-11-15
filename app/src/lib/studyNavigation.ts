@@ -2,7 +2,7 @@ import type { TrainerModeId } from "./poker/adaptiveDiagnostics.ts";
 import { getFatalErrorPracticeSpots, type FatalErrorCard } from "./poker/fatalErrorsCatalog.ts";
 import type { CanonicalSpot } from "./poker/strategySchema.ts";
 
-export type TabId = "trainer" | "curriculum" | "fatal-errors" | "replayer" | "hand-library" | "explorer" | "math" | "math-lab" | "coach" | "stats";
+export type TabId = "clean-trainer" | "trainer" | "curriculum" | "fatal-errors" | "replayer" | "hand-library" | "explorer" | "math" | "math-lab" | "coach" | "stats";
 
 export function shouldKeepLaunchedDrill(
   selection: { mode: TrainerModeId; contextKey: string } | null,

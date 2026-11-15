@@ -24,17 +24,18 @@ export interface TableColorPreset {
 export const TABLE_APPEARANCE_STORAGE_KEY = "treinerlm_table_appearance_v1";
 
 export const DEFAULT_TABLE_APPEARANCE: TableAppearanceConfig = {
-  presetId: "emerald",
-  feltColor: "#14332B",
-  railColor: "#292C2F",
+  presetId: "red-black-blue",
+  feltColor: "#0B1B36",
+  railColor: "#991B1B",
   cardStyle: "four-color",
   chipStyle: "casino-clay",
 };
 
 export const TABLE_COLOR_PRESETS: readonly TableColorPreset[] = [
+  { id: "red-black-blue", label: "TreinerLM (Preto, Azul & Vermelho)", feltColor: "#0B1B36", railColor: "#991B1B" },
+  { id: "crimson-noir", label: "Preto & Vermelho", feltColor: "#240B12", railColor: "#DC2626" },
+  { id: "casino-blue", label: "Azul Cassino", feltColor: "#122B4A", railColor: "#2563EB" },
   { id: "emerald", label: "Esmeralda GTO", feltColor: "#14332B", railColor: "#292C2F" },
-  { id: "casino-blue", label: "Azul Cassino", feltColor: "#122B4A", railColor: "#2A415C" },
-  { id: "high-roller", label: "Vinho High Roller", feltColor: "#42141E", railColor: "#572834" },
   { id: "noir-gold", label: "Noir Dourado", feltColor: "#1B1C20", railColor: "#8A6B27" },
   { id: "quantum-purple", label: "Roxo Deepstack", feltColor: "#2A1845", railColor: "#4B356E" },
 ];

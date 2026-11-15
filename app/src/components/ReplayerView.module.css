@@ -1,7 +1,7 @@
 .root {
-  --line:#292C2F;
-  --muted:#A1A6AA;
-  color:#F4F5F5;
+  --line:#1E293B;
+  --muted:#94A3B8;
+  color:#F8FAFC;
   min-width:0
 }
 .heading {
@@ -26,7 +26,7 @@
   margin-top:5px
 }
 .eyebrow {
-  color:#A1F5AE;
+  color:#60A5FA;
   font-size:0.625rem;
   font-weight:800;
   letter-spacing:.17em;
@@ -34,9 +34,9 @@
 }
 .badge {
   display:inline-flex;
-  border:1px solid #18B88D55;
-  background:#18B88D1f;
-  color:#A1F5AE;
+  border:1px solid #3B82F655;
+  background:#2563EB1f;
+  color:#93C5FD;
   font-size:0.6875rem;
   padding:7px 11px;
   border-radius:99px;
@@ -84,10 +84,10 @@
   align-items:center;
   gap:7px;
   position:relative;
-  border:1px solid #18B88D66;
+  border:1px solid #3B82F666;
   border-radius:8px;
   padding:11px 14px;
-  color:#A1F5AE!important;
+  color:#93C5FD!important;
   cursor:pointer;
   overflow:hidden
 }
@@ -99,7 +99,7 @@
   width:100%
 }
 .upload:focus-within {
-  outline:2px solid #18B88D;
+  outline:2px solid #3B82F6;
   outline-offset:3px
 }
 .handHeader {
@@ -169,9 +169,9 @@
 .felt {
   position:absolute;
   inset:100px 45px;
-  border:3px solid #292C2F;
+  border:3px solid #991B1B;
   border-radius:50%;
-  background:radial-gradient(ellipse,#191B1D,#101112);
+  background:radial-gradient(ellipse,#0B1B36,#05070B);
   box-shadow:inset 0 0 50px #0009,0 12px 45px #0006;
   z-index:-1
 }
@@ -196,8 +196,8 @@
   padding:8px 9px
 }
 .waiting:not(.acted) {
-  border-color:#18B88D;
-  box-shadow:0 0 0 2px #18B88D22
+  border-color:#3B82F6;
+  box-shadow:0 0 0 2px #3B82F622
 }
 .folded {
   background:#101112;
@@ -396,23 +396,23 @@
   min-height:40px
 }
 .transport .play {
-  background:#047857;
-  border-color:#059669;
+  background:#2563EB;
+  border-color:#3B82F6;
   color:#fff;
   font-size:0.75rem;
   font-weight:700;
   min-width:110px
 }
 .root button:hover:not(:disabled) {
-  border-color:#a7f3d0;
-  background-color:#26433e
+  border-color:#60A5FA;
+  background-color:#162647
 }
 .root button:disabled {
   opacity:.4;
   cursor:not-allowed
 }
 .root button:focus-visible,.root select:focus-visible,.root input:focus-visible {
-  outline:2px solid #6ee7b7;
+  outline:2px solid #3B82F6;
   outline-offset:3px
 }
 .speed select {
@@ -432,7 +432,7 @@
 }
 .progress input {
   width:100%;
-  accent-color:#34d399;
+  accent-color:#2563EB;
   cursor:pointer;
   height:18px
 }
@@ -545,20 +545,20 @@
   border-left-color:#665da4!important
 }
 .eventList .selectedEvent {
-  background:#065f463f;
-  border-color:#34d399
+  background:#2563EB33;
+  border-color:#3B82F6
 }
 .settlement {
   margin-top:16px;
-  background:#073b2b50;
-  border:1px solid #2c6854;
+  background:#0F1B3380;
+  border:1px solid #2563EB66;
   border-radius:12px;
   padding:16px
 }
 .settlement h3 {
   font-size:0.875rem;
   font-weight:700;
-  color:#a7f3d0;
+  color:#93C5FD;
   margin-bottom:10px
 }
 .settlement>div {
@@ -676,7 +676,7 @@
     grid-template-columns:repeat(2,minmax(0,1fr));
     gap:12px;
     padding:16px 12px;
-    background:radial-gradient(ellipse,#0e4437,#091624)
+    background:radial-gradient(ellipse,#0B1B36,#05070B)
   }
   .felt {
     inset:7px;

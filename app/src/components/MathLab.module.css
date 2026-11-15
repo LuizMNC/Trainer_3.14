@@ -1,40 +1,40 @@
-.root { color:#F4F5F5; display:grid; gap:16px; font-size:0.875rem; }
-.root h2 { color:#F4F5F5; font-size:1.5rem; font-weight:800; letter-spacing:-.5px; }
-.root h3 { color:#F4F5F5; font-size:1rem; font-weight:700; margin-bottom:10px; }
+.root { color:#F8FAFC; display:grid; gap:16px; font-size:0.875rem; }
+.root h2 { color:#F8FAFC; font-size:1.5rem; font-weight:800; letter-spacing:-.5px; }
+.root h3 { color:#F8FAFC; font-size:1rem; font-weight:700; margin-bottom:10px; }
 .root p { line-height:1.55; }
-.eyebrow { color:#A1F5AE; font-size:0.65rem; font-weight:800; letter-spacing:2px; }
+.eyebrow { color:#60A5FA; font-size:0.65rem; font-weight:800; letter-spacing:2px; }
 .tabs,.row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
-.root button { border:1px solid #292C2F; border-radius:8px; padding:7px 12px; background:#202224; color:#F4F5F5; font-weight:700; font-size:0.75rem; transition:background .15s,border-color .15s; }
-.root button:hover { border-color:#18B88D; background:#292C2F; }
+.root button { border:1px solid #1E293B; border-radius:8px; padding:7px 12px; background:#090D16; color:#F8FAFC; font-weight:700; font-size:0.75rem; transition:background .15s,border-color .15s; }
+.root button:hover { border-color:#3B82F6; background:#141D2F; }
 .root button:disabled { opacity:.45; cursor:not-allowed; }
-.root button.active,.root .primary { background:#18B88D; border-color:#18B88D; color:#090B0C; font-weight:800; }
-.panel { border:1px solid #292C2F; border-radius:14px; background:#191B1D; padding:16px; min-width:0; }
+.root button.active,.root .primary { background:linear-gradient(135deg,#DC2626,#2563EB); border-color:#3B82F6; color:#FFFFFF; font-weight:800; }
+.panel { border:1px solid #1E293B; border-radius:14px; background:#090D16; padding:16px; min-width:0; }
 .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
 .fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
-.root label { display:grid; gap:5px; color:#A1A6AA; font-size:0.75rem; font-weight:600; }
-.root input,.root textarea,.root select { width:100%; min-width:0; background:#090B0C; border:1px solid #292C2F; border-radius:7px; padding:7px 9px; color:#F4F5F5; font-size:0.8125rem; }
+.root label { display:grid; gap:5px; color:#94A3B8; font-size:0.75rem; font-weight:600; }
+.root input,.root textarea,.root select { width:100%; min-width:0; background:#05070B; border:1px solid #1E293B; border-radius:7px; padding:7px 9px; color:#F8FAFC; font-size:0.8125rem; }
 .root textarea { min-height:74px; font-family:monospace; }
-.root input[type=range] { padding:0; accent-color:#18B88D; }
-.root input:focus-visible,.root button:focus-visible { outline:2px solid #18B88D; outline-offset:2px; }
-.root small { color:#A1A6AA; font-size:0.6875rem; }
-.badge { font-family:monospace; font-size:0.6875rem; color:#A1F5AE; border:1px solid #18B88D66; background:#18B88D1f; border-radius:6px; padding:4px 8px; display:inline-block; overflow-wrap:anywhere; }
-.notice { border-left:3px solid #18B88D; background:#18B88D15; padding:10px 14px; border-radius:6px; font-size:0.75rem; }
-.error { color:#EF6666; background:#EF666615; border:1px solid #EF666666; border-radius:8px; padding:10px; }
+.root input[type=range] { padding:0; accent-color:#2563EB; }
+.root input:focus-visible,.root button:focus-visible { outline:2px solid #3B82F6; outline-offset:2px; }
+.root small { color:#94A3B8; font-size:0.6875rem; }
+.badge { font-family:monospace; font-size:0.6875rem; color:#93C5FD; border:1px solid #3B82F666; background:#2563EB1f; border-radius:6px; padding:4px 8px; display:inline-block; overflow-wrap:anywhere; }
+.notice { border-left:3px solid #2563EB; background:#2563EB15; padding:10px 14px; border-radius:6px; font-size:0.75rem; }
+.error { color:#FCA5A5; background:#DC26261a; border:1px solid #DC262666; border-radius:8px; padding:10px; }
 .matrix { display:grid; grid-template-columns:repeat(13,minmax(0,1fr)); gap:2px; margin:8px 0; }
-.matrix button { font-size:0.625rem; padding:6px 0; border-radius:3px; border-color:#292C2F; background:#090B0C; min-width:0; }
-.matrix button.selected { background:#18B88D; color:#090B0C; font-weight:800; }
+.matrix button { font-size:0.625rem; padding:6px 0; border-radius:3px; border-color:#1E293B; background:#05070B; min-width:0; }
+.matrix button.selected { background:#2563EB; color:#FFFFFF; font-weight:800; }
 .deck { display:grid; grid-template-columns:repeat(13,minmax(0,1fr)); gap:4px; margin-top:10px; }
-.deck button { padding:5px 0; font-size:0.75rem; background:#202224; color:#F4F5F5; border:1px solid #292C2F; }
-.deck button.red { color:#EF6666; }
-.deck button.selected { background:#18B88D; color:#090B0C; font-weight:800; }
-.root summary { cursor:pointer; color:#A1F5AE; padding:6px 0; font-weight:700; font-size:0.75rem; }
+.deck button { padding:5px 0; font-size:0.75rem; background:#090D16; color:#F8FAFC; border:1px solid #1E293B; }
+.deck button.red { color:#F87171; }
+.deck button.selected { background:#DC2626; color:#FFFFFF; font-weight:800; }
+.root summary { cursor:pointer; color:#60A5FA; padding:6px 0; font-weight:700; font-size:0.75rem; }
 .comboList { max-height:200px; overflow:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; }
 .tableWrap { overflow:auto; }
 .root table { width:100%; border-collapse:collapse; text-align:left; white-space:nowrap; font-size:0.8125rem; }
-.root th,.root td { padding:9px 11px; border-bottom:1px solid #292C2F; }
-.root th { color:#A1A6AA; font-size:0.6875rem; font-weight:600; }
-.root progress { width:100%; height:10px; accent-color:#18B88D; }
+.root th,.root td { padding:9px 11px; border-bottom:1px solid #1E293B; }
+.root th { color:#94A3B8; font-size:0.6875rem; font-weight:600; }
+.root progress { width:100%; height:10px; accent-color:#2563EB; }
 .chart { width:100%; height:auto; display:block; touch-action:pan-y; }
-.metric { font-size:1.5rem; font-weight:800; color:#A1F5AE; }
+.metric { font-size:1.5rem; font-weight:800; color:#60A5FA; }
 .root pre { white-space:pre-wrap; overflow-wrap:anywhere; font-size:0.6875rem; }
 @media(max-width:760px){ .grid { grid-template-columns:1fr; } .panel { padding:12px; } .root h2 { font-size:1.25rem; } .matrix { gap:2px; } .matrix button { font-size:0.5rem; padding:5px 0; } .root th,.root td { padding:7px; } }

@@ -92,18 +92,18 @@ export function SettingsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+      <div className="w-full max-w-lg rounded-2xl bg-[#090D16] border border-[#26334A] shadow-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-[#1E293B] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <KeyRound className="w-4 h-4 text-emerald-400" />
-            <h2 className="text-sm font-bold text-slate-100">
+            <KeyRound className="w-4 h-4 text-[#60A5FA]" />
+            <h2 className="text-sm font-bold text-[#F8FAFC]">
               Configurações — Google AI Studio (Gemini API)
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#141D2F]"
           >
             <X className="w-4 h-4" />
           </button>
@@ -111,8 +111,8 @@ export function SettingsModal({
 
         <div className="p-5 space-y-4">
           {hasEnvKey && (
-            <div className="rounded-xl bg-emerald-950/40 border border-emerald-700/50 p-3 text-xs text-emerald-300 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <div className="rounded-xl bg-[#0F1B33] border border-[#2563EB]/50 p-3 text-xs text-sky-200 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-[#60A5FA]" />
               <span>
                 Chave <code>GEMINI_API_KEY</code> detectada automaticamente via{" "}
                 <code>.env.local</code>. O campo abaixo é opcional para
@@ -131,12 +131,12 @@ export function SettingsModal({
                 value={draftKey}
                 onChange={(e) => setDraftKey(e.target.value)}
                 placeholder="AIzaSy..."
-                className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                className="flex-1 bg-[#05070B] border border-[#26334A] rounded-xl px-3 py-2 text-xs font-mono text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-[#3B82F6]"
               />
               <button
                 type="button"
                 onClick={() => setShowKey((s) => !s)}
-                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
+                className="p-2 rounded-xl bg-[#141D2F] hover:bg-[#1E293B] text-slate-300"
                 title={showKey ? "Ocultar" : "Mostrar"}
               >
                 {showKey ? (
@@ -146,15 +146,15 @@ export function SettingsModal({
                 )}
               </button>
             </div>
-            <p className="text-[0.6875rem] text-slate-500">
+            <p className="text-[0.6875rem] text-slate-400">
               Salva apenas no seu navegador (<code>localStorage</code>) ou no
               arquivo local{" "}
-              <code className="text-slate-400">app/.env.local</code>. Obtenha em{" "}
+              <code className="text-slate-300">app/.env.local</code>. Obtenha em{" "}
               <a
                 href="https://aistudio.google.com/apikey"
                 target="_blank"
                 rel="noreferrer"
-                className="text-emerald-400 underline"
+                className="text-[#60A5FA] underline"
               >
                 aistudio.google.com/apikey
               </a>
@@ -174,8 +174,8 @@ export function SettingsModal({
                   onClick={() => setDraftModel(opt.id)}
                   className={`w-full text-left p-2.5 rounded-xl border transition ${
                     draftModel === opt.id
-                      ? "bg-emerald-950/50 border-emerald-500 text-slate-100"
-                      : "bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700"
+                      ? "bg-[#0F1B33] border-[#3B82F6] text-white"
+                      : "bg-[#05070B] border-[#1E293B] text-slate-300 hover:border-[#334155]"
                   }`}
                 >
                   <div className="text-xs font-bold">{opt.label}</div>
@@ -189,8 +189,8 @@ export function SettingsModal({
             <div
               className={`rounded-xl p-3 text-xs border ${
                 testResult.ok
-                  ? "bg-emerald-950/40 border-emerald-700/60 text-emerald-300"
-                  : "bg-rose-950/40 border-rose-700/60 text-rose-300"
+                  ? "bg-[#0F1B33] border-[#2563EB]/60 text-sky-200"
+                  : "bg-[#2B0B11] border-[#DC2626]/60 text-red-200"
               }`}
             >
               {testResult.message}
@@ -198,12 +198,12 @@ export function SettingsModal({
           )}
         </div>
 
-        <div className="px-5 py-3.5 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between gap-2">
+        <div className="px-5 py-3.5 border-t border-[#1E293B] bg-[#05070B]/80 flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={handleTest}
             disabled={testing}
-            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition"
+            className="px-3 py-2 rounded-xl bg-[#141D2F] hover:bg-[#1E293B] text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition"
           >
             {testing && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             Testar Conexão
@@ -223,7 +223,7 @@ export function SettingsModal({
                 onSave(draftKey.trim(), draftModel);
                 onClose();
               }}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#DC2626] to-[#2563EB] hover:brightness-110 text-white text-xs font-bold transition shadow"
             >
               Salvar
             </button>

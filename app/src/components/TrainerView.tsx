@@ -133,7 +133,7 @@ const STATUS_BADGES: Record<
 > = {
   VERIFIED: {
     label: "SOLUÇÃO VERIFICADA (SOLVER)",
-    cls: "bg-emerald-500/15 border-emerald-500/40 text-emerald-300",
+    cls: "bg-[#2563EB]/20 border-[#3B82F6]/50 text-sky-200",
   },
   DIDACTIC_DEMO: {
     label: "DEMO DIDÁTICA (NÃO É SOLVER OFICIAL)",
@@ -257,6 +257,11 @@ export function TrainerView({
   const [openMathPanel, setOpenMathPanel] = useState(false);
   const [openSourcePanel, setOpenSourcePanel] = useState(false);
   const [showRangePanel, setShowRangePanel] = useState(true);
+  const [showLeftMeta, setShowLeftMeta] = useState(false);
+  const [showLeftFilters, setShowLeftFilters] = useState(true);
+  const [showLeftConfidence, setShowLeftConfidence] = useState(false);
+  const [showLeftStats, setShowLeftStats] = useState(true);
+  const [showRecentList, setShowRecentList] = useState(false);
   const [showAppearancePanel, setShowAppearancePanel] = useState(false);
   const [tableAppearance, setTableAppearance] = useState<TableAppearanceConfig>(
     DEFAULT_TABLE_APPEARANCE,
@@ -1170,14 +1175,14 @@ export function TrainerView({
             </div>
 
             {!isTraining && (
-              <div className="flex items-center gap-1.5 rounded-xl bg-[#090B0C] border border-[#292C2F] p-1">
+              <div className="flex flex-wrap items-center gap-1.5 rounded-xl bg-[#05070B] border border-[#1E293B] p-1">
                 <button
                   type="button"
                   onClick={() => setSubView("table")}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                     subView === "table"
-                      ? "bg-[#18B88D] text-[#090B0C] shadow"
-                      : "text-[#A1A6AA] hover:text-white"
+                      ? "bg-gradient-to-r from-[#DC2626] to-[#2563EB] text-white shadow"
+                      : "text-[#94A3B8] hover:text-white"
                   }`}
                 >
                   <Target className="w-3.5 h-3.5" />
@@ -1188,8 +1193,8 @@ export function TrainerView({
                   onClick={() => setSubView("interactive")}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                     subView === "interactive"
-                      ? "bg-[#18B88D] text-[#090B0C] shadow"
-                      : "text-[#A1A6AA] hover:text-white"
+                      ? "bg-gradient-to-r from-[#DC2626] to-[#2563EB] text-white shadow"
+                      : "text-[#94A3B8] hover:text-white"
                   }`}
                 >
                   <Layers className="w-3.5 h-3.5" />
@@ -1206,12 +1211,12 @@ export function TrainerView({
               aria-expanded={showAppearancePanel}
               className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors ${
                 showAppearancePanel
-                  ? "bg-[#18B88D]/20 border-[#18B88D] text-[#A1F5AE]"
-                  : "bg-[#191B1D] border-[#292C2F] text-[#D7DBDF] hover:border-[#3E4348] hover:text-white"
+                  ? "bg-[#2563EB]/20 border-[#3B82F6] text-[#93C5FD]"
+                  : "bg-[#090D16] border-[#26334A] text-[#CBD5E1] hover:border-[#3B82F6]/60 hover:text-white"
               }`}
               title="Personalizar cores da mesa, estilos de cartas e fichas"
             >
-              <Palette className="w-3.5 h-3.5 text-[#18B88D]" />
+              <Palette className="w-3.5 h-3.5 text-[#EF4444]" />
               <span>Personalizar mesa</span>
               <span
                 className="w-3 h-3 rounded-full border border-white/30 shrink-0"
@@ -1294,12 +1299,12 @@ export function TrainerView({
             {showAppearancePanel && (
               <section
                 aria-label="Personalização visual da mesa"
-                className="rounded-2xl bg-[#191B1D] border border-[#2D3339] p-4 shadow-xl flex flex-col gap-4"
+                className="rounded-2xl bg-[#0A0E17] border border-[#26334A] p-4 shadow-xl flex flex-col gap-4"
               >
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#262B30] pb-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1E293B] pb-2.5">
                   <div className="flex items-center gap-2">
-                    <Palette className="w-4 h-4 text-[#18B88D]" />
-                    <h3 className="text-xs sm:text-sm font-bold text-[#F4F5F5]">
+                    <Palette className="w-4 h-4 text-[#EF4444]" />
+                    <h3 className="text-xs sm:text-sm font-bold text-[#F8FAFC]">
                       Personalizar Mesa, Cartas &amp; Fichas (TreinerLM)
                     </h3>
                   </div>
@@ -1309,14 +1314,14 @@ export function TrainerView({
                       onClick={() =>
                         updateTableAppearance({ ...DEFAULT_TABLE_APPEARANCE })
                       }
-                      className="px-2.5 py-1 rounded-lg bg-[#121417] border border-[#2D3339] text-[0.6875rem] font-semibold text-[#C8CDD2] hover:text-white hover:border-[#49525C]"
+                      className="px-2.5 py-1 rounded-lg bg-[#05070B] border border-[#26334A] text-[0.6875rem] font-semibold text-[#CBD5E1] hover:text-white hover:border-[#3B82F6]"
                     >
                       Restaurar padrão
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowAppearancePanel(false)}
-                      className="px-2.5 py-1 rounded-lg bg-[#18B88D]/15 border border-[#18B88D]/40 text-[0.6875rem] font-bold text-[#A1F5AE] hover:bg-[#18B88D]/25"
+                      className="px-2.5 py-1 rounded-lg bg-[#2563EB]/20 border border-[#3B82F6]/50 text-[0.6875rem] font-bold text-[#93C5FD] hover:bg-[#2563EB]/30"
                     >
                       Concluir
                     </button>
@@ -1348,8 +1353,8 @@ export function TrainerView({
                             }
                             className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[0.6875rem] font-semibold transition-colors ${
                               active
-                                ? "bg-[#18B88D]/20 border-[#18B88D] text-[#A1F5AE]"
-                                : "bg-[#121417] border-[#292C2F] text-[#D0D5DA] hover:border-[#454B52]"
+                                ? "bg-[#2563EB]/25 border-[#3B82F6] text-sky-200"
+                                : "bg-[#05070B] border-[#1E293B] text-[#D0D5DA] hover:border-[#334155]"
                             }`}
                           >
                             <span
@@ -1467,8 +1472,8 @@ export function TrainerView({
                             }
                             className={`text-left px-2.5 py-2 rounded-lg border transition-colors ${
                               active
-                                ? "bg-[#18B88D]/20 border-[#18B88D] text-[#F4F5F5]"
-                                : "bg-[#121417] border-[#292C2F] text-[#C8CDD2] hover:border-[#454B52]"
+                                ? "bg-[#2563EB]/25 border-[#3B82F6] text-white"
+                                : "bg-[#05070B] border-[#1E293B] text-[#C8CDD2] hover:border-[#334155]"
                             }`}
                           >
                             <div className="text-xs font-bold">
@@ -1502,8 +1507,8 @@ export function TrainerView({
                             }
                             className={`text-left px-2.5 py-2 rounded-lg border transition-colors flex items-center justify-between gap-2 ${
                               active
-                                ? "bg-[#18B88D]/20 border-[#18B88D] text-[#F4F5F5]"
-                                : "bg-[#121417] border-[#292C2F] text-[#C8CDD2] hover:border-[#454B52]"
+                                ? "bg-[#2563EB]/25 border-[#3B82F6] text-white"
+                                : "bg-[#05070B] border-[#1E293B] text-[#C8CDD2] hover:border-[#334155]"
                             }`}
                           >
                             <div>
@@ -1557,15 +1562,15 @@ export function TrainerView({
 
             {/* Meta de Sessão Rápida Concluída */}
             {sessionTargetHands > 0 && sessionTotal >= sessionTargetHands && (
-              <div className="rounded-xl bg-[#18B88D]/15 border border-[#18B88D]/50 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+              <div className="rounded-xl bg-[#0D182C] border border-[#2563EB]/60 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <CheckCircle2 className="w-5 h-5 text-[#A1F5AE]" />
+                  <CheckCircle2 className="w-5 h-5 text-[#60A5FA]" />
                   <div>
-                    <p className="text-xs font-bold text-[#F4F5F5]">
+                    <p className="text-xs font-bold text-[#F8FAFC]">
                       Meta da sessão atingida! ({sessionTotal}/{sessionTargetHands} mãos ·{" "}
                       {sessionPct}% de precisão)
                     </p>
-                    <p className="text-[0.6875rem] text-[#A1A6AA]">
+                    <p className="text-[0.6875rem] text-[#94A3B8]">
                       Você pode continuar praticando livremente ou iniciar um novo bloco.
                     </p>
                   </div>
@@ -1574,14 +1579,14 @@ export function TrainerView({
                   <button
                     type="button"
                     onClick={resetSessionStats}
-                    className="px-3 py-1.5 rounded-lg bg-[#18B88D] text-[#090B0C] font-bold text-xs"
+                    className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#DC2626] to-[#2563EB] text-white font-bold text-xs"
                   >
                     Nova Sessão ({sessionTargetHands} mãos)
                   </button>
                   <button
                     type="button"
                     onClick={() => setSessionTargetHands(0)}
-                    className="px-3 py-1.5 rounded-lg bg-[#191B1D] border border-[#292C2F] text-xs text-[#F4F5F5]"
+                    className="px-3 py-1.5 rounded-lg bg-[#090D16] border border-[#26334A] text-xs text-[#F8FAFC]"
                   >
                     Modo Livre
                   </button>
@@ -1589,42 +1594,42 @@ export function TrainerView({
               </div>
             )}
 
-            {/* LAYOUT DE 3 COLUNAS ESTILO GTO WIZARD: CONTROLES & STATS (ESQ) · MESA & AÇÃO (CENTRO) · MATRIZ 13x13 (DIR) */}
+            {/* LAYOUT RESPONSIVO: CELULAR/IPAD RETRATO (1 col, mesa primeiro) · IPAD PAISAGEM (2 cols: mesa + matriz) · DESKTOP (3 cols) */}
             <div
               className={`trainer-workspace grid grid-cols-1 gap-4 items-start ${
                 showRangePanel
-                  ? "xl:grid-cols-[minmax(255px,300px)_minmax(0,1fr)_minmax(390px,465px)]"
+                  ? "lg:grid-cols-[minmax(0,1fr)_minmax(345px,400px)] xl:grid-cols-[minmax(255px,300px)_minmax(0,1fr)_minmax(390px,465px)]"
                   : "xl:grid-cols-[minmax(255px,310px)_minmax(0,1fr)]"
               }`}
             >
-              {/* COLUNA ESQUERDA: Controles Compactos + Placar da Sessão */}
+              {/* COLUNA ESQUERDA: Controles Recolhíveis + Placar da Sessão */}
               <aside
-                className="flex flex-col gap-3 rounded-2xl bg-[#191B1D] border border-[#292C2F] p-3.5 shadow-lg"
+                className="order-2 lg:col-span-2 xl:col-span-1 xl:order-1 flex flex-col gap-3 rounded-2xl bg-[#0A0E17] border border-[#1E293B] p-3.5 shadow-lg"
                 aria-label="Controles e Estatísticas da Sessão"
               >
                 {/* Seletor de Modo: GTO Técnico vs Aprendizagem */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[0.6875rem] font-bold uppercase tracking-wider text-[#A1A6AA]">
+                    <span className="text-[0.6875rem] font-bold uppercase tracking-wider text-[#94A3B8]">
                       Modo de Estudo
                     </span>
                     <button
                       type="button"
                       onClick={() => setImportOpen(true)}
-                      className="text-[0.625rem] font-bold text-[#A1F5AE] hover:underline flex items-center gap-1"
+                      className="text-[0.625rem] font-bold text-[#60A5FA] hover:underline flex items-center gap-1"
                     >
                       <Upload className="w-3 h-3" />
                       Importar Solver
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-1.5 bg-[#090B0C] border border-[#292C2F] p-1 rounded-xl">
+                  <div className="grid grid-cols-2 gap-1.5 bg-[#05070B] border border-[#1E293B] p-1 rounded-xl">
                     <button
                       type="button"
                       onClick={() => handleModeSwitch("GTO_TECHNICAL")}
                       className={`flex flex-col items-start px-2.5 py-2 rounded-lg text-left transition ${
                         trainerMode === "GTO_TECHNICAL"
-                          ? "bg-[#18B88D] text-[#090B0C] font-bold"
-                          : "text-[#A1A6AA] hover:text-white"
+                          ? "bg-gradient-to-r from-[#DC2626] to-[#2563EB] text-white font-bold shadow"
+                          : "text-[#94A3B8] hover:text-white"
                       }`}
                     >
                       <span className="text-[0.6875rem] font-bold flex items-center gap-1">
@@ -1640,8 +1645,8 @@ export function TrainerView({
                       onClick={() => handleModeSwitch("LEARNING")}
                       className={`flex flex-col items-start px-2.5 py-2 rounded-lg text-left transition ${
                         trainerMode === "LEARNING"
-                          ? "bg-[#387894] text-white font-bold"
-                          : "text-[#A1A6AA] hover:text-white"
+                          ? "bg-[#2563EB] text-white font-bold shadow"
+                          : "text-[#94A3B8] hover:text-white"
                       }`}
                     >
                       <span className="text-[0.6875rem] font-bold flex items-center gap-1">
@@ -1655,363 +1660,413 @@ export function TrainerView({
                   </div>
                 </div>
 
-                {/* Sessões Rápidas (5, 10, 20 min ou Livre) */}
-                <div className="space-y-1.5 border-t border-[#292C2F] pt-2.5">
+                {/* Sessões Rápidas Recolhível */}
+                <div className="space-y-1.5 border-t border-[#1E293B] pt-2.5">
                   <div className="flex items-center justify-between text-[0.6875rem]">
-                    <span className="font-bold uppercase tracking-wider text-[#A1A6AA]">
+                    <button
+                      type="button"
+                      aria-expanded={showLeftMeta}
+                      onClick={() => setShowLeftMeta((v) => !v)}
+                      className="flex items-center gap-1 font-bold uppercase tracking-wider text-[#94A3B8] hover:text-white"
+                    >
+                      {showLeftMeta ? <ChevronUp className="w-3.5 h-3.5 text-[#60A5FA]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#60A5FA]" />}
                       Meta da Sessão
-                    </span>
+                    </button>
                     <button
                       type="button"
                       onClick={resetSessionStats}
-                      className="text-[0.625rem] text-[#A1A6AA] hover:text-white flex items-center gap-1"
+                      className="text-[0.625rem] text-[#94A3B8] hover:text-white flex items-center gap-1"
                       title="Zerar placar da sessão atual"
                     >
                       <RotateCcw className="w-3 h-3" />
                       Reiniciar
                     </button>
                   </div>
-                  <div className="grid grid-cols-4 gap-1 bg-[#090B0C] border border-[#292C2F] p-1 rounded-xl text-[0.65rem]">
-                    {[
-                      { hands: 0, label: "Livre" },
-                      { hands: 10, label: "5m (10)" },
-                      { hands: 25, label: "10m (25)" },
-                      { hands: 50, label: "20m (50)" },
-                    ].map((preset) => (
-                      <button
-                        key={preset.hands}
-                        type="button"
-                        onClick={() => setSessionTargetHands(preset.hands)}
-                        className={`py-1 rounded-lg font-bold transition ${
-                          sessionTargetHands === preset.hands
-                            ? "bg-[#292C2F] text-[#A1F5AE] border border-[#18B88D]/40"
-                            : "text-[#A1A6AA] hover:text-white"
-                        }`}
-                      >
-                        {preset.label}
-                      </button>
-                    ))}
-                  </div>
-                  {sessionTargetHands > 0 && (
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-[0.625rem] font-mono text-[#A1A6AA]">
-                        <span>Progresso</span>
-                        <span>
-                          {Math.min(sessionTotal, sessionTargetHands)}/{sessionTargetHands} mãos
-                        </span>
+                  {showLeftMeta && (
+                    <>
+                      <div className="grid grid-cols-4 gap-1 bg-[#05070B] border border-[#1E293B] p-1 rounded-xl text-[0.65rem]">
+                        {[
+                          { hands: 0, label: "Livre" },
+                          { hands: 10, label: "5m (10)" },
+                          { hands: 25, label: "10m (25)" },
+                          { hands: 50, label: "20m (50)" },
+                        ].map((preset) => (
+                          <button
+                            key={preset.hands}
+                            type="button"
+                            onClick={() => setSessionTargetHands(preset.hands)}
+                            className={`py-1 rounded-lg font-bold transition ${
+                              sessionTargetHands === preset.hands
+                                ? "bg-[#2563EB]/25 text-[#93C5FD] border border-[#3B82F6]/60"
+                                : "text-[#94A3B8] hover:text-white"
+                            }`}
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
                       </div>
-                      <div className="h-1.5 w-full rounded-full bg-[#090B0C] overflow-hidden">
-                        <div
-                          className="h-full bg-[#18B88D] transition-all"
-                          style={{
-                            width: `${Math.min(100, Math.round((sessionTotal / sessionTargetHands) * 100))}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
+                      {sessionTargetHands > 0 && (
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[0.625rem] font-mono text-[#94A3B8]">
+                            <span>Progresso</span>
+                            <span>
+                              {Math.min(sessionTotal, sessionTargetHands)}/{sessionTargetHands} mãos
+                            </span>
+                          </div>
+                          <div className="h-1.5 w-full rounded-full bg-[#05070B] overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-[#DC2626] to-[#2563EB] transition-all"
+                              style={{
+                                width: `${Math.min(100, Math.round((sessionTotal / sessionTargetHands) * 100))}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
-                {/* Filtros Rápidos + Recolhível de Filtros Avançados */}
-                <div className="space-y-2 border-t border-[#292C2F] pt-2.5">
+                {/* Filtros Recolhíveis */}
+                <div className="space-y-2 border-t border-[#1E293B] pt-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[0.6875rem] font-bold uppercase tracking-wider text-[#A1A6AA]">
+                    <button
+                      type="button"
+                      aria-expanded={showLeftFilters}
+                      onClick={() => setShowLeftFilters((v) => !v)}
+                      className="flex items-center gap-1 text-[0.6875rem] font-bold uppercase tracking-wider text-[#94A3B8] hover:text-white"
+                    >
+                      {showLeftFilters ? <ChevronUp className="w-3.5 h-3.5 text-[#60A5FA]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#60A5FA]" />}
                       Cenário &amp; Filtros
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setShowAdvancedFilters((v) => !v)}
-                      className="text-[0.65rem] text-[#A1F5AE] hover:underline flex items-center gap-1"
-                    >
-                      <SlidersHorizontal className="w-3 h-3" />
-                      {showAdvancedFilters ? "Menos filtros" : "Mais filtros"}
                     </button>
-                  </div>
-
-                  {/* Filtro rápido Street: Todas / Pré-Flop / Pós-Flop */}
-                  <div className="grid grid-cols-3 gap-1 bg-[#090B0C] border border-[#292C2F] p-1 rounded-xl text-[0.65rem]">
-                    {(
-                      [
-                        { id: "ALL", label: "Todas" },
-                        { id: "PREFLOP", label: "Pré-Flop" },
-                        { id: "POSTFLOP", label: "Pós-Flop" },
-                      ] as const
-                    ).map((st) => (
+                    {showLeftFilters && (
                       <button
-                        key={st.id}
                         type="button"
-                        onClick={() => {
-                          setStreetFilter(st.id);
-                          if (st.id === "PREFLOP" && trainerMode === "GTO_TECHNICAL") {
-                            setTrainerMode("LEARNING");
-                          }
-                        }}
-                        className={`py-1 rounded-lg font-bold transition ${
-                          streetFilter === st.id
-                            ? "bg-[#292C2F] text-white"
-                            : "text-[#A1A6AA] hover:text-white"
-                        }`}
+                        onClick={() => setShowAdvancedFilters((v) => !v)}
+                        className="text-[0.65rem] text-[#60A5FA] hover:underline flex items-center gap-1"
                       >
-                        {st.label}
+                        <SlidersHorizontal className="w-3 h-3" />
+                        {showAdvancedFilters ? "Menos" : "Avançados"}
                       </button>
-                    ))}
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <select
-                      aria-label="Foco de dificuldade"
-                      value={difficulty}
-                      onChange={(e) => setDifficulty(e.target.value as DrillDifficulty)}
-                      className="rounded-lg bg-[#090B0C] border border-[#292C2F] px-2 py-1.5 text-[0.6875rem] text-[#F1BE60] font-semibold outline-none"
-                    >
-                      <option value="borderline">Mãos Marginais</option>
-                      <option value="mixed">Estratégias Mistas</option>
-                      <option value="all">Aleatória (169)</option>
-                    </select>
-
-                    <button
-                      type="button"
-                      onClick={() => setUseRng((v) => !v)}
-                      className={`flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[0.6875rem] font-bold border transition ${
-                        useRng
-                          ? "bg-[#202224] border-[#18B88D]/50 text-[#A1F5AE]"
-                          : "bg-[#090B0C] border-[#292C2F] text-[#A1A6AA]"
-                      }`}
-                    >
-                      <Shuffle className="w-3 h-3" />
-                      RNG {useRng ? `ON (${rngValue})` : "OFF"}
-                    </button>
-                  </div>
-
-                  {showAdvancedFilters && (
-                    <div className="space-y-1.5 pt-1">
-                      {trainerMode === "LEARNING" && (
-                        <select
-                          aria-label="Filtrar por fonte"
-                          value={sourceFilter}
-                          onChange={(e) => setSourceFilter(e.target.value)}
-                          className="w-full rounded-lg bg-[#090B0C] border border-[#292C2F] px-2.5 py-1.5 text-xs text-slate-200 outline-none"
-                        >
-                          <option value="all">
-                            Todas as Fontes ({canonicalSpots.length})
-                          </option>
-                          <option value="verified">
-                            Soluções Verificadas ({verifiedOnlySpots.length})
-                          </option>
-                          <option value="chart">Charts Locais (229 s/ EV)</option>
-                          <option value="didactic">Demo Didática (Sintética)</option>
-                          <option value="unsolved">Sem Solução (Conceitual)</option>
-                        </select>
-                      )}
-
-                      <div className="grid grid-cols-2 gap-1.5">
-                        <select
-                          aria-label="Filtrar por formato"
-                          value={formatFilter}
-                          onChange={(e) => setFormatFilter(e.target.value)}
-                          className="rounded-lg bg-[#090B0C] border border-[#292C2F] px-2 py-1.5 text-xs text-slate-200 outline-none"
-                        >
-                          <option value="all">Formato: Todos</option>
-                          <option value="MTT">MTT (6/8-Max)</option>
-                          <option value="SNG">Spin / SNG</option>
-                        </select>
-
-                        <select
-                          aria-label="Filtrar por stack"
-                          value={stackFilter}
-                          onChange={(e) => setStackFilter(e.target.value)}
-                          className="rounded-lg bg-[#090B0C] border border-[#292C2F] px-2 py-1.5 text-xs text-slate-200 outline-none"
-                        >
-                          <option value="all">Stack: Todos</option>
-                          <option value="14">14 BB</option>
-                          <option value="15">15 BB</option>
-                          <option value="17">17 BB</option>
-                          <option value="20">20 BB</option>
-                          <option value="28">28 BB (SRP)</option>
-                          <option value="30">30 BB</option>
-                          <option value="50">50 BB</option>
-                          <option value="100">100 BB</option>
-                          <option value="spin">Spin (3-15 BB)</option>
-                        </select>
+                  {showLeftFilters && (
+                    <>
+                      {/* Filtro rápido Street: Todas / Pré-Flop / Pós-Flop */}
+                      <div className="grid grid-cols-3 gap-1 bg-[#05070B] border border-[#1E293B] p-1 rounded-xl text-[0.65rem]">
+                        {(
+                          [
+                            { id: "ALL", label: "Todas" },
+                            { id: "PREFLOP", label: "Pré-Flop" },
+                            { id: "POSTFLOP", label: "Pós-Flop" },
+                          ] as const
+                        ).map((st) => (
+                          <button
+                            key={st.id}
+                            type="button"
+                            onClick={() => {
+                              setStreetFilter(st.id);
+                              if (st.id === "PREFLOP" && trainerMode === "GTO_TECHNICAL") {
+                                setTrainerMode("LEARNING");
+                              }
+                            }}
+                            className={`py-1 rounded-lg font-bold transition ${
+                              streetFilter === st.id
+                                ? "bg-[#2563EB] text-white"
+                                : "text-[#94A3B8] hover:text-white"
+                            }`}
+                          >
+                            {st.label}
+                          </button>
+                        ))}
                       </div>
 
                       <div className="grid grid-cols-2 gap-1.5">
                         <select
-                          aria-label="Filtrar por tipo de spot"
-                          value={typeFilter}
-                          onChange={(e) => setTypeFilter(e.target.value)}
-                          className="rounded-lg bg-[#090B0C] border border-[#292C2F] px-2 py-1.5 text-xs text-slate-200 outline-none"
+                          aria-label="Foco de dificuldade"
+                          value={difficulty}
+                          onChange={(e) => setDifficulty(e.target.value as DrillDifficulty)}
+                          className="rounded-lg bg-[#05070B] border border-[#1E293B] px-2 py-1.5 text-[0.6875rem] text-[#F59E0B] font-semibold outline-none"
                         >
-                          <option value="all">Ação: Todas ({filteredSpots.length})</option>
-                          <option value="rfi">RFI (Open)</option>
-                          <option value="vs_rfi">vs RFI / 3-Bet</option>
-                          <option value="vs_limp">BB vs SB Limp</option>
-                          <option value="flop_cbet_ip">Flop C-Bet IP</option>
-                          <option value="turn_cbet_ip">Turn / River Barrel</option>
-                          <option value="bb_vs_cbet">BB vs C-Bet</option>
-                          <option value="push_fold">Push / Fold</option>
-                          <option value="vs_shove">vs Shove</option>
+                          <option value="borderline">Mãos Marginais</option>
+                          <option value="mixed">Estratégias Mistas</option>
+                          <option value="all">Aleatória (169)</option>
                         </select>
 
-                        <select
-                          aria-label="Filtrar por posição do herói"
-                          value={posFilter}
-                          onChange={(e) => setPosFilter(e.target.value)}
-                          className="rounded-lg bg-[#090B0C] border border-[#292C2F] px-2 py-1.5 text-xs text-slate-200 outline-none"
+                        <button
+                          type="button"
+                          onClick={() => setUseRng((v) => !v)}
+                          className={`flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[0.6875rem] font-bold border transition ${
+                            useRng
+                              ? "bg-[#2563EB]/20 border-[#3B82F6]/60 text-[#93C5FD]"
+                              : "bg-[#05070B] border-[#1E293B] text-[#94A3B8]"
+                          }`}
                         >
-                          <option value="all">Posição: Todas</option>
-                          {POSITIONS_8MAX.map((p) => (
-                            <option key={p} value={p}>
-                              Herói: {p}
-                            </option>
-                          ))}
-                        </select>
+                          <Shuffle className="w-3 h-3" />
+                          RNG {useRng ? `ON (${rngValue})` : "OFF"}
+                        </button>
                       </div>
 
-                      {useRng && (
-                        <div className="flex items-center justify-between gap-2 bg-[#090B0C] border border-[#292C2F] rounded-lg px-2.5 py-1.5">
-                          <label className="flex items-center gap-1.5 text-[0.6875rem] text-[#A1A6AA] cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={useSeededRng}
-                              onChange={(e) => setUseSeededRng(e.target.checked)}
-                              className="accent-[#18B88D]"
-                            />
-                            Seed fixa:
-                          </label>
-                          {useSeededRng && (
-                            <input
-                              type="text"
-                              value={rngSeed}
-                              onChange={(e) => {
-                                setRngSeed(e.target.value);
-                                seededStepRef.current = 1;
-                              }}
-                              placeholder="seed"
-                              className="w-28 bg-[#191B1D] border border-[#292C2F] rounded px-1.5 py-0.5 text-[0.6875rem] font-mono text-[#A1F5AE] outline-none"
-                            />
+                      {showAdvancedFilters && (
+                        <div className="space-y-1.5 pt-1">
+                          {trainerMode === "LEARNING" && (
+                            <select
+                              aria-label="Filtrar por fonte"
+                              value={sourceFilter}
+                              onChange={(e) => setSourceFilter(e.target.value)}
+                              className="w-full rounded-lg bg-[#05070B] border border-[#1E293B] px-2.5 py-1.5 text-xs text-slate-200 outline-none"
+                            >
+                              <option value="all">
+                                Todas as Fontes ({canonicalSpots.length})
+                              </option>
+                              <option value="verified">
+                                Soluções Verificadas ({verifiedOnlySpots.length})
+                              </option>
+                              <option value="chart">Charts Locais (229 s/ EV)</option>
+                              <option value="didactic">Demo Didática (Sintética)</option>
+                              <option value="unsolved">Sem Solução (Conceitual)</option>
+                            </select>
+                          )}
+
+                          <div className="grid grid-cols-2 gap-1.5">
+                            <select
+                              aria-label="Filtrar por formato"
+                              value={formatFilter}
+                              onChange={(e) => setFormatFilter(e.target.value)}
+                              className="rounded-lg bg-[#05070B] border border-[#1E293B] px-2 py-1.5 text-xs text-slate-200 outline-none"
+                            >
+                              <option value="all">Formato: Todos</option>
+                              <option value="MTT">MTT (6/8-Max)</option>
+                              <option value="SNG">Spin / SNG</option>
+                            </select>
+
+                            <select
+                              aria-label="Filtrar por stack"
+                              value={stackFilter}
+                              onChange={(e) => setStackFilter(e.target.value)}
+                              className="rounded-lg bg-[#05070B] border border-[#1E293B] px-2 py-1.5 text-xs text-slate-200 outline-none"
+                            >
+                              <option value="all">Stack: Todos</option>
+                              <option value="14">14 BB</option>
+                              <option value="15">15 BB</option>
+                              <option value="17">17 BB</option>
+                              <option value="20">20 BB</option>
+                              <option value="28">28 BB (SRP)</option>
+                              <option value="30">30 BB</option>
+                              <option value="50">50 BB</option>
+                              <option value="100">100 BB</option>
+                              <option value="spin">Spin (3-15 BB)</option>
+                            </select>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-1.5">
+                            <select
+                              aria-label="Filtrar por tipo de spot"
+                              value={typeFilter}
+                              onChange={(e) => setTypeFilter(e.target.value)}
+                              className="rounded-lg bg-[#05070B] border border-[#1E293B] px-2 py-1.5 text-xs text-slate-200 outline-none"
+                            >
+                              <option value="all">Ação: Todas ({filteredSpots.length})</option>
+                              <option value="rfi">RFI (Open)</option>
+                              <option value="vs_rfi">vs RFI / 3-Bet</option>
+                              <option value="vs_limp">BB vs SB Limp</option>
+                              <option value="flop_cbet_ip">Flop C-Bet IP</option>
+                              <option value="turn_cbet_ip">Turn / River Barrel</option>
+                              <option value="bb_vs_cbet">BB vs C-Bet</option>
+                              <option value="push_fold">Push / Fold</option>
+                              <option value="vs_shove">vs Shove</option>
+                            </select>
+
+                            <select
+                              aria-label="Filtrar por posição do herói"
+                              value={posFilter}
+                              onChange={(e) => setPosFilter(e.target.value)}
+                              className="rounded-lg bg-[#05070B] border border-[#1E293B] px-2 py-1.5 text-xs text-slate-200 outline-none"
+                            >
+                              <option value="all">Posição: Todas</option>
+                              {POSITIONS_8MAX.map((p) => (
+                                <option key={p} value={p}>
+                                  Herói: {p}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {useRng && (
+                            <div className="flex items-center justify-between gap-2 bg-[#05070B] border border-[#1E293B] rounded-lg px-2.5 py-1.5">
+                              <label className="flex items-center gap-1.5 text-[0.6875rem] text-[#94A3B8] cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={useSeededRng}
+                                  onChange={(e) => setUseSeededRng(e.target.checked)}
+                                  className="accent-[#2563EB]"
+                                />
+                                Seed fixa:
+                              </label>
+                              {useSeededRng && (
+                                <input
+                                  type="text"
+                                  value={rngSeed}
+                                  onChange={(e) => {
+                                    setRngSeed(e.target.value);
+                                    seededStepRef.current = 1;
+                                  }}
+                                  placeholder="seed"
+                                  className="w-28 bg-[#090D16] border border-[#1E293B] rounded px-1.5 py-0.5 text-[0.6875rem] font-mono text-[#93C5FD] outline-none"
+                                />
+                              )}
+                            </div>
                           )}
                         </div>
                       )}
+                    </>
+                  )}
+                </div>
+
+                {/* Seletor Recolhível de Confiança */}
+                <div className="space-y-1.5 border-t border-[#1E293B] pt-2.5">
+                  <button
+                    type="button"
+                    aria-expanded={showLeftConfidence}
+                    onClick={() => setShowLeftConfidence((v) => !v)}
+                    className="w-full flex items-center justify-between text-[0.6875rem] font-bold uppercase tracking-wider text-[#94A3B8] hover:text-white"
+                  >
+                    <span className="flex items-center gap-1">
+                      <Gauge className="w-3.5 h-3.5 text-[#EF4444]" />
+                      Sua Confiança ({confidenceLevel})
+                    </span>
+                    {showLeftConfidence ? <ChevronUp className="w-3.5 h-3.5 text-[#60A5FA]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#60A5FA]" />}
+                  </button>
+                  {showLeftConfidence && (
+                    <div className="grid grid-cols-3 gap-1 bg-[#05070B] border border-[#1E293B] rounded-xl p-1">
+                      {(
+                        [
+                          { id: "baixa", label: "Baixa" },
+                          { id: "media", label: "Média" },
+                          { id: "alta", label: "Alta" },
+                        ] as const
+                      ).map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => setConfidenceLevel(c.id)}
+                          className={`py-1 rounded-lg text-[0.6875rem] font-bold transition ${
+                            confidenceLevel === c.id
+                              ? "bg-[#2563EB] text-white border border-[#60A5FA]"
+                              : "text-[#94A3B8] hover:text-white"
+                          }`}
+                        >
+                          {c.label}
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
 
-                {/* Seletor Compacto de Confiança */}
-                <div className="space-y-1.5 border-t border-[#292C2F] pt-2.5">
-                  <span className="text-[0.6875rem] font-bold uppercase tracking-wider text-[#A1A6AA] flex items-center gap-1">
-                    <Gauge className="w-3.5 h-3.5 text-[#F1BE60]" />
-                    Sua Confiança
-                  </span>
-                  <div className="grid grid-cols-3 gap-1 bg-[#090B0C] border border-[#292C2F] rounded-xl p-1">
-                    {(
-                      [
-                        { id: "baixa", label: "Baixa" },
-                        { id: "media", label: "Média" },
-                        { id: "alta", label: "Alta" },
-                      ] as const
-                    ).map((c) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => setConfidenceLevel(c.id)}
-                        className={`py-1 rounded-lg text-[0.6875rem] font-bold transition ${
-                          confidenceLevel === c.id
-                            ? "bg-[#292C2F] text-white border border-[#363A3D]"
-                            : "text-[#A1A6AA] hover:text-white"
-                        }`}
-                      >
-                        {c.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Placar Estilo GTO Wizard (Mãos, Moves, Score %) */}
-                <div className="space-y-2 border-t border-[#292C2F] pt-2.5">
+                {/* Placar Recolhível (Mãos, Acertos, Precisão) */}
+                <div className="space-y-2 border-t border-[#1E293B] pt-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[0.6875rem] font-bold uppercase tracking-wider text-[#A1A6AA]">
+                    <button
+                      type="button"
+                      aria-expanded={showLeftStats}
+                      onClick={() => setShowLeftStats((v) => !v)}
+                      className="flex items-center gap-1 text-[0.6875rem] font-bold uppercase tracking-wider text-[#94A3B8] hover:text-white"
+                    >
+                      {showLeftStats ? <ChevronUp className="w-3.5 h-3.5 text-[#60A5FA]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#60A5FA]" />}
                       Estatísticas da Sessão
-                    </span>
-                    <span className="flex items-center gap-1 text-xs font-mono font-bold text-[#F1BE60]">
-                      <Flame className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="flex items-center gap-1 text-xs font-mono font-bold text-[#F87171]">
+                      <Flame className="w-3.5 h-3.5 text-[#EF4444]" />
                       {streak}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-1.5 text-center">
-                    <div className="rounded-xl bg-[#090B0C] border border-[#292C2F] p-2">
-                      <div className="text-[0.6rem] uppercase text-[#A1A6AA]">Mãos</div>
-                      <div className="text-base font-extrabold font-mono text-white">
-                        {sessionTotal}
+                  {showLeftStats && (
+                    <>
+                      <div className="grid grid-cols-3 gap-1.5 text-center">
+                        <div className="rounded-xl bg-[#05070B] border border-[#1E293B] p-2">
+                          <div className="text-[0.6rem] uppercase text-[#94A3B8]">Mãos</div>
+                          <div className="text-base font-extrabold font-mono text-white">
+                            {sessionTotal}
+                          </div>
+                        </div>
+                        <div className="rounded-xl bg-[#05070B] border border-[#2563EB]/45 p-2">
+                          <div className="text-[0.6rem] uppercase text-[#94A3B8]">Acertos</div>
+                          <div className="text-base font-extrabold font-mono text-[#60A5FA]">
+                            {sessionRight}
+                          </div>
+                        </div>
+                        <div className="rounded-xl bg-[#05070B] border border-[#1E293B] p-2">
+                          <div className="text-[0.6rem] uppercase text-[#94A3B8]">Precisão</div>
+                          <div className="text-base font-extrabold font-mono text-white">
+                            {sessionTotal > 0 ? `${sessionPct}%` : "—"}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="rounded-xl bg-[#090B0C] border border-[#292C2F] p-2">
-                      <div className="text-[0.6rem] uppercase text-[#A1A6AA]">Acertos</div>
-                      <div className="text-base font-extrabold font-mono text-[#A1F5AE]">
-                        {sessionRight}
-                      </div>
-                    </div>
-                    <div className="rounded-xl bg-[#090B0C] border border-[#292C2F] p-2">
-                      <div className="text-[0.6rem] uppercase text-[#A1A6AA]">Precisão</div>
-                      <div className="text-base font-extrabold font-mono text-white">
-                        {sessionTotal > 0 ? `${sessionPct}%` : "—"}
-                      </div>
-                    </div>
-                  </div>
 
-                  {mixedAttempts.length > 0 && (
-                    <div className="flex items-center justify-between rounded-lg bg-[#090B0C] border border-[#292C2F] px-2.5 py-1.5 text-[0.6875rem]">
-                      <span className="text-[#A1A6AA]">Aderência ao Mix:</span>
-                      <span className="font-mono font-bold text-[#A1F5AE]">
-                        {adherence.adherencePct}% ({mixedAttempts.length} mãos)
-                      </span>
-                    </div>
-                  )}
+                      {mixedAttempts.length > 0 && (
+                        <div className="flex items-center justify-between rounded-lg bg-[#05070B] border border-[#1E293B] px-2.5 py-1.5 text-[0.6875rem]">
+                          <span className="text-[#94A3B8]">Aderência ao Mix:</span>
+                          <span className="font-mono font-bold text-[#60A5FA]">
+                            {adherence.adherencePct}% ({mixedAttempts.length} mãos)
+                          </span>
+                        </div>
+                      )}
 
-                  {/* Histórico curto da sessão */}
-                  {recentDecisions.length > 0 && (
-                    <div className="space-y-1 pt-1">
-                      <div className="text-[0.625rem] font-bold uppercase tracking-wider text-[#A1A6AA]">
-                        Últimas decisões
-                      </div>
-                      <ol className="space-y-1 max-h-36 overflow-y-auto pr-1">
-                        {recentDecisions.map((d) => (
-                          <li
-                            key={d.id}
-                            className="flex items-center justify-between rounded-lg bg-[#090B0C] border border-[#292C2F] px-2.5 py-1 text-[0.6875rem]"
+                      {/* Histórico curto recolhível */}
+                      {recentDecisions.length > 0 && (
+                        <div className="space-y-1 pt-1">
+                          <button
+                            type="button"
+                            aria-expanded={showRecentList}
+                            onClick={() => setShowRecentList((v) => !v)}
+                            className="w-full flex items-center justify-between text-[0.625rem] font-bold uppercase tracking-wider text-[#94A3B8] hover:text-white"
                           >
-                            <span className="font-mono font-bold text-white">
-                              {d.hand} ·{" "}
-                              <span className="text-[#A1F5AE]">{d.action}</span>
-                            </span>
-                            <span
-                              className={`text-[0.625rem] font-semibold ${
-                                d.classification === "ev_error"
-                                  ? "text-[#EF6666]"
-                                  : d.classification === "exact_primary"
-                                    ? "text-[#A1F5AE]"
-                                    : "text-[#F1BE60]"
-                              }`}
-                            >
-                              {d.classification === "exact_primary"
-                                ? "Melhor"
-                                : d.classification === "ev_error"
-                                  ? "Desvio"
-                                  : "Mix"}
-                            </span>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
+                            <span>Últimas decisões ({recentDecisions.length})</span>
+                            {showRecentList ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                          </button>
+                          {showRecentList && (
+                            <ol className="space-y-1 max-h-36 overflow-y-auto pr-1">
+                              {recentDecisions.map((d) => (
+                                <li
+                                  key={d.id}
+                                  className="flex items-center justify-between rounded-lg bg-[#05070B] border border-[#1E293B] px-2.5 py-1 text-[0.6875rem]"
+                                >
+                                  <span className="font-mono font-bold text-white">
+                                    {d.hand} ·{" "}
+                                    <span className="text-[#93C5FD]">{d.action}</span>
+                                  </span>
+                                  <span
+                                    className={`text-[0.625rem] font-semibold ${
+                                      d.classification === "ev_error"
+                                        ? "text-[#F87171]"
+                                        : d.classification === "exact_primary"
+                                          ? "text-[#60A5FA]"
+                                          : "text-[#F59E0B]"
+                                    }`}
+                                  >
+                                    {d.classification === "exact_primary"
+                                      ? "Melhor"
+                                      : d.classification === "ev_error"
+                                        ? "Desvio"
+                                        : "Mix"}
+                                  </span>
+                                </li>
+                              ))}
+                            </ol>
+                          )}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </aside>
 
               {/* COLUNA CENTRAL: Mesa + Botões de Ação + Feedback Enxuto Pós-Decisão */}
-              <div className="flex flex-col gap-3 min-w-0">
+              <div className="order-1 xl:order-2 flex flex-col gap-3 min-w-0">
                 {/* Cabeçalho Compacto do Spot */}
-                <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-[#191B1D] border border-[#292C2F] px-3.5 py-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-[#0A0E17] border border-[#1E293B] px-3.5 py-2.5">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
                       <span
@@ -2019,17 +2074,17 @@ export function TrainerView({
                       >
                         {badge.label}
                       </span>
-                      <span className="text-[0.65rem] font-mono text-[#A1A6AA]">
+                      <span className="text-[0.65rem] font-mono text-[#94A3B8]">
                         {currentSpot.format} · {currentSpot.effectiveStackBb}bb ·{" "}
                         {currentSpot.referenceStrategy.assumptions?.icmMode ?? "chipEV"}
                       </span>
                     </div>
-                    <h3 className="text-sm sm:text-base font-bold text-[#F4F5F5] truncate">
+                    <h3 className="text-sm sm:text-base font-bold text-[#F8FAFC] truncate">
                       {currentSpot.name}
                     </h3>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <select
                       aria-label="Selecionar spot"
                       value={currentSpot.spotId}
@@ -2039,7 +2094,7 @@ export function TrainerView({
                         );
                         if (found) dealSpecificSpot(found);
                       }}
-                      className="max-w-[180px] sm:max-w-[210px] rounded-lg bg-[#090B0C] border border-[#292C2F] px-2.5 py-1.5 text-xs text-[#F4F5F5] outline-none"
+                      className="max-w-[165px] sm:max-w-[210px] rounded-lg bg-[#05070B] border border-[#1E293B] px-2.5 py-1.5 text-xs text-[#F8FAFC] outline-none focus:border-[#3B82F6]"
                     >
                       {filteredSpots.map((s) => (
                         <option key={s.spotId} value={s.spotId}>
@@ -2051,19 +2106,19 @@ export function TrainerView({
                     <button
                       type="button"
                       onClick={() => dealNextHand()}
-                      className="flex items-center gap-1 rounded-lg bg-[#202224] hover:bg-[#292C2F] border border-[#363A3D] px-2.5 py-1.5 text-xs font-semibold text-[#F4F5F5] transition"
+                      className="flex items-center gap-1 rounded-lg bg-[#090D16] hover:bg-[#131B2C] border border-[#26334A] px-2.5 py-1.5 text-xs font-semibold text-[#F8FAFC] transition"
                       title="Sortear nova mão"
                     >
-                      <RefreshCw className="w-3.5 h-3.5" />
+                      <RefreshCw className="w-3.5 h-3.5 text-[#60A5FA]" />
                       Sortear
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setShowRangePanel((v) => !v)}
-                      className="hidden xl:flex items-center gap-1 rounded-lg bg-[#090B0C] hover:bg-[#202224] border border-[#292C2F] px-2.5 py-1.5 text-xs font-semibold text-[#A1A6AA] hover:text-white transition"
+                      className="flex items-center gap-1 rounded-lg bg-[#05070B] hover:bg-[#131B2C] border border-[#1E293B] px-2.5 py-1.5 text-xs font-semibold text-[#94A3B8] hover:text-white transition"
                     >
-                      <Eye className="w-3.5 h-3.5" />
+                      <Eye className="w-3.5 h-3.5 text-[#EF4444]" />
                       {showRangePanel ? "Ocultar 13×13" : "Mostrar 13×13"}
                     </button>
                   </div>
@@ -2113,9 +2168,9 @@ export function TrainerView({
                               : "#191B1D"
                             : wizColors.bg,
                           borderColor: isChosen
-                            ? "#F1BE60"
+                            ? "#F59E0B"
                             : evaluation && isBest
-                              ? "#A1F5AE"
+                              ? "#60A5FA"
                               : wizColors.border,
                         }}
                         className={`relative flex flex-col items-center justify-center rounded-xl py-3 px-4 font-extrabold text-white border-2 transition shadow-md ${
@@ -2150,27 +2205,27 @@ export function TrainerView({
                     role="status"
                     className={`trainer-feedback rounded-2xl border p-4 flex flex-col gap-3.5 shadow-xl ${
                       evaluation.classification === "exact_primary"
-                        ? "bg-[#191B1D] border-[#18B88D]/70"
+                        ? "bg-[#0A0E17] border-[#2563EB]/80"
                         : evaluation.classification === "unsolved"
-                          ? "bg-[#191B1D] border-[#F1BE60]/60"
+                          ? "bg-[#0A0E17] border-[#F59E0B]/60"
                           : evaluation.classification === "ev_error"
-                            ? "bg-[#191B1D] border-[#EF6666]/70"
-                            : "bg-[#191B1D] border-[#F1BE60]/70"
+                            ? "bg-[#1A0B10] border-[#DC2626]/80"
+                            : "bg-[#0A0E17] border-[#F59E0B]/70"
                     }`}
                   >
                     {/* Linha 1: Veredito Claro + Botões Repetir Mão e Próxima Mão */}
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-start gap-3">
                         {evaluation.classification === "ev_error" ? (
-                          <XCircle className="w-7 h-7 text-[#EF6666] shrink-0 mt-0.5" />
+                          <XCircle className="w-7 h-7 text-[#EF4444] shrink-0 mt-0.5" />
                         ) : evaluation.classification === "unsolved" ? (
-                          <BookOpen className="w-7 h-7 text-[#F1BE60] shrink-0 mt-0.5" />
+                          <BookOpen className="w-7 h-7 text-[#F59E0B] shrink-0 mt-0.5" />
                         ) : (
                           <CheckCircle2
                             className={`w-7 h-7 shrink-0 mt-0.5 ${
                               evaluation.classification === "exact_primary"
-                                ? "text-[#18B88D]"
-                                : "text-[#F1BE60]"
+                                ? "text-[#3B82F6]"
+                                : "text-[#F59E0B]"
                             }`}
                           />
                         )}
@@ -2179,35 +2234,35 @@ export function TrainerView({
                             <span
                               className={`text-[0.65rem] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded ${
                                 evaluation.classification === "exact_primary"
-                                  ? "bg-[#18B88D]/20 text-[#A1F5AE]"
+                                  ? "bg-[#2563EB]/25 text-[#93C5FD]"
                                   : evaluation.classification === "ev_error"
-                                    ? "bg-[#EF6666]/20 text-[#EF6666]"
-                                    : "bg-[#F1BE60]/20 text-[#F1BE60]"
+                                    ? "bg-[#DC2626]/25 text-[#FCA5A5]"
+                                    : "bg-[#F59E0B]/20 text-[#FCD34D]"
                               }`}
                             >
                               {friendlyVerdict.badge}
                             </span>
-                            <span className="text-xs font-mono text-[#A1A6AA]">
+                            <span className="text-xs font-mono text-[#94A3B8]">
                               Mão: <strong className="text-white">{handClass}</strong> · Sua
                               ação:{" "}
                               <strong className="text-white">{chosenAction}</strong>
                             </span>
                           </div>
-                          <h4 className="font-extrabold text-[#F4F5F5] text-base mt-1">
+                          <h4 className="font-extrabold text-[#F8FAFC] text-base mt-1">
                             {friendlyVerdict.shortTitle}
                           </h4>
-                          <p className="text-xs text-[#A1A6AA] mt-0.5 leading-relaxed">
+                          <p className="text-xs text-[#94A3B8] mt-0.5 leading-relaxed">
                             {evaluation.detail}
                           </p>
                         </div>
                       </div>
 
                       {/* Ações Principais de Loop Rápido */}
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                         <button
                           type="button"
                           onClick={repeatCurrentHand}
-                          className="flex items-center gap-1.5 rounded-xl bg-[#202224] hover:bg-[#292C2F] border border-[#363A3D] px-3.5 py-2.5 text-xs font-bold text-[#F4F5F5] transition"
+                          className="flex-1 sm:flex-initial min-h-[40px] flex items-center justify-center gap-1.5 rounded-xl bg-[#090D16] hover:bg-[#131B2C] border border-[#26334A] px-3.5 py-2 text-xs font-bold text-[#F8FAFC] transition"
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
                           Repetir mão
@@ -2215,7 +2270,7 @@ export function TrainerView({
                         <button
                           type="button"
                           onClick={() => dealNextHand()}
-                          className="flex items-center gap-1.5 rounded-xl bg-[#18B88D] hover:bg-[#22ce9f] px-4 py-2.5 text-xs font-extrabold text-[#090B0C] transition shadow-lg"
+                          className="flex-1 sm:flex-initial min-h-[40px] flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#DC2626] to-[#2563EB] hover:brightness-110 px-4 py-2 text-xs font-extrabold text-white transition shadow-lg"
                         >
                           Próxima mão (Espaço)
                         </button>
@@ -2224,20 +2279,20 @@ export function TrainerView({
 
                     {/* Barra Visual de Partição das Frequências (se houver distribuição conhecida) */}
                     {!isUnsolved && currentHandDist && (
-                      <div className="rounded-xl bg-[#090B0C] border border-[#292C2F] p-2.5 space-y-1.5">
+                      <div className="rounded-xl bg-[#05070B] border border-[#1E293B] p-2.5 space-y-1.5">
                         <div className="flex items-center justify-between text-[0.6875rem]">
-                          <span className="text-[#A1A6AA] font-semibold">
+                          <span className="text-[#94A3B8] font-semibold">
                             Frequências de referência para{" "}
                             <strong className="text-white">{handClass}</strong>
                             {useRng ? ` (Rolagem RNG: ${rngValue})` : ""}
                           </span>
                           {useRng && evaluation.rngTargetAction && (
-                            <span className="font-mono text-[#A1F5AE]">
+                            <span className="font-mono text-[#93C5FD]">
                               Alvo RNG: <strong>{evaluation.rngTargetAction}</strong>
                             </span>
                           )}
                         </div>
-                        <div className="relative h-5 w-full rounded-lg overflow-hidden bg-[#191B1D] border border-[#292C2F] flex">
+                        <div className="relative h-5 w-full rounded-lg overflow-hidden bg-[#0F1522] border border-[#1E293B] flex">
                           {currentSpot.legalActions.map((act) => {
                             const pct = Math.round(
                               (currentHandDist[act.name] ?? 0) * 100,
@@ -2294,7 +2349,7 @@ export function TrainerView({
                               id: "ja_compreendi",
                               label: "Já compreendi",
                               activeCls:
-                                "bg-[#18B88D]/20 border-[#18B88D] text-[#A1F5AE]",
+                                "bg-[#2563EB]/25 border-[#3B82F6] text-[#93C5FD]",
                             },
                           ] as const
                         ).map((tag) => (
@@ -2311,7 +2366,7 @@ export function TrainerView({
                             className={`px-2.5 py-1 rounded-lg text-[0.65rem] font-bold border transition ${
                               currentSelfReviewTag === tag.id
                                 ? tag.activeCls
-                                : "bg-[#090B0C] border-[#292C2F] text-[#A1A6AA] hover:text-white"
+                                : "bg-[#05070B] border-[#1E293B] text-[#94A3B8] hover:text-white"
                             }`}
                           >
                             {tag.label}
@@ -2324,7 +2379,7 @@ export function TrainerView({
                         type="button"
                         onClick={askCoach}
                         disabled={coachLoading}
-                        className="flex items-center gap-1.5 rounded-lg bg-indigo-600/90 hover:bg-indigo-500 disabled:opacity-50 px-3 py-1.5 text-[0.6875rem] font-bold text-white transition"
+                        className="flex items-center gap-1.5 rounded-lg bg-[#2563EB] hover:bg-[#3B82F6] disabled:opacity-50 px-3 py-1.5 text-[0.6875rem] font-bold text-white transition"
                       >
                         <Sparkles className="w-3.5 h-3.5" />
                         {coachLoading ? "Analisando..." : "Explicar com AI Coach"}
@@ -2332,15 +2387,15 @@ export function TrainerView({
                     </div>
 
                     {/* BOTÕES DE REVELAÇÃO PROGRESSIVA (Sob Demanda) */}
-                    <div className="flex flex-wrap items-center gap-1.5 border-t border-[#292C2F] pt-2.5">
+                    <div className="flex flex-wrap items-center gap-1.5 border-t border-[#1E293B] pt-2.5">
                       <button
                         type="button"
                         aria-expanded={openWhyPanel}
                         onClick={() => setOpenWhyPanel((v) => !v)}
                         className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[0.6875rem] font-bold border transition ${
                           openWhyPanel
-                            ? "bg-[#292C2F] border-[#18B88D]/50 text-[#A1F5AE]"
-                            : "bg-[#090B0C] border-[#292C2F] text-[#A1A6AA] hover:text-white"
+                            ? "bg-[#2563EB]/20 border-[#3B82F6]/60 text-[#93C5FD]"
+                            : "bg-[#05070B] border-[#1E293B] text-[#94A3B8] hover:text-white"
                         }`}
                       >
                         {openWhyPanel ? (
@@ -2357,8 +2412,8 @@ export function TrainerView({
                         onClick={() => setOpenMathPanel((v) => !v)}
                         className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[0.6875rem] font-bold border transition ${
                           openMathPanel
-                            ? "bg-[#292C2F] border-[#18B88D]/50 text-[#A1F5AE]"
-                            : "bg-[#090B0C] border-[#292C2F] text-[#A1A6AA] hover:text-white"
+                            ? "bg-[#2563EB]/20 border-[#3B82F6]/60 text-[#93C5FD]"
+                            : "bg-[#05070B] border-[#1E293B] text-[#94A3B8] hover:text-white"
                         }`}
                       >
                         {openMathPanel ? (
@@ -2372,7 +2427,7 @@ export function TrainerView({
                       <button
                         type="button"
                         onClick={() => setShowRangePanel(true)}
-                        className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[0.6875rem] font-bold bg-[#090B0C] border border-[#292C2F] text-[#A1A6AA] hover:text-white transition"
+                        className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[0.6875rem] font-bold bg-[#05070B] border border-[#1E293B] text-[#94A3B8] hover:text-white transition"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         Mostrar estratégia / Comparar ranges
@@ -2384,8 +2439,8 @@ export function TrainerView({
                         onClick={() => setOpenSourcePanel((v) => !v)}
                         className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[0.6875rem] font-bold border transition ${
                           openSourcePanel
-                            ? "bg-[#292C2F] border-[#18B88D]/50 text-[#A1F5AE]"
-                            : "bg-[#090B0C] border-[#292C2F] text-[#A1A6AA] hover:text-white"
+                            ? "bg-[#DC2626]/20 border-[#EF4444]/60 text-[#FCA5A5]"
+                            : "bg-[#05070B] border-[#1E293B] text-[#94A3B8] hover:text-white"
                         }`}
                       >
                         {openSourcePanel ? (
@@ -2397,17 +2452,17 @@ export function TrainerView({
                       </button>
                     </div>
 
-                    {/* PAINEL PROGRESSIVO 1: ENTENDA O MOTIVO (Conceito, Range/Nut Advantage, Blockers, Realização) */}
+                    {/* PAINEL PROGRESSIVO 1: ENTENDA O MOTIVO */}
                     {openWhyPanel && (
-                      <div className="rounded-xl bg-[#090B0C] border border-[#292C2F] p-3.5 space-y-3 text-xs">
-                        <p className="text-[#F4F5F5] leading-relaxed">
-                          <strong className="text-[#A1F5AE]">Guia conceitual:</strong>{" "}
+                      <div className="rounded-xl bg-[#05070B] border border-[#1E293B] p-3.5 space-y-3 text-xs">
+                        <p className="text-[#F8FAFC] leading-relaxed">
+                          <strong className="text-[#60A5FA]">Guia conceitual:</strong>{" "}
                           {currentSpot.lesson.conceptualGuidance}
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                          <div className="rounded-lg bg-[#191B1D] border border-[#292C2F] p-2.5 space-y-1">
+                          <div className="rounded-lg bg-[#090D16] border border-[#1E293B] p-2.5 space-y-1">
                             <div className="flex items-center justify-between">
-                              <span className="font-bold text-[#A1F5AE]">
+                              <span className="font-bold text-[#60A5FA]">
                                 1. Vantagem de Range
                               </span>
                               <span className="font-mono text-[0.625rem] text-[#A1A6AA]">
@@ -2480,16 +2535,16 @@ export function TrainerView({
 
                     {/* PAINEL PROGRESSIVO 2: VER A MATEMÁTICA (Comparação de Sizings / EV) */}
                     {openMathPanel && (
-                      <div className="rounded-xl bg-[#090B0C] border border-[#292C2F] p-3.5 space-y-2.5 text-xs">
+                      <div className="rounded-xl bg-[#05070B] border border-[#1E293B] p-3.5 space-y-2.5 text-xs">
                         {reasoning.sizingComparison.available ? (
                           <>
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                              <span className="font-bold text-[#A1F5AE] flex items-center gap-1.5">
+                              <span className="font-bold text-[#60A5FA] flex items-center gap-1.5">
                                 <Scale className="w-4 h-4" />
                                 Comparação de Sizings / Ações ({handClass} — Unidade:{" "}
                                 {reasoning.sizingComparison.evUnit})
                               </span>
-                              <span className="text-[0.6875rem] font-mono text-[#A1A6AA]">
+                              <span className="text-[0.6875rem] font-mono text-[#94A3B8]">
                                 Melhor EV: {reasoning.sizingComparison.bestAction} (
                                 {reasoning.sizingComparison.bestEv?.toFixed(3)}{" "}
                                 {reasoning.sizingComparison.evUnit})
@@ -2499,20 +2554,20 @@ export function TrainerView({
                               {reasoning.sizingComparison.options.map((opt) => (
                                 <div
                                   key={opt.actionName}
-                                  className="rounded-lg bg-[#191B1D] border border-[#292C2F] p-2.5"
+                                  className="rounded-lg bg-[#090D16] border border-[#1E293B] p-2.5"
                                 >
                                   <div className="flex items-center justify-between font-bold text-white">
                                     <span>{opt.actionName}</span>
-                                    <span className="font-mono text-[#A1F5AE]">
+                                    <span className="font-mono text-[#60A5FA]">
                                       {Math.round(opt.frequency * 100)}%
                                     </span>
                                   </div>
-                                  <div className="font-mono text-[0.6875rem] text-[#A1A6AA] mt-1">
+                                  <div className="font-mono text-[0.6875rem] text-[#94A3B8] mt-1">
                                     EV: {opt.ev >= 0 ? "+" : ""}
                                     {opt.ev.toFixed(3)} {reasoning.sizingComparison.evUnit} |
                                     ΔEV: -{opt.deltaEvFromBest.toFixed(3)}
                                   </div>
-                                  <p className="text-[0.625rem] text-[#A1A6AA] mt-1">
+                                  <p className="text-[0.625rem] text-[#94A3B8] mt-1">
                                     {opt.interpretation}
                                   </p>
                                 </div>
@@ -2520,7 +2575,7 @@ export function TrainerView({
                             </div>
                           </>
                         ) : (
-                          <div className="space-y-1 text-[#A1A6AA]">
+                          <div className="space-y-1 text-[#94A3B8]">
                             <p className="font-semibold text-white">
                               Nota sobre EV neste cenário ({currentSpot.referenceStrategy.status}):
                             </p>
@@ -2535,7 +2590,7 @@ export function TrainerView({
 
                     {/* PAINEL PROGRESSIVO 3: CONSULTAR FONTE & PROVENIÊNCIA */}
                     {openSourcePanel && (
-                      <div className="rounded-xl bg-[#090B0C] border border-[#292C2F] p-3 text-[0.6875rem] text-[#A1A6AA] space-y-1">
+                      <div className="rounded-xl bg-[#05070B] border border-[#1E293B] p-3 text-[0.6875rem] text-[#94A3B8] space-y-1">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <span>
                             Fonte:{" "}
@@ -2549,7 +2604,7 @@ export function TrainerView({
                             {currentSpot.referenceStrategy.assumptionsHash ??
                               "UNSOLVED"}{" "}
                             | Unidade:{" "}
-                            <strong className="text-[#A1F5AE]">
+                            <strong className="text-[#60A5FA]">
                               {currentSpot.referenceStrategy.evUnit ??
                                 "Sem EV (EV loss desabilitado)"}
                             </strong>
@@ -2620,13 +2675,13 @@ export function TrainerView({
 
               {/* COLUNA DIREITA: Matriz 13x13 & Info do Range (Oculta antes da decisão) */}
               {showRangePanel && (
-                <div className="trainer-range-panel rounded-2xl bg-[#191B1D] border border-[#292C2F] p-3.5 shadow-xl">
+                <div className="trainer-range-panel order-3 rounded-2xl bg-[#0A0E17] border border-[#1E293B] p-3.5 shadow-xl">
                   <div className="flex items-center justify-between mb-2.5">
                     <div>
-                      <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#F4F5F5]">
+                      <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#F8FAFC]">
                         Matriz 13&times;13 · {currentSpot.heroPosition}
                       </h3>
-                      <p className="text-[0.65rem] text-[#A1A6AA]">
+                      <p className="text-[0.65rem] text-[#94A3B8]">
                         {evaluation || peekMatrix
                           ? `Mão ativa: ${handClass}`
                           : "Protegida contra spoiler antes da decisão"}
@@ -2636,7 +2691,7 @@ export function TrainerView({
                       <button
                         type="button"
                         onClick={() => setPeekMatrix((v) => !v)}
-                        className="flex items-center gap-1 rounded-lg bg-[#090B0C] border border-[#292C2F] px-2.5 py-1 text-[0.6875rem] text-[#A1A6AA] hover:text-[#F1BE60] transition"
+                        className="flex items-center gap-1 rounded-lg bg-[#05070B] border border-[#1E293B] px-2.5 py-1 text-[0.6875rem] text-[#94A3B8] hover:text-[#60A5FA] transition"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         {peekMatrix ? "Ocultar" : "Espiar Range"}
@@ -2645,13 +2700,16 @@ export function TrainerView({
                   </div>
 
                   {currentSpot.referenceStrategy.validationWarnings && (
-                    <div className="mb-2.5 rounded-lg bg-amber-950/40 border border-amber-600/40 px-2.5 py-1.5 text-[0.65rem] text-amber-200 flex items-center gap-2">
-                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                      <span>
+                    <details className="mb-2.5 rounded-lg bg-amber-950/35 border border-amber-600/40 px-2.5 py-1.5 text-[0.65rem] text-amber-200">
+                      <summary className="cursor-pointer flex items-center gap-1.5 font-semibold select-none">
+                        <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                        <span>Aviso de validação (clique p/ detalhes)</span>
+                      </summary>
+                      <p className="mt-1.5 opacity-90">
                         Aviso de validação:{" "}
                         {currentSpot.referenceStrategy.validationWarnings.join("; ")}
-                      </span>
-                    </div>
+                      </p>
+                    </details>
                   )}
 
                   {evaluation || peekMatrix || isUnsolved ? (
@@ -2683,17 +2741,17 @@ export function TrainerView({
                       }
                     />
                   ) : (
-                    <div className="aspect-square rounded-xl bg-[#090B0C] border border-dashed border-[#292C2F] flex flex-col items-center justify-center text-center p-6 gap-3">
-                      <div className="w-11 h-11 rounded-full bg-[#18B88D]/10 border border-[#18B88D]/30 flex items-center justify-center text-[#A1F5AE]">
+                    <div className="aspect-square rounded-xl bg-[#05070B] border border-dashed border-[#26334A] flex flex-col items-center justify-center text-center p-6 gap-3">
+                      <div className="w-11 h-11 rounded-full bg-[#2563EB]/15 border border-[#3B82F6]/45 flex items-center justify-center text-[#60A5FA]">
                         <Brain className="w-5 h-5" />
                       </div>
                       <div className="space-y-1">
-                        <p className="text-xs font-bold text-[#F4F5F5]">
+                        <p className="text-xs font-bold text-[#F8FAFC]">
                           Estratégia oculta antes da decisão
                         </p>
-                        <p className="text-[0.6875rem] text-[#A1A6AA] max-w-xs leading-relaxed">
+                        <p className="text-[0.6875rem] text-[#94A3B8] max-w-xs leading-relaxed">
                           Tome sua decisão nos botões abaixo da mesa (ou teclas{" "}
-                          <kbd className="px-1 py-0.5 rounded bg-[#191B1D] border border-[#292C2F] font-mono text-white">
+                          <kbd className="px-1 py-0.5 rounded bg-[#090D16] border border-[#1E293B] font-mono text-white">
                             1–{currentSpot.legalActions.length}
                           </kbd>
                           ) para revelar a matriz 13&times;13 e as frequências exatas.
@@ -2744,7 +2802,7 @@ export function TrainerView({
                     <code className="text-amber-300">UNSOLVED</code>.
                   </span>
                   <div className="flex items-center gap-2">
-                    <label className="px-2.5 py-1 rounded-lg bg-emerald-950/70 border border-emerald-600/50 text-emerald-300 font-semibold hover:bg-emerald-900/60 cursor-pointer flex items-center gap-1.5">
+                    <label className="px-2.5 py-1 rounded-lg bg-[#0D182C] border border-[#2563EB]/60 text-[#93C5FD] font-semibold hover:bg-[#2563EB]/25 cursor-pointer flex items-center gap-1.5">
                       <Upload className="w-3 h-3" />
                       Carregar Arquivo (.json/.csv)
                       <input
@@ -2824,7 +2882,7 @@ export function TrainerView({
                   onChange={(e) => setImportJsonText(e.target.value)}
                   rows={10}
                   placeholder='Cole JSON {"schemaVersion": "1.1.0", ...} / canonical_bundle.json ou carregue CSV "Hand,Weight,Combos,Equity,EV,Check %,Check EV,..."'
-                  className="w-full rounded-xl bg-[#090B0C] border border-[#292C2F] p-3 font-mono text-[0.6875rem] text-slate-200 outline-none focus:border-[#18B88D]"
+                  className="w-full rounded-xl bg-[#05070B] border border-[#1E293B] p-3 font-mono text-[0.6875rem] text-slate-200 outline-none focus:border-[#3B82F6]"
                 />
                 {importError && (
                   <div className="rounded-xl bg-rose-950/60 border border-rose-700 p-3 text-rose-200 leading-relaxed">
@@ -2832,23 +2890,23 @@ export function TrainerView({
                   </div>
                 )}
                 {importResultNotice && (
-                  <div className="rounded-xl bg-emerald-950/60 border border-emerald-700 p-3 text-emerald-200">
+                  <div className="rounded-xl bg-[#0D182C] border border-[#2563EB] p-3 text-blue-200">
                     {importResultNotice}
                   </div>
                 )}
               </div>
-              <div className="px-5 py-3.5 border-t border-[#292C2F] bg-[#090B0C] flex justify-end gap-2">
+              <div className="px-5 py-3.5 border-t border-[#1E293B] bg-[#05070B] flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setImportOpen(false)}
-                  className="px-3 py-2 rounded-xl text-xs font-semibold text-[#A1A6AA] hover:text-white"
+                  className="px-3 py-2 rounded-xl text-xs font-semibold text-[#94A3B8] hover:text-white"
                 >
                   Fechar
                 </button>
                 <button
                   type="button"
                   onClick={handleImportSubmit}
-                  className="px-4 py-2 rounded-xl bg-[#18B88D] hover:bg-[#22ce9f] text-xs font-extrabold text-[#090B0C]"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#DC2626] to-[#2563EB] hover:brightness-110 text-xs font-extrabold text-white"
                 >
                   Validar &amp; Importar via SolverAdapter
                 </button>

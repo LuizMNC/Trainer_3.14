@@ -76,66 +76,73 @@ export function FatalErrorsView({ spots, onLaunchDrill }: FatalErrorsViewProps) 
         <p className="text-xs text-amber-200">{FATAL_ERRORS_NOTICE} Uma ação pode pertencer a uma estratégia mista e ser inadequada como regra universal.</p>
         <p className="text-xs text-slate-400">Fonte: Dossie/CATALOGO_ERROS_FATAIS_GTO.json. Explicações, contrapontos, quizzes e dificuldade são complementos editoriais didáticos desta fase.</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm pt-2" aria-label="Progresso conceitual">
-          <p><strong className="text-emerald-300">{new Set(attempts.map(a => a.errorId)).size}/20</strong><br />cartões praticados</p>
+          <p><strong className="text-[#60A5FA]">{new Set(attempts.map(a => a.errorId)).size}/20</strong><br />cartões praticados</p>
           <p><strong>{attempts.length}</strong><br />respostas recentes</p>
           <p><strong>{attempts.filter(a => a.isCorrect).length}</strong><br />acertos nas respostas recentes</p>
-          <p><strong className="text-amber-300">{due.length}</strong><br />revisões pendentes</p>
+          <p><strong className="text-[#F87171]">{due.length}</strong><br />revisões pendentes</p>
         </div>
         <p className="text-xs text-slate-400">Indicadores calculados nas até 100 respostas mais recentes de cada cartão; não representam totais cumulativos.</p>
       </section>
 
       {!ready && <p role="status" className="text-sm">Carregando progresso local…</p>}
-      {warning && <p role="status" className="border border-amber-700 rounded-lg p-3 text-sm text-amber-200">{warning}</p>}
+      {warning && <p role="status" className="border border-[#DC2626]/60 bg-[#2B0B11]/60 rounded-lg p-3 text-sm text-red-200">{warning}</p>}
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800" aria-label="Filtros de erros">
-        <label className="text-xs text-slate-300">Street / contexto
-          <select className={selectClass} value={filters.street} onChange={e => updateFilter("street", e.target.value as FatalErrorFilters["street"])}>
-            <option value="all">Todos os contextos</option>{[...new Set(FATAL_ERRORS.map(c => c.category))].map(street => <option key={street}>{street}</option>)}
-          </select>
-        </label>
-        <label className="text-xs text-slate-300">Categoria de evidência
-          <select className={selectClass} value={filters.category} onChange={e => updateFilter("category", e.target.value as FatalErrorFilters["category"])}>
-            <option value="all">Todas as categorias</option>{Object.entries(CLASSIFICATION_LABELS).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
-          </select>
-        </label>
-        <label className="text-xs text-slate-300">Dificuldade didática
-          <select className={selectClass} value={filters.difficulty} onChange={e => updateFilter("difficulty", e.target.value as FatalErrorFilters["difficulty"])}>
-            <option value="all">Todas as dificuldades</option>{["Básica", "Intermediária", "Avançada"].map(d => <option key={d}>{d}</option>)}
-          </select>
-        </label>
-        <label className="text-xs text-slate-300">Status de estudo
-          <select className={selectClass} value={filters.status} onChange={e => updateFilter("status", e.target.value as FatalErrorFilters["status"])}>
-            <option value="all">Todos os status</option>{Object.entries(STUDY_STATUS_LABELS).map(([id, label]) => <option key={id} value={id}>{label}</option>)}<option value="incorrect">Com respostas incorretas</option>
-          </select>
-        </label>
-        <button type="button" className="text-xs text-emerald-300 underline justify-self-start" onClick={() => { setAnsweredId(null); setFilters(EMPTY_FATAL_FILTERS); }}>Limpar filtros</button>
-      </section>
+      <details open className="rounded-xl bg-[#090D16] border border-[#1E293B] p-3.5 group">
+        <summary className="cursor-pointer list-none flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-200 min-h-[36px]">
+          <span>Filtros de erros · contexto, categoria &amp; dificuldade</span>
+          <span className="text-[0.6875rem] font-semibold text-[#60A5FA] group-open:hidden">Expandir filtros</span>
+          <span className="text-[0.6875rem] font-semibold text-slate-400 hidden group-open:inline">Recolher filtros</span>
+        </summary>
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 pt-3 mt-2 border-t border-[#1E293B]" aria-label="Filtros de erros">
+          <label className="text-xs text-slate-300">Street / contexto
+            <select className={selectClass} value={filters.street} onChange={e => updateFilter("street", e.target.value as FatalErrorFilters["street"])}>
+              <option value="all">Todos os contextos</option>{[...new Set(FATAL_ERRORS.map(c => c.category))].map(street => <option key={street}>{street}</option>)}
+            </select>
+          </label>
+          <label className="text-xs text-slate-300">Categoria de evidência
+            <select className={selectClass} value={filters.category} onChange={e => updateFilter("category", e.target.value as FatalErrorFilters["category"])}>
+              <option value="all">Todas as categorias</option>{Object.entries(CLASSIFICATION_LABELS).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+            </select>
+          </label>
+          <label className="text-xs text-slate-300">Dificuldade didática
+            <select className={selectClass} value={filters.difficulty} onChange={e => updateFilter("difficulty", e.target.value as FatalErrorFilters["difficulty"])}>
+              <option value="all">Todas as dificuldades</option>{["Básica", "Intermediária", "Avançada"].map(d => <option key={d}>{d}</option>)}
+            </select>
+          </label>
+          <label className="text-xs text-slate-300">Status de estudo
+            <select className={selectClass} value={filters.status} onChange={e => updateFilter("status", e.target.value as FatalErrorFilters["status"])}>
+              <option value="all">Todos os status</option>{Object.entries(STUDY_STATUS_LABELS).map(([id, label]) => <option key={id} value={id}>{label}</option>)}<option value="incorrect">Com respostas incorretas</option>
+            </select>
+          </label>
+          <button type="button" className="text-xs text-[#60A5FA] underline justify-self-start" onClick={() => { setAnsweredId(null); setFilters(EMPTY_FATAL_FILTERS); }}>Limpar filtros</button>
+        </section>
+      </details>
 
-      {due.length > 0 && <section className="p-4 rounded-xl bg-amber-950/20 border border-amber-900 space-y-2" aria-label="Repetição espaçada">
-        <h3 className="text-sm font-bold text-amber-200 flex gap-2"><RotateCcw className="w-4 h-4" />Revisar agora · Leitner</h3>
-        <div className="flex flex-wrap gap-2">{due.map(item => <button key={item.spotId} type="button" className="text-xs underline text-amber-100 text-left" onClick={() => { setAnsweredId(null); setFilters(EMPTY_FATAL_FILTERS); setSelectedId(item.spotId.slice(6) as FatalErrorId); }}>{item.spotId.slice(6)} · {item.spotName}</button>)}</div>
+      {due.length > 0 && <section className="p-4 rounded-xl bg-[#2B0B11]/50 border border-[#DC2626]/50 space-y-2" aria-label="Repetição espaçada">
+        <h3 className="text-sm font-bold text-red-200 flex gap-2"><RotateCcw className="w-4 h-4 text-[#F87171]" />Revisar agora · Leitner</h3>
+        <div className="flex flex-wrap gap-2">{due.map(item => <button key={item.spotId} type="button" className="text-xs underline text-red-100 text-left" onClick={() => { setAnsweredId(null); setFilters(EMPTY_FATAL_FILTERS); setSelectedId(item.spotId.slice(6) as FatalErrorId); }}>{item.spotId.slice(6)} · {item.spotName}</button>)}</div>
       </section>}
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(240px,1fr)_minmax(0,2fr)] gap-5">
         <section aria-label="Cartões de erros" className="min-w-0">
           <p className="text-xs text-slate-400 mb-3" role="status">{filtered.length} de 20 cartões</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2 lg:max-h-[1100px] lg:overflow-y-auto lg:pr-1">
-            {filtered.map(item => <button key={item.id} type="button" aria-pressed={item.id === card?.id} className={`text-left rounded-xl border p-3 space-y-2 ${item.id === card?.id ? "bg-emerald-950/40 border-emerald-600" : "bg-slate-900 border-slate-800 hover:border-slate-600"}`} onClick={() => { setAnsweredId(null); setSelectedId(item.id); }}>
+            {filtered.map(item => <button key={item.id} type="button" aria-pressed={item.id === card?.id} className={`text-left rounded-xl border p-3 space-y-2 ${item.id === card?.id ? "bg-[#0F1B33] border-[#3B82F6]" : "bg-[#090D16] border-[#1E293B] hover:border-[#334155]"}`} onClick={() => { setAnsweredId(null); setSelectedId(item.id); }}>
               <span className="block text-xs text-slate-400">{item.id} · {item.category} · {item.difficulty}</span>
               <span className="block text-sm font-bold">{item.title}</span>
-              <span className="block text-xs text-emerald-300">{STUDY_STATUS_LABELS[getFatalErrorStatus(item, attempts, now)]}</span>
+              <span className="block text-xs text-[#60A5FA]">{STUDY_STATUS_LABELS[getFatalErrorStatus(item, attempts, now)]}</span>
             </button>)}
           </div>
         </section>
 
         {card ? <article className="min-w-0 space-y-4" key={card.id}>
-          {!filtered.includes(card) && <p role="status" className="text-xs text-emerald-200">Este cartão mudou de status. O feedback continua visível até você escolher outro cartão ou filtro.</p>}
-          <section className="rounded-xl bg-slate-900 border border-slate-800 p-4 sm:p-5 space-y-3">
+          {!filtered.includes(card) && <p role="status" className="text-xs text-sky-200">Este cartão mudou de status. O feedback continua visível até você escolher outro cartão ou filtro.</p>}
+          <section className="rounded-xl bg-[#090D16] border border-[#1E293B] p-4 sm:p-5 space-y-3">
             <h3 className="text-lg font-bold">{card.id} · {card.title}</h3>
-            <p className="text-xs text-amber-300">EDUCATIONAL_HEURISTIC · Referência do cartão: UNSOLVED · EV loss indisponível · Diagnóstico automático desativado</p>
+            <p className="text-xs text-[#F87171]">EDUCATIONAL_HEURISTIC · Referência do cartão: UNSOLVED · EV loss indisponível · Diagnóstico automático desativado</p>
             <dl className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-300">
-              <div className="rounded-lg bg-slate-950/70 border border-slate-800 p-3"><dt className="font-bold text-white text-xs uppercase tracking-wider text-emerald-300">Por que estudar</dt><dd className="mt-1 text-xs leading-relaxed">{card.explanation}</dd></div>
-              <div className="rounded-lg bg-slate-950/70 border border-slate-800 p-3"><dt className="font-bold text-white text-xs uppercase tracking-wider text-amber-300">Sinal de risco, não diagnóstico</dt><dd className="mt-1 text-xs leading-relaxed">{card.riskSignal}</dd></div>
+              <div className="rounded-lg bg-[#05070B] border border-[#1E293B] p-3"><dt className="font-bold text-xs uppercase tracking-wider text-[#60A5FA]">Por que estudar</dt><dd className="mt-1 text-xs leading-relaxed">{card.explanation}</dd></div>
+              <div className="rounded-lg bg-[#05070B] border border-[#1E293B] p-3"><dt className="font-bold text-xs uppercase tracking-wider text-[#F87171]">Sinal de risco, não diagnóstico</dt><dd className="mt-1 text-xs leading-relaxed">{card.riskSignal}</dd></div>
             </dl>
           </section>
 
@@ -143,11 +150,11 @@ export function FatalErrorsView({ spots, onLaunchDrill }: FatalErrorsViewProps) 
           <FatalErrorQuiz card={card} ready={ready} onAnswer={handleAnswer} />
           {card.calculator && <FatalErrorCalculator kind={card.calculator} />}
 
-          <section className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 space-y-3" aria-label="Prática no treinador">
+          <section className="rounded-xl border border-[#1E293B] bg-[#090D16] p-4 space-y-3" aria-label="Prática no treinador">
             <h3 className="font-bold text-sm">Praticar um cenário relacionado</h3>
             {practiceSpots.map(spot => <div key={spot.spotId} className="text-sm space-y-2">
               <p>{spot.name}</p><p className="text-xs text-slate-400">{spot.referenceStrategy.status} · Modo Aprendizagem. A referência mantém seu próprio status; não valida o cartão como regra universal.</p>
-              <button type="button" className="inline-flex items-center gap-2 px-3 py-2 bg-emerald-800 hover:bg-emerald-700 rounded-lg font-bold text-xs" onClick={() => {
+              <button type="button" className="inline-flex items-center gap-2 px-3 py-2 bg-[#2563EB] hover:bg-[#3B82F6] text-white rounded-lg font-bold text-xs transition" onClick={() => {
                 const navigation = fatalErrorPracticeNavigation(card, spots, spot.spotId);
                 if (navigation) onLaunchDrill(navigation.requestedSpotId, navigation.requestedMode ?? undefined);
               }}><Play className="w-3.5 h-3.5" />Iniciar no treinador</button>
@@ -156,27 +163,27 @@ export function FatalErrorsView({ spots, onLaunchDrill }: FatalErrorsViewProps) 
           </section>
 
           {/* REVELAÇÃO PROGRESSIVA: Exemplo, Correção, Exceção e Aulas */}
-          <details className="rounded-xl bg-slate-900 border border-slate-800 p-4 group">
-            <summary className="cursor-pointer font-bold text-sm text-emerald-300 flex items-center justify-between">
+          <details className="rounded-xl bg-[#090D16] border border-[#1E293B] p-4 group">
+            <summary className="cursor-pointer font-bold text-sm text-[#60A5FA] flex items-center justify-between">
               <span>Entenda o motivo · Exemplo prático, Correção e Exceção</span>
               <span className="text-xs text-slate-400 group-open:hidden">Expandir</span>
             </summary>
-            <dl className="space-y-3 text-sm text-slate-300 mt-3 pt-3 border-t border-slate-800">
+            <dl className="space-y-3 text-sm text-slate-300 mt-3 pt-3 border-t border-[#1E293B]">
               <div><dt className="font-bold text-white">Exemplo do catálogo</dt><dd className="mt-1">{card.sampleScenario}</dd></div>
               <div><dt className="font-bold text-white">Como corrigir o raciocínio</dt><dd className="mt-1">{card.correctiveStudy}</dd></div>
               <div><dt className="font-bold text-white">Exceção / contraponto didático</dt><dd className="mt-1">{card.exception}</dd></div>
             </dl>
           </details>
 
-          <details className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 group" aria-label="Aulas relacionadas">
+          <details className="rounded-xl border border-[#1E293B] bg-[#090D16] p-4 group" aria-label="Aulas relacionadas">
             <summary className="cursor-pointer flex items-center justify-between font-bold text-sm">
-              <span className="flex items-center gap-2"><BookOpen className="w-4 h-4 text-emerald-400" />Conceitos relacionados · TreinerLM</span>
+              <span className="flex items-center gap-2"><BookOpen className="w-4 h-4 text-[#60A5FA]" />Conceitos relacionados · TreinerLM</span>
               <span className="text-xs text-slate-400 group-open:hidden">Consultar fonte</span>
             </summary>
-            <div className="space-y-3 mt-3 pt-3 border-t border-slate-800">
+            <div className="space-y-3 mt-3 pt-3 border-t border-[#1E293B]">
               <p className="text-xs text-slate-400">Relação temática editorial; as aulas não são prova de solução GTO deste erro.</p>
               {getFatalErrorLessons(card).map(lesson => <div key={lesson.spotNumber} className="text-sm space-y-1">
-                <a className="text-emerald-300 underline" href={lesson.url} target="_blank" rel="noreferrer">Aula {lesson.spotNumber} · {lesson.moduleLabel}</a>
+                <a className="text-[#60A5FA] underline" href={lesson.url} target="_blank" rel="noreferrer">Aula {lesson.spotNumber} · {lesson.moduleLabel}</a>
                 <p className="text-xs text-slate-300">{lesson.coreConcept}</p>
                 <p className="text-xs text-slate-400">{lesson.evidenceType}</p>
                 {lesson.unverifiedWarning && <p className="text-xs text-amber-200">{lesson.unverifiedWarning}</p>}

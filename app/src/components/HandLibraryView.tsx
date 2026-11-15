@@ -16,11 +16,11 @@ import {
 import { formatAtoms } from "@/lib/poker/handReplay";
 
 const input =
-  "w-full rounded-lg border border-[#292C2F] bg-[#090B0C] px-3 py-2 text-xs text-[#F4F5F5] outline-none focus:border-[#18B88D]";
+  "w-full rounded-lg border border-[#1E293B] bg-[#05070B] px-3 py-2 text-xs text-[#F8FAFC] outline-none focus:border-[#3B82F6]";
 const button =
-  "rounded-lg border border-[#292C2F] bg-[#202224] px-3 py-1.5 text-xs font-semibold text-[#F4F5F5] hover:bg-[#292C2F] disabled:opacity-40 transition";
+  "rounded-lg border border-[#1E293B] bg-[#090D16] px-3 py-1.5 text-xs font-semibold text-[#F8FAFC] hover:bg-[#141D2F] disabled:opacity-40 transition";
 const primary =
-  "rounded-lg border border-[#18B88D] bg-[#18B88D] px-3.5 py-1.5 text-xs font-extrabold text-[#090B0C] hover:bg-[#22ce9f] disabled:opacity-40 transition";
+  "rounded-lg border border-[#3B82F6] bg-gradient-to-r from-[#DC2626] to-[#2563EB] px-3.5 py-1.5 text-xs font-extrabold text-white hover:brightness-110 disabled:opacity-40 transition";
 const emptyFilters = {
   q: "",
   player: "",
@@ -249,13 +249,13 @@ export function HandLibraryView({
   return (
     <section className="space-y-4" aria-label="Biblioteca de Mãos">
       {/* Cabeçalho Enxuto + Ações Principais */}
-      <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#292C2F] bg-[#191B1D] p-4">
+      <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#1E293B] bg-[#090D16] p-4">
         <div>
-          <p className="text-[0.65rem] font-extrabold tracking-widest text-[#A1F5AE]">
+          <p className="text-[0.65rem] font-extrabold tracking-widest text-[#60A5FA]">
             ACERVO LOCAL · REVISÃO PÓS-SESSÃO
           </p>
-          <h2 className="mt-0.5 flex items-center gap-2 text-lg sm:text-xl font-extrabold text-[#F4F5F5]">
-            <BookOpen size={20} className="text-[#18B88D]" />
+          <h2 className="mt-0.5 flex items-center gap-2 text-lg sm:text-xl font-extrabold text-[#F8FAFC]">
+            <BookOpen size={20} className="text-[#60A5FA]" />
             Biblioteca de Mãos
           </h2>
           <p className="mt-0.5 text-xs text-[#A1A6AA]">
@@ -300,7 +300,7 @@ export function HandLibraryView({
 
       {/* Avisos de processamento ou lote */}
       {busy && (
-        <p role="status" className="text-xs font-bold text-[#A1F5AE]">
+        <p role="status" className="text-xs font-bold text-[#60A5FA]">
           Processando no backend local…
         </p>
       )}
@@ -323,8 +323,8 @@ export function HandLibraryView({
                 <strong
                   className={
                     result.status === "IMPORTED"
-                      ? "text-[#A1F5AE]"
-                      : "text-[#F1BE60]"
+                      ? "text-[#60A5FA]"
+                      : "text-[#F87171]"
                   }
                 >
                   {result.name} · {statusLabels[result.status]}
@@ -418,8 +418,8 @@ export function HandLibraryView({
           ])}
         </div>
 
-        <details className="rounded-xl border border-[#292C2F] bg-[#090B0C] p-3">
-          <summary className="cursor-pointer text-xs font-bold text-[#A1F5AE] flex items-center gap-1.5">
+        <details className="rounded-xl border border-[#1E293B] bg-[#05070B] p-3">
+          <summary className="cursor-pointer text-xs font-bold text-[#60A5FA] flex items-center gap-1.5">
             <SlidersHorizontal size={13} />
             Filtros avançados (participantes, posição, blinds, datas, tags)
           </summary>
@@ -597,12 +597,12 @@ export function HandLibraryView({
                           .map((v) => formatAtoms(v, item.decimalPlaces))
                           .join(" / ")}
                       </span>
-                      <span className="rounded bg-[#090B0C] border border-[#292C2F] px-2 py-0.5 font-mono text-[#A1F5AE]">
+                      <span className="rounded bg-[#05070B] border border-[#1E293B] px-2 py-0.5 font-mono text-[#60A5FA]">
                         Board: {item.board.join(" ") || "Pré-flop"}
                       </span>
                       {item.study.tags.map((tag) => (
                         <span
-                          className="rounded-full bg-[#18B88D]/20 border border-[#18B88D]/40 px-2 py-0.5 text-[#A1F5AE]"
+                          className="rounded-full bg-[#2563EB]/20 border border-[#3B82F6]/40 px-2 py-0.5 text-sky-200"
                           key={tag}
                         >
                           {tag}
@@ -785,7 +785,7 @@ function Distribution({
           >
             <span className="w-16 shrink-0">{row.label}</span>
             <span
-              className="h-2 rounded bg-[#18B88D]"
+              className="h-2 rounded bg-[#2563EB]"
               style={{ width: `${(row.count / max) * 65}%` }}
             />
             <span>{row.count}</span>
@@ -816,7 +816,7 @@ function StudyEditor({
   return (
     <section
       aria-label="Editar estudo da mão"
-      className="rounded-2xl border border-[#18B88D] bg-[#191B1D] p-5"
+      className="rounded-2xl border border-[#3B82F6] bg-[#090D16] p-5"
     >
       <h3 className="mb-3 break-all font-bold text-white">
         Estudo · {item.fileName ?? item.recordId}

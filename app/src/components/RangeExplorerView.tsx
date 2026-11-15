@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { AlertTriangle, Columns2, Search } from "lucide-react";
+import { AlertTriangle, ChevronDown, Columns2, Search } from "lucide-react";
 import {
   adaptLegacyRangeSpotToCanonical,
   exportSpotMatrixToCsv,
@@ -33,6 +33,7 @@ export function RangeExplorerView({ spots }: RangeExplorerViewProps) {
   const [selectedStack, setSelectedStack] = useState<number>(
     stacks.includes(100) ? 100 : stacks[0],
   );
+  const [showMobileSpotPicker, setShowMobileSpotPicker] = useState<boolean>(false);
   const [search, setSearch] = useState("");
   const [compareMode, setCompareMode] = useState(false);
 
@@ -74,7 +75,7 @@ export function RangeExplorerView({ spots }: RangeExplorerViewProps) {
   return (
     <div className="flex flex-col gap-5">
       {/* Barra de Stacks + Modo Comparação */}
-      <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-3.5 flex flex-wrap items-center justify-between gap-3">
+      <div className="rounded-2xl bg-[#090D16] border border-[#1E293B] p-3.5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-xs text-slate-400 font-semibold mr-1">
             Stack Efetivo:
@@ -86,8 +87,8 @@ export function RangeExplorerView({ spots }: RangeExplorerViewProps) {
               onClick={() => handleSelectStack(st)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                 selectedStack === st
-                  ? "bg-emerald-600 text-white shadow"
-                  : "bg-slate-950 text-slate-300 border border-slate-800 hover:border-slate-600"
+                  ? "bg-gradient-to-r from-[#DC2626] to-[#2563EB] text-white shadow"
+                  : "bg-[#05070B] text-slate-300 border border-[#1E293B] hover:border-[#3B82F6]/60"
               }`}
             >
               {st} BB {st <= 15 && st !== 14 ? "(Spin)" : ""}
@@ -100,8 +101,8 @@ export function RangeExplorerView({ spots }: RangeExplorerViewProps) {
           onClick={() => setCompareMode((v) => !v)}
           className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold border transition ${
             compareMode
-              ? "bg-amber-500/20 border-amber-400 text-amber-200"
-              : "bg-slate-950 border-slate-700 text-slate-300 hover:border-slate-500"
+              ? "bg-[#2563EB]/25 border-[#3B82F6] text-sky-200"
+              : "bg-[#05070B] border-[#1E293B] text-slate-300 hover:border-[#334155]"
           }`}
         >
           <Columns2 className="w-3.5 h-3.5" />
@@ -110,40 +111,65 @@ export function RangeExplorerView({ spots }: RangeExplorerViewProps) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Lista Lateral de Spots */}
-        <div className="lg:col-span-4 rounded-2xl bg-slate-900/90 border border-slate-800 p-3 flex flex-col gap-3">
-          <div className="relative">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Filtrar spot (ex: BTN, BB vs CO, RFI)..."
-              className="w-full rounded-lg bg-slate-950 border border-slate-800 pl-9 pr-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:border-emerald-500 outline-none"
+        {/* Lista Lateral de Spots (recolhível no mobile/tablet) */}
+        <div className="lg:col-span-4 rounded-2xl bg-[#090D16] border border-[#1E293B] p-3 flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={() => setShowMobileSpotPicker((v) => !v)}
+            aria-expanded={showMobileSpotPicker}
+            className="lg:hidden w-full flex items-center justify-between rounded-xl bg-[#05070B] border border-[#26334A] px-3 py-2 text-xs font-bold text-slate-100"
+          >
+            <span className="truncate">
+              Spot ativo: {primarySpot.name} ({spotsInStack.length} opções)
+            </span>
+            <ChevronDown
+              className={`w-4 h-4 text-[#60A5FA] shrink-0 transition-transform ${
+                showMobileSpotPicker ? "rotate-180" : ""
+              }`}
             />
-          </div>
+          </button>
 
-          <div className="max-h-[560px] overflow-y-auto space-y-1 pr-1">
-            {spotsInStack.map((sp) => {
-              const active = primarySpot.id === sp.id;
-              return (
-                <button
-                  key={sp.id}
-                  type="button"
-                  onClick={() => setPrimarySpotId(sp.id)}
-                  className={`w-full text-left rounded-xl px-3 py-2 text-xs transition flex items-center justify-between border ${
-                    active
-                      ? "bg-emerald-600/20 border-emerald-500 text-white font-semibold"
-                      : "bg-slate-950/60 border-transparent hover:border-slate-700 text-slate-300"
-                  }`}
-                >
-                  <span className="truncate">{sp.name}</span>
-                  <span className="text-[0.625rem] uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 shrink-0 ml-2">
-                    {sp.spotType.replace("_", " ")}
-                  </span>
-                </button>
-              );
-            })}
+          <div
+            className={`${
+              showMobileSpotPicker ? "flex" : "hidden lg:flex"
+            } flex-col gap-3`}
+          >
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Filtrar spot (ex: BTN, BB vs CO, RFI)..."
+                className="w-full rounded-lg bg-[#05070B] border border-[#1E293B] pl-9 pr-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:border-[#3B82F6] outline-none"
+              />
+            </div>
+
+            <div className="max-h-[360px] lg:max-h-[560px] overflow-y-auto space-y-1 pr-1">
+              {spotsInStack.map((sp) => {
+                const active = primarySpot.id === sp.id;
+                return (
+                  <button
+                    key={sp.id}
+                    type="button"
+                    onClick={() => {
+                      setPrimarySpotId(sp.id);
+                      setShowMobileSpotPicker(false);
+                    }}
+                    className={`w-full text-left rounded-xl px-3 py-2 text-xs transition flex items-center justify-between border ${
+                      active
+                        ? "bg-[#0F1B33] border-[#3B82F6] text-white font-semibold"
+                        : "bg-[#05070B] border-transparent hover:border-[#334155] text-slate-300"
+                    }`}
+                  >
+                    <span className="truncate">{sp.name}</span>
+                    <span className="text-[0.625rem] uppercase px-1.5 py-0.5 rounded bg-[#141D2F] text-sky-200 shrink-0 ml-2">
+                      {sp.spotType.replace("_", " ")}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -154,7 +180,7 @@ export function RangeExplorerView({ spots }: RangeExplorerViewProps) {
               compareMode ? "grid-cols-1 xl:grid-cols-2" : "grid-cols-1"
             }`}
           >
-            <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 shadow-xl">
+            <div className="rounded-2xl bg-[#090D16] border border-[#1E293B] p-4 shadow-xl">
               <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                 <div>
                   <h3 className="text-base font-bold text-white">

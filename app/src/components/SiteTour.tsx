@@ -15,6 +15,7 @@ interface TourStep {
 const STEPS: readonly TourStep[] = [
   { title: "Bem-vindo ao TreinerLM", description: "Vamos conhecer as ferramentas para organizar seus estudos e revisar suas decisões. A área de cada etapa aparece destacada ao fundo.", tip: "Use Próximo e Anterior para explorar. Você pode sair a qualquer momento com Esc e repetir o tour pelo botão no topo.", target: "navigation" },
   { title: "Biblioteca de Mãos", description: "Importe históricos de mãos, organize seu acervo e encontre situações para revisar depois da sessão.", tip: "Selecione uma mão da biblioteca para abri-la no Replayer. Durante o tour, nenhum arquivo é importado.", target: "hand-library", tab: "hand-library" },
+  { title: "Treiner Limpo (Memorização)", description: "Pratique apenas com a mesa limpa e filtros diretos de RFI, vs RFI e posição para fixar os ranges estudados sem poluição visual.", tip: "Expanda a Matriz 13×13 recolhível apenas quando quiser conferir o gráfico completo.", target: "clean-trainer", tab: "clean-trainer" },
   { title: "Modo Trainer", description: "Pratique decisões de poker com filtros por cenário, posição e stack. Clique em Iniciar treino em tela cheia para abrir a mesa dedicada, com estatísticas e animações.", tip: "Use Esc para sair sem perder a sessão. Em Animações, escolha Normal, Rápidas ou Desligadas. Observe a origem e a verificação de cada estratégia.", target: "trainer", tab: "trainer" },
   { title: "Currículo e aulas", description: "Siga as trilhas de estudo, consulte as 18 aulas e os vídeos complementares e teste os conceitos nos quizzes.", tip: "Os botões de prática levam aos exercícios relacionados no Trainer.", target: "curriculum", tab: "curriculum" },
   { title: "Erros Fatais", description: "Estude 20 erros frequentes, entenda as exceções e use quizzes e calculadoras para revisar cada conceito.", tip: "Filtre pelo tema ou pelo seu status de estudo para escolher o próximo assunto.", target: "fatal-errors", tab: "fatal-errors" },
@@ -56,21 +57,21 @@ export function SiteTour({ onNavigate, onClose }: SiteTourProps) {
 
   return (
     <dialog ref={dialogRef} className="site-tour" aria-labelledby="site-tour-title" aria-describedby="site-tour-description" onCancel={event => { event.preventDefault(); onClose(); }} onKeyDown={event => event.stopPropagation()}>
-      <div className="flex items-center justify-between gap-3 border-b border-slate-700 px-5 py-3">
-        <p className="flex items-center gap-2 text-xs font-semibold text-emerald-300"><Compass className="h-4 w-4" aria-hidden="true" />Tour pelo site · {index + 1} de {STEPS.length}</p>
-        <button type="button" onClick={onClose} aria-label="Fechar tour" className="rounded-lg p-2 text-slate-300 hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-400"><X className="h-4 w-4" /></button>
+      <div className="flex items-center justify-between gap-3 border-b border-[#26334A] px-5 py-3">
+        <p className="flex items-center gap-2 text-xs font-semibold text-[#60A5FA]"><Compass className="h-4 w-4 text-[#EF4444]" aria-hidden="true" />Tour pelo site · {index + 1} de {STEPS.length}</p>
+        <button type="button" onClick={onClose} aria-label="Fechar tour" className="rounded-lg p-2 text-slate-300 hover:bg-[#151D2E] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#3B82F6]"><X className="h-4 w-4" /></button>
       </div>
       <div className="space-y-3 px-5 py-4">
         <h2 ref={headingRef} id="site-tour-title" tabIndex={-1} className="text-lg font-bold text-white outline-none">{step.title}</h2>
         <p id="site-tour-description" className="text-sm leading-relaxed text-slate-200">{step.description}</p>
-        <p className="rounded-xl border border-emerald-800/60 bg-emerald-950/40 p-3 text-xs leading-relaxed text-emerald-100">{step.tip}</p>
-        <progress aria-label="Progresso do tour" value={index + 1} max={STEPS.length} className="h-1.5 w-full accent-emerald-400" />
+        <p className="rounded-xl border border-[#2563EB]/45 bg-[#0D182C] p-3 text-xs leading-relaxed text-blue-100">{step.tip}</p>
+        <progress aria-label="Progresso do tour" value={index + 1} max={STEPS.length} className="h-1.5 w-full accent-[#2563EB]" />
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-700 px-5 py-3">
-        <button type="button" onClick={onClose} className="rounded-lg px-2 py-2 text-xs text-slate-300 hover:bg-slate-800">Sair do tour</button>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#26334A] px-5 py-3">
+        <button type="button" onClick={onClose} className="rounded-lg px-2 py-2 text-xs text-slate-300 hover:bg-[#151D2E]">Sair do tour</button>
         <div className="flex gap-2">
-          <button type="button" disabled={index === 0} onClick={() => setIndex(value => value - 1)} className="flex items-center gap-1 rounded-lg border border-slate-600 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 disabled:opacity-35"><ArrowLeft className="h-3.5 w-3.5" />Anterior</button>
-          <button type="button" onClick={() => index === STEPS.length - 1 ? onClose() : setIndex(value => value + 1)} className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-500">{index === STEPS.length - 1 ? "Concluir tour" : "Próximo"}<ArrowRight className="h-3.5 w-3.5" /></button>
+          <button type="button" disabled={index === 0} onClick={() => setIndex(value => value - 1)} className="flex items-center gap-1 rounded-lg border border-[#26334A] px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-[#151D2E] disabled:opacity-35"><ArrowLeft className="h-3.5 w-3.5" />Anterior</button>
+          <button type="button" onClick={() => index === STEPS.length - 1 ? onClose() : setIndex(value => value + 1)} className="flex items-center gap-1 rounded-lg bg-gradient-to-r from-[#DC2626] to-[#2563EB] px-3 py-2 text-xs font-bold text-white hover:brightness-110">{index === STEPS.length - 1 ? "Concluir tour" : "Próximo"}<ArrowRight className="h-3.5 w-3.5" /></button>
         </div>
       </div>
     </dialog>

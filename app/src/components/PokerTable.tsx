@@ -26,14 +26,14 @@ interface PokerTableProps {
 }
 
 const SEAT_COORDS: { top: string; left: string }[] = [
-  { top: "84%", left: "50%" }, // 0: Herói (Base central)
-  { top: "73%", left: "15%" }, // 1: Esquerda inferior
-  { top: "45%", left: "8%" },  // 2: Esquerda média
-  { top: "17%", left: "22%" }, // 3: Topo esquerdo
-  { top: "11%", left: "50%" }, // 4: Topo central
-  { top: "17%", left: "78%" }, // 5: Topo direito
-  { top: "45%", left: "92%" }, // 6: Direita média
-  { top: "73%", left: "85%" }, // 7: Direita inferior
+  { top: "83%", left: "50%" }, // 0: Herói (Base central)
+  { top: "71%", left: "16%" }, // 1: Esquerda inferior
+  { top: "45%", left: "11%" }, // 2: Esquerda média
+  { top: "18%", left: "23%" }, // 3: Topo esquerdo
+  { top: "12%", left: "50%" }, // 4: Topo central
+  { top: "18%", left: "77%" }, // 5: Topo direito
+  { top: "45%", left: "89%" }, // 6: Direita média
+  { top: "71%", left: "84%" }, // 7: Direita inferior
 ];
 
 const SUIT_SYMBOL: Record<string, string> = {
@@ -112,9 +112,9 @@ function StyledCard({
   const palette = getCardPalette(cardStyle, suit);
   const dims =
     size === "lg"
-      ? "w-11 h-15 sm:w-[3.25rem] sm:h-[4.35rem] text-lg sm:text-xl"
+      ? "w-9 h-12 sm:w-[3.25rem] sm:h-[4.35rem] text-sm sm:text-xl"
       : size === "md"
-        ? "w-10 h-14 sm:w-12 sm:h-16 text-base sm:text-lg"
+        ? "w-8 h-11 sm:w-12 sm:h-16 text-xs sm:text-lg"
         : "w-7 h-9 text-xs";
 
   return (
@@ -146,15 +146,15 @@ function PokerChipStack({
     { fill: string[]; border: string; inner: string; ring: string }
   > = {
     "casino-clay": {
-      fill: ["#18B88D", "#D9383A", "#2563EB"],
-      border: "#F4F5F5",
-      inner: "#090B0C",
+      fill: ["#DC2626", "#2563EB", "#111827"],
+      border: "#F8FAFC",
+      inner: "#05070B",
       ring: "border-dashed",
     },
     "neon-pro": {
-      fill: ["#090B0C", "#101418", "#0D1F1A"],
-      border: "#22D3EE",
-      inner: "#18B88D",
+      fill: ["#05070B", "#0F172A", "#1E1B4B"],
+      border: "#3B82F6",
+      inner: "#EF4444",
       ring: "border-solid",
     },
     "classic-gold": {
@@ -319,7 +319,7 @@ export function PokerTable({
     <div className="flex flex-col gap-2 w-full select-none">
       {/* Faixa Superior de Sequência da Mão */}
       <div
-        className="flex items-center gap-1.5 overflow-x-auto rounded-xl bg-[#090B0C] border border-[#363A3D] px-2.5 py-2 text-xs"
+        className="flex items-center gap-1.5 overflow-x-auto no-scrollbar rounded-xl bg-[#090D16] border border-[#26334A] px-2.5 py-2 text-xs"
         aria-label="Sequência de ações da mão"
       >
         {breadcrumbs.map((step, i) => (
@@ -327,14 +327,14 @@ export function PokerTable({
             key={`${step.pos}-${i}`}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono whitespace-nowrap border ${
               step.active
-                ? "bg-[#18B88D]/20 border-[#18B88D] text-[#A1F5AE] font-bold shadow-[0_0_12px_rgba(24,184,141,0.2)]"
+                ? "bg-[#2563EB]/25 border-[#3B82F6] text-[#93C5FD] font-bold shadow-[0_0_12px_rgba(37,99,235,0.28)]"
                 : step.isStreet
-                  ? "bg-[#202224] border-[#363A3D] text-[#F4F5F5] font-semibold"
-                  : "bg-[#191B1D] border-[#292C2F] text-[#A1A6AA]"
+                  ? "bg-[#151D2E] border-[#26334A] text-[#F8FAFC] font-semibold"
+                  : "bg-[#0F1522] border-[#1E293B] text-[#94A3B8]"
             }`}
           >
             <span className="text-[0.6875rem] uppercase">{step.pos}</span>
-            <span className="text-xs font-bold text-[#F4F5F5]">{step.action}</span>
+            <span className="text-xs font-bold text-[#F8FAFC]">{step.action}</span>
           </div>
         ))}
 
@@ -342,12 +342,12 @@ export function PokerTable({
           {useRng && (
             <span
               title="Randomizador de estratégias mistas [1..100]"
-              className="px-2.5 py-1 rounded-lg bg-[#202224] border border-[#363A3D] font-mono text-xs text-[#A1F5AE] font-bold"
+              className="px-2.5 py-1 rounded-lg bg-[#151D2E] border border-[#2563EB]/50 font-mono text-xs text-[#93C5FD] font-bold"
             >
               RNG: {rngValue}
             </span>
           )}
-          <span className="hidden sm:inline-block px-2 py-1 rounded-lg bg-[#191B1D] border border-[#292C2F] font-mono text-[0.6875rem] text-[#A1A6AA]">
+          <span className="hidden sm:inline-block px-2 py-1 rounded-lg bg-[#0F1522] border border-[#1E293B] font-mono text-[0.6875rem] text-[#94A3B8]">
             {formatLabel} · {anteLabel}
           </span>
         </div>
@@ -356,45 +356,45 @@ export function PokerTable({
       {/* Palco Principal da Mesa (cor do feltro e aro customizáveis) */}
       <div
         key={animationKey}
-        className="poker-table-stage relative w-full aspect-[16/10] sm:aspect-[16/9] min-h-[365px] lg:min-h-[420px] max-h-[500px] rounded-2xl bg-[#101112] border border-[#363A3D] shadow-2xl overflow-hidden flex items-center justify-center"
+        className="poker-table-stage relative w-full aspect-[4/3] sm:aspect-[16/10] lg:aspect-[16/9] min-h-[295px] sm:min-h-[370px] lg:min-h-[420px] max-h-[510px] rounded-2xl bg-[#05070B] border border-[#26334A] shadow-2xl overflow-hidden flex items-center justify-center"
       >
         {/* Oval do Feltro com Cor Personalizável */}
         <div
           style={feltStyle}
           data-felt-color={appearance.feltColor}
-          className="poker-table-felt absolute inset-5 sm:inset-7 rounded-[999px] border-[4px] shadow-[inset_0_0_60px_rgba(0,0,0,0.82),0_0_24px_rgba(0,0,0,0.65)] transition-colors duration-200"
+          className="poker-table-felt absolute inset-3 sm:inset-6 lg:inset-7 rounded-[999px] border-[3px] sm:border-[4px] shadow-[inset_0_0_60px_rgba(0,0,0,0.85),0_0_26px_rgba(37,99,235,0.18)] transition-colors duration-200"
         >
           {/* Marca d'água central da mesa */}
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 flex items-center justify-center"
           >
-            <span className="text-xl sm:text-3xl font-black tracking-[0.26em] uppercase text-white/[0.06] select-none">
+            <span className="text-base sm:text-3xl font-black tracking-[0.26em] uppercase text-white/[0.07] select-none">
               π TREINERLM
             </span>
           </div>
         </div>
 
         {/* Centro da Mesa: Marca TreinerLM + Spot + Fichas & Pote + Board */}
-        <div className="relative z-10 flex flex-col items-center gap-1.5 text-center px-3 -mt-6">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-[#090B0C]/60 border border-white/15 px-2.5 py-0.5 text-[0.65rem] font-extrabold tracking-wider text-[#A1F5AE]">
-            <span className="font-serif text-xs leading-none">π</span>
+        <div className="relative z-10 flex flex-col items-center gap-1 sm:gap-1.5 text-center px-2 sm:px-3 -mt-3 sm:-mt-6">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-[#05070B]/80 border border-[#2563EB]/45 px-2.5 py-0.5 text-[0.6rem] sm:text-[0.65rem] font-extrabold tracking-wider text-[#93C5FD]">
+            <span className="font-serif text-xs leading-none text-[#F87171]">π</span>
             <span>TreinerLM</span>
             <span className="text-white/40">·</span>
-            <span className="text-[#F4F5F5]/90 font-semibold">
+            <span className="text-[#F8FAFC]/90 font-semibold">
               {spot.heroPosition} vs {villainPos || "Mesa"} · {spot.stackBb} BB
             </span>
           </div>
 
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#090B0C]/85 border border-[#363A3D] px-3 py-1 shadow-md">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-[#090D16]/90 border border-[#DC2626]/50 px-2.5 sm:px-3 py-0.5 sm:py-1 shadow-md">
             <PokerChipStack chipStyle={appearance.chipStyle} count={3} />
-            <span className="text-sm sm:text-base font-extrabold font-mono text-[#F4F5F5] tracking-tight">
+            <span className="text-xs sm:text-base font-extrabold font-mono text-[#F8FAFC] tracking-tight">
               Pote: {potBb.toFixed(1)} BB
             </span>
           </div>
 
           {parsedBoard.length > 0 && (
-            <div className="flex items-center gap-1.5 mt-0.5">
+            <div className="flex items-center gap-1 sm:gap-1.5 mt-0.5">
               {parsedBoard.map((c, idx) => (
                 <StyledCard
                   key={`${c.rank}${c.suit}-${idx}`}
@@ -425,13 +425,13 @@ export function PokerTable({
               style={{ top: coord.top, left: coord.left }}
               className={`poker-seat ${
                 isHero ? "poker-seat-hero z-20" : "z-10"
-              } absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1.5 sm:gap-2`}
+              } absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2`}
             >
               {/* Botão de Dealer (D) */}
               {isBtn && (
                 <span
                   title="Botão (Dealer)"
-                  className="w-5 h-5 rounded-full bg-[#F4F5F5] text-[#090B0C] font-extrabold text-[0.625rem] flex items-center justify-center shadow shrink-0"
+                  className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br from-[#DC2626] to-[#2563EB] border border-white/80 text-white font-extrabold text-[0.55rem] sm:text-[0.625rem] flex items-center justify-center shadow shrink-0"
                 >
                   D
                 </span>
@@ -440,35 +440,35 @@ export function PokerTable({
               {/* Pílula do Jogador: Nome (Cientista / Você) + Posição + Stack */}
               <div
                 data-awaiting={isHero && !heroAction}
-                className={`poker-seat-label rounded-2xl px-2.5 py-1 border text-center transition-all ${
+                className={`poker-seat-label rounded-xl sm:rounded-2xl px-1.5 sm:px-2.5 py-0.5 sm:py-1 border text-center transition-all ${
                   isHero
-                    ? "bg-[#191B1D] border-2 border-[#18B88D] text-[#F4F5F5] shadow-[0_0_18px_rgba(24,184,141,0.35)] min-w-[5.2rem]"
+                    ? "bg-[#090D16] border-2 border-[#3B82F6] text-[#F8FAFC] shadow-[0_0_18px_rgba(37,99,235,0.45)] sm:min-w-[5.2rem]"
                     : isVillain
-                      ? "bg-[#191B1D] border-2 border-[#F1BE60] text-[#F4F5F5] shadow-[0_0_14px_rgba(241,190,96,0.28)] min-w-[5.4rem]"
-                      : "bg-[#141618]/90 border border-[#292C2F] text-[#A1A6AA] opacity-80 min-w-[4.7rem]"
+                      ? "bg-[#090D16] border-2 border-[#DC2626] text-[#F8FAFC] shadow-[0_0_16px_rgba(220,38,38,0.4)] sm:min-w-[5.4rem]"
+                      : "bg-[#0B0F17]/90 border border-[#1E293B] text-[#94A3B8] opacity-85 sm:min-w-[4.7rem]"
                 }`}
               >
-                <div className="flex items-center justify-center gap-1 text-[0.6875rem] font-extrabold tracking-tight leading-tight">
-                  <span>{isHero ? "Você" : scientistName}</span>
+                <div className="flex items-center justify-center gap-0.5 sm:gap-1 text-[0.58rem] sm:text-[0.6875rem] font-extrabold tracking-tight leading-tight">
+                  <span className="truncate max-w-[3.4rem] sm:max-w-none">{isHero ? "Você" : scientistName}</span>
                   <span
-                    className={`text-[0.58rem] px-1 py-0.2 rounded font-mono ${
+                    className={`text-[0.52rem] sm:text-[0.58rem] px-1 py-0.2 rounded font-mono ${
                       isHero
-                        ? "bg-[#18B88D]/20 text-[#A1F5AE]"
+                        ? "bg-[#2563EB]/25 text-[#93C5FD]"
                         : isVillain
-                          ? "bg-[#F1BE60]/20 text-[#F1BE60]"
-                          : "bg-white/5 text-[#A1A6AA]"
+                          ? "bg-[#DC2626]/25 text-[#FCA5A5]"
+                          : "bg-white/5 text-[#94A3B8]"
                     }`}
                   >
                     {pos}
                   </span>
                 </div>
                 <div
-                  className={`flex items-center justify-center gap-1 text-[0.65rem] font-mono leading-tight mt-0.5 ${
+                  className={`flex items-center justify-center gap-0.5 sm:gap-1 text-[0.55rem] sm:text-[0.65rem] font-mono leading-tight mt-0.5 ${
                     isHero
-                      ? "text-[#A1F5AE] font-bold"
+                      ? "text-[#93C5FD] font-bold"
                       : isVillain
-                        ? "text-[#F1BE60] font-bold"
-                        : "text-[#A1A6AA]"
+                        ? "text-[#FCA5A5] font-bold"
+                        : "text-[#94A3B8]"
                   }`}
                 >
                   {isActive && (

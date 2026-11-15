@@ -46,6 +46,7 @@ import {
 import { getDidacticAndUnsolvedSpots } from "@/lib/curriculum";
 import type { VideoEntry } from "@/lib/rag";
 import { AiCoachView } from "./AiCoachView";
+import { CleanRangeTrainerView } from "./CleanRangeTrainerView";
 import { CurriculumView } from "./CurriculumView";
 import { MathIcmLab } from "./MathIcmLab";
 import { RangeExplorerView } from "./RangeExplorerView";
@@ -90,7 +91,8 @@ export function PokerStudioApp({
   videos,
 }: PokerStudioAppProps) {
   const [activeTab, setActiveTab] = useState<TabId>("trainer");
-  const [showQuickHub, setShowQuickHub] = useState<boolean>(true);
+  const [showQuickHub, setShowQuickHub] = useState<boolean>(false);
+  const [showOfflineNotice, setShowOfflineNotice] = useState<boolean>(true);
   const [labScenario, setLabScenario] = useState<LabScenario | null>(null);
   const [labRequest, setLabRequest] = useState(0);
   const [librarySelection, setLibrarySelection] = useState<{
@@ -317,6 +319,11 @@ export function PokerStudioApp({
       icon: <BookOpen className="w-3.5 h-3.5" />,
     },
     {
+      id: "clean-trainer",
+      label: "Treiner Limpo",
+      icon: <Layers className="w-4 h-4" />,
+    },
+    {
       id: "trainer",
       label: "Modo Trainer",
       icon: <Target className="w-4 h-4" />,
@@ -373,62 +380,146 @@ export function PokerStudioApp({
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#101112] text-[#F4F5F5]">
-      {/* Aviso fixo de Estudo Offline (Regra 9 / Critério 11) */}
-      <div className="bg-[#090B0C] border-b border-[#292C2F] px-4 py-1 text-[0.6875rem] text-[#A1F5AE] flex items-center justify-center gap-2 text-center">
-        <ShieldCheck className="w-3.5 h-3.5 text-[#18B88D] shrink-0" />
-        <span>
-          <strong>
-            Uso exclusivo para estudo offline e revisão pós-sessão.
-          </strong>{" "}
-          Não oferece HUD, captura de tela de mesas ou assistência em tempo real
-          durante jogos ativos.
-        </span>
-      </div>
+    <div className="min-h-screen flex flex-col bg-[#05070B] text-[#F8FAFC]">
+      <div className="h-[3px] w-full bg-gradient-to-r from-[#DC2626] via-[#2563EB] to-[#DC2626]" />
+      {/* Aviso fixo de Estudo Offline (recolhível para evitar poluição visual) */}
+      {showOfflineNotice ? (
+        <div className="bg-[#090D16] border-b border-[#1E293B] px-3 sm:px-5 py-1 text-[0.6875rem] text-[#93C5FD] flex items-center justify-between gap-2">
+          <div className="flex items-center justify-center gap-2 mx-auto text-center">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#EF4444] shrink-0" />
+            <span>
+              <strong>
+                Uso exclusivo para estudo offline e revisão pós-sessão.
+              </strong>{" "}
+              <span className="hidden sm:inline">
+                Não oferece HUD, captura de tela de mesas ou assistência em
+                tempo real durante jogos ativos.
+              </span>
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowOfflineNotice(false)}
+            className="text-[0.625rem] font-semibold text-[#94A3B8] hover:text-white px-1.5 py-0.5 rounded border border-[#1E293B] shrink-0"
+            title="Recolher aviso"
+          >
+            Ocultar
+          </button>
+        </div>
+      ) : (
+        <div className="bg-[#090D16] border-b border-[#1E293B] px-3 py-0.5 flex justify-end">
+          <button
+            type="button"
+            onClick={() => setShowOfflineNotice(true)}
+            className="text-[0.6rem] text-[#60A5FA] hover:underline flex items-center gap-1"
+          >
+            <ShieldCheck className="w-3 h-3 text-[#EF4444]" />
+            Aviso de estudo offline
+          </button>
+        </div>
+      )}
 
-      {/* Header / Navbar Estilo GTO Wizard */}
+      {/* Header / Navbar Preto, Azul e Vermelho (responsivo p/ celular, iPad e desktop) */}
       <header
         className={`${
           activeTab === "replayer" || activeTab === "hand-library"
             ? "relative lg:sticky"
             : "sticky"
-        } top-0 z-30 border-b border-[#292C2F] bg-[#090B0C]/95 backdrop-blur-md`}
+        } top-0 z-30 border-b border-[#1E293B] bg-[#06080E]/95 backdrop-blur-md shadow-[0_6px_28px_rgba(0,0,0,0.65)]`}
       >
-        <div className="w-full px-3 sm:px-5 lg:px-7 py-2 flex flex-wrap items-center justify-between gap-2.5">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5">
-            <div
-              className="w-8 h-8 rounded-xl bg-[#18B88D] flex items-center justify-center shadow-md shrink-0"
-              aria-hidden="true"
-            >
-              <span className="text-[1.25rem] leading-none font-black font-serif text-[#090B0C] select-none">
-                π
-              </span>
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-sm font-extrabold tracking-tight text-[#F4F5F5]">
-                  TreinerLM
-                </h1>
-                <span className="text-[0.6rem] px-1.5 py-0.5 rounded bg-[#18B88D]/15 border border-[#18B88D]/40 text-[#A1F5AE] font-bold">
-                  Study Lab V2
-                </span>
-                <span className="text-[0.6rem] px-1.5 py-0.5 rounded bg-[#1E2226] border border-[#2D3238] text-[#C8CDD2] font-semibold">
-                  Desenvolvido por Luiz Miguel N. C.
-                </span>
+        <div className="w-full px-3 sm:px-5 lg:px-7 py-2 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {/* Logo */}
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-[#DC2626] via-[#1D4ED8] to-[#2563EB] p-[1.5px] shadow-[0_0_14px_rgba(37,99,235,0.4)] shrink-0"
+                aria-hidden="true"
+              >
+                <div className="w-full h-full rounded-[10px] bg-[#05070B] flex items-center justify-center">
+                  <span className="text-[1.2rem] leading-none font-black font-serif text-[#F8FAFC] select-none">
+                    π
+                  </span>
+                </div>
               </div>
-              <p className="text-[0.65rem] text-[#A1A6AA]">
-                {canonicalSpots.length} spots · 18 aulas · {totalChunks} trechos
-                · {videos.length} vídeos locais
-              </p>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <h1 className="text-sm font-extrabold tracking-tight text-[#F8FAFC]">
+                    TreinerLM
+                  </h1>
+                  <span className="text-[0.6rem] px-1.5 py-0.5 rounded bg-[#2563EB]/20 border border-[#3B82F6]/50 text-[#93C5FD] font-bold">
+                    Study Lab V2
+                  </span>
+                  <span className="hidden sm:inline-block text-[0.6rem] px-1.5 py-0.5 rounded bg-[#DC2626]/15 border border-[#DC2626]/45 text-[#FCA5A5] font-semibold">
+                    Desenvolvido por Luiz Miguel N. C.
+                  </span>
+                </div>
+                <p className="text-[0.62rem] text-[#94A3B8] truncate">
+                  {canonicalSpots.length} spots · 18 aulas · {totalChunks} trechos
+                  · {videos.length} vídeos locais
+                </p>
+              </div>
+            </div>
+
+            {/* Botões de utilidade (visíveis e compactos em desktop/iPad/mobile) */}
+            <div className="flex flex-wrap items-center gap-1.5 xl:order-3">
+              <AccessibilityControls />
+              <button
+                type="button"
+                aria-expanded={showQuickHub}
+                onClick={() => setShowQuickHub((v) => !v)}
+                className={`flex min-h-9 items-center gap-1 rounded-xl border px-2.5 py-1.5 text-xs font-bold transition ${
+                  showQuickHub
+                    ? "border-[#3B82F6] bg-[#2563EB]/20 text-[#93C5FD]"
+                    : "border-[#26334A] bg-[#090D16] text-[#93C5FD] hover:bg-[#131B2C]"
+                }`}
+                title="Mostrar ou recolher central de ações rápidas"
+              >
+                <Zap className="h-3.5 w-3.5 text-[#EF4444]" />
+                <span className="hidden sm:inline">Acesso rápido</span>
+                {showQuickHub ? (
+                  <ChevronUp className="h-3.5 w-3.5" />
+                ) : (
+                  <ChevronDown className="h-3.5 w-3.5" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTourOrigin(activeTab)}
+                className="flex min-h-9 items-center gap-1.5 rounded-xl border border-[#2563EB]/50 bg-[#2563EB]/15 px-2.5 py-1.5 text-xs font-semibold text-[#93C5FD] hover:bg-[#2563EB]/25"
+              >
+                <Compass className="h-3.5 w-3.5 text-[#F87171]" aria-hidden="true" />
+                <span className="hidden md:inline">Fazer um tour</span>
+                <span className="md:hidden">Tour</span>
+              </button>
+              {/* Status API + Engrenagem */}
+              <button
+                data-tour="settings"
+                type="button"
+                onClick={() => setSettingsOpen(true)}
+                className={`flex min-h-9 items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition ${
+                  hasAnyKey
+                    ? "bg-[#090D16] border-[#2563EB]/55 text-[#93C5FD] hover:bg-[#131B2C]"
+                    : "bg-[#090D16] border-[#DC2626]/55 text-[#FCA5A5] hover:bg-[#131B2C]"
+                }`}
+              >
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    hasAnyKey ? "bg-[#3B82F6]" : "bg-[#EF4444] animate-pulse"
+                  }`}
+                />
+                <span className="hidden sm:inline">
+                  {hasAnyKey ? model : "Configurar AI Studio"}
+                </span>
+                <Settings className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
 
-          {/* Navegação por Abas */}
+          {/* Navegação por Abas: deslize horizontal limpo no celular/iPad e quebra no desktop */}
           <nav
             data-tour="navigation"
             aria-label="Áreas de estudo"
-            className="flex flex-wrap items-center gap-1 bg-[#191B1D] border border-[#292C2F] rounded-xl p-1"
+            className="flex flex-nowrap overflow-x-auto no-scrollbar xl:flex-wrap items-center gap-1 bg-[#0A0E17] border border-[#1E293B] rounded-xl p-1 xl:order-2"
           >
             {tabs.map((tab) => {
               const active = activeTab === tab.id;
@@ -439,20 +530,20 @@ export function PokerStudioApp({
                   aria-current={active ? "page" : undefined}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition ${
+                  className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 min-h-[36px] rounded-lg text-xs font-bold transition ${
                     active
-                      ? "bg-[#18B88D] text-[#090B0C] shadow"
-                      : "text-[#A1A6AA] hover:text-[#F4F5F5] hover:bg-[#202224]"
+                      ? "bg-gradient-to-r from-[#DC2626] to-[#2563EB] text-white shadow-[0_2px_12px_rgba(37,99,235,0.35)]"
+                      : "text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#131B2C]"
                   }`}
                 >
                   {tab.icon}
-                  <span>{tab.label}</span>
+                  <span className="whitespace-nowrap">{tab.label}</span>
                   {tab.badge !== undefined && (
                     <span
                       className={`text-[0.6rem] px-1.5 py-0.2 rounded-full font-mono ${
                         active
-                          ? "bg-[#090B0C]/25 text-[#090B0C] font-extrabold"
-                          : "bg-[#090B0C] text-[#A1A6AA]"
+                          ? "bg-black/30 text-white font-extrabold"
+                          : "bg-[#05070B] text-[#94A3B8]"
                       }`}
                     >
                       {tab.badge}
@@ -462,63 +553,27 @@ export function PokerStudioApp({
               );
             })}
           </nav>
-
-          <div className="flex flex-wrap items-center gap-1.5">
-            <AccessibilityControls />
-            <button
-              type="button"
-              onClick={() => setShowQuickHub((v) => !v)}
-              className="flex min-h-8 items-center gap-1 rounded-xl border border-[#292C2F] bg-[#191B1D] px-2.5 py-1.5 text-xs font-bold text-[#A1F5AE] hover:bg-[#202224]"
-              title="Mostrar ou recolher central de ações rápidas"
-            >
-              <Zap className="h-3.5 w-3.5" />
-              Acesso rápido
-              {showQuickHub ? (
-                <ChevronUp className="h-3.5 w-3.5" />
-              ) : (
-                <ChevronDown className="h-3.5 w-3.5" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setTourOrigin(activeTab)}
-              className="flex min-h-8 items-center gap-1.5 rounded-xl border border-[#18B88D]/50 bg-[#18B88D]/10 px-2.5 py-1.5 text-xs font-semibold text-[#A1F5AE] hover:bg-[#18B88D]/20"
-            >
-              <Compass className="h-3.5 w-3.5" aria-hidden="true" />
-              Fazer um tour
-            </button>
-            {/* Status API + Engrenagem */}
-            <button
-              data-tour="settings"
-              type="button"
-              onClick={() => setSettingsOpen(true)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition ${
-                hasAnyKey
-                  ? "bg-[#191B1D] border-[#18B88D]/50 text-[#A1F5AE] hover:bg-[#202224]"
-                  : "bg-[#191B1D] border-[#F1BE60]/50 text-[#F1BE60] hover:bg-[#202224]"
-              }`}
-            >
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  hasAnyKey ? "bg-[#18B88D]" : "bg-[#F1BE60] animate-pulse"
-                }`}
-              />
-              <span>{hasAnyKey ? model : "Configurar AI Studio"}</span>
-              <Settings className="w-3.5 h-3.5" />
-            </button>
-          </div>
         </div>
       </header>
 
-      {/* CENTRAL DE TREINAMENTO RÁPIDO (Inspirada nas Imagens 04 e 08 do GTO Wizard) */}
+      {/* CENTRAL DE TREINAMENTO RÁPIDO (Recolhida por padrão p/ zero poluição visual) */}
       {showQuickHub && (
         <section
           aria-label="Central de treinamento rápido"
-          className="border-b border-[#292C2F] bg-[#090B0C]/80"
+          className="border-b border-[#1E293B] bg-[#080B12]/95"
         >
           <div className="w-full px-3 sm:px-5 lg:px-7 py-3 flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("clean-trainer")}
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#DC2626] to-[#2563EB] hover:brightness-110 px-4 py-2 text-xs font-extrabold text-white shadow-lg transition"
+                >
+                  <Layers className="w-4 h-4" />
+                  TREINER LIMPO (RANGES)
+                </button>
+
                 <button
                   type="button"
                   onClick={() => {
@@ -530,7 +585,7 @@ export function PokerStudioApp({
                     });
                     setActiveTab("trainer");
                   }}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#18B88D] hover:bg-[#22ce9f] px-4 py-2 text-xs font-extrabold text-[#090B0C] shadow-lg transition"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#2563EB] hover:bg-[#3B82F6] px-4 py-2 text-xs font-extrabold text-white shadow-lg transition"
                 >
                   <Play className="w-4 h-4 fill-current" />
                   COMEÇAR A TREINAR
@@ -549,7 +604,7 @@ export function PokerStudioApp({
                       });
                       setActiveTab("trainer");
                     }}
-                    className="rounded-lg bg-[#191B1D] hover:bg-[#202224] border border-[#292C2F] px-2.5 py-1.5 text-xs font-bold text-[#F4F5F5] transition"
+                    className="rounded-lg bg-[#0F1522] hover:bg-[#162033] border border-[#1E293B] px-2.5 py-1.5 text-xs font-bold text-[#F8FAFC] transition"
                   >
                     Treinar pré-flop
                   </button>
@@ -564,7 +619,7 @@ export function PokerStudioApp({
                       });
                       setActiveTab("trainer");
                     }}
-                    className="rounded-lg bg-[#191B1D] hover:bg-[#202224] border border-[#292C2F] px-2.5 py-1.5 text-xs font-bold text-[#F4F5F5] transition"
+                    className="rounded-lg bg-[#0F1522] hover:bg-[#162033] border border-[#1E293B] px-2.5 py-1.5 text-xs font-bold text-[#F8FAFC] transition"
                   >
                     Treinar pós-flop
                   </button>
@@ -575,7 +630,7 @@ export function PokerStudioApp({
                       setRequestedInteractiveMode("range-builder");
                       setActiveTab("trainer");
                     }}
-                    className="rounded-lg bg-[#191B1D] hover:bg-[#202224] border border-[#292C2F] px-2.5 py-1.5 text-xs font-bold text-[#A1F5AE] transition flex items-center gap-1"
+                    className="rounded-lg bg-[#0F1522] hover:bg-[#162033] border border-[#2563EB]/45 px-2.5 py-1.5 text-xs font-bold text-[#93C5FD] transition flex items-center gap-1"
                   >
                     <Layers className="w-3.5 h-3.5" />
                     Construtor de ranges
@@ -587,7 +642,7 @@ export function PokerStudioApp({
                       setRequestedInteractiveMode("pot-odds");
                       setActiveTab("trainer");
                     }}
-                    className="rounded-lg bg-[#191B1D] hover:bg-[#202224] border border-[#292C2F] px-2.5 py-1.5 text-xs font-bold text-[#F1BE60] transition"
+                    className="rounded-lg bg-[#0F1522] hover:bg-[#162033] border border-[#1E293B] px-2.5 py-1.5 text-xs font-bold text-[#F59E0B] transition"
                   >
                     Exercício de matemática
                   </button>
@@ -598,7 +653,7 @@ export function PokerStudioApp({
                       setRequestedInteractiveMode("microlessons");
                       setActiveTab("trainer");
                     }}
-                    className="rounded-lg bg-[#191B1D] hover:bg-[#202224] border border-[#292C2F] px-2.5 py-1.5 text-xs font-bold text-[#F4F5F5] transition"
+                    className="rounded-lg bg-[#0F1522] hover:bg-[#162033] border border-[#1E293B] px-2.5 py-1.5 text-xs font-bold text-[#F8FAFC] transition"
                   >
                     Daily Dose (12 lições)
                   </button>
@@ -611,12 +666,12 @@ export function PokerStudioApp({
                         setActiveTab("stats");
                       }
                     }}
-                    className="rounded-lg bg-[#191B1D] hover:bg-[#202224] border border-[#292C2F] px-2.5 py-1.5 text-xs font-bold text-[#F4F5F5] transition flex items-center gap-1"
+                    className="rounded-lg bg-[#0F1522] hover:bg-[#162033] border border-[#DC2626]/45 px-2.5 py-1.5 text-xs font-bold text-[#FCA5A5] transition flex items-center gap-1"
                   >
-                    <RotateCcw className="w-3.5 h-3.5 text-[#F1BE60]" />
+                    <RotateCcw className="w-3.5 h-3.5 text-[#EF4444]" />
                     Revisar erros
                     {dueSummary.totalDueCount > 0 && (
-                      <span className="ml-0.5 rounded-full bg-[#F1BE60]/20 px-1.5 py-0.2 font-mono text-[0.625rem] text-[#F1BE60]">
+                      <span className="ml-0.5 rounded-full bg-[#DC2626]/25 px-1.5 py-0.2 font-mono text-[0.625rem] text-[#FCA5A5]">
                         {dueSummary.totalDueCount}
                       </span>
                     )}
@@ -624,51 +679,51 @@ export function PokerStudioApp({
                   <button
                     type="button"
                     onClick={() => setActiveTab("hand-library")}
-                    className="rounded-lg bg-[#191B1D] hover:bg-[#202224] border border-[#292C2F] px-2.5 py-1.5 text-xs font-bold text-[#F4F5F5] transition"
+                    className="rounded-lg bg-[#0F1522] hover:bg-[#162033] border border-[#1E293B] px-2.5 py-1.5 text-xs font-bold text-[#F8FAFC] transition"
                   >
                     Revisar mãos
                   </button>
                 </div>
               </div>
 
-              {/* Placar Resumido Estilo GTO Wizard (Mãos, Precisão, Melhor, Mix, Desvios) */}
+              {/* Placar Resumido (Mãos, Precisão, Melhor, Mix, Desvios) */}
               <div className="flex flex-wrap items-center gap-2 text-xs">
-                <div className="flex items-center gap-3 rounded-xl bg-[#191B1D] border border-[#292C2F] px-3 py-1.5">
+                <div className="flex items-center gap-3 rounded-xl bg-[#0F1522] border border-[#1E293B] px-3 py-1.5">
                   <div>
-                    <span className="text-[0.6rem] uppercase text-[#A1A6AA] block">
+                    <span className="text-[0.6rem] uppercase text-[#94A3B8] block">
                       Mãos
                     </span>
                     <strong className="font-mono text-sm text-white">
                       {dueSummary.totalHands}
                     </strong>
                   </div>
-                  <div className="h-5 w-px bg-[#292C2F]" />
+                  <div className="h-5 w-px bg-[#1E293B]" />
                   <div>
-                    <span className="text-[0.6rem] uppercase text-[#A1A6AA] block">
+                    <span className="text-[0.6rem] uppercase text-[#94A3B8] block">
                       Precisão
                     </span>
-                    <strong className="font-mono text-sm text-[#A1F5AE]">
+                    <strong className="font-mono text-sm text-[#60A5FA]">
                       {dueSummary.accuracyPct !== null
                         ? `${dueSummary.accuracyPct}%`
                         : "—"}
                     </strong>
                   </div>
-                  <div className="h-5 w-px bg-[#292C2F]" />
+                  <div className="h-5 w-px bg-[#1E293B]" />
                   <div className="flex items-center gap-1.5 text-[0.6875rem] font-mono">
                     <span
-                      className="px-1.5 py-0.5 rounded bg-[#18B88D]/20 text-[#A1F5AE]"
+                      className="px-1.5 py-0.5 rounded bg-[#2563EB]/25 text-[#93C5FD]"
                       title="Melhor jogada"
                     >
                       ✓ {dueSummary.bestCount}
                     </span>
                     <span
-                      className="px-1.5 py-0.5 rounded bg-[#F1BE60]/20 text-[#F1BE60]"
+                      className="px-1.5 py-0.5 rounded bg-[#F59E0B]/20 text-[#FCD34D]"
                       title="Mix válido"
                     >
                       ≈ {dueSummary.mixCount}
                     </span>
                     <span
-                      className="px-1.5 py-0.5 rounded bg-[#EF6666]/20 text-[#EF6666]"
+                      className="px-1.5 py-0.5 rounded bg-[#DC2626]/25 text-[#FCA5A5]"
                       title="Desvio"
                     >
                       ✕ {dueSummary.errorCount}
@@ -682,7 +737,11 @@ export function PokerStudioApp({
       )}
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 w-full px-3 sm:px-5 lg:px-7 py-4">
+      <main className="flex-1 w-full px-3 sm:px-5 lg:px-7 py-3 sm:py-4">
+        {activeTab === "clean-trainer" && (
+          <CleanRangeTrainerView spots={spots} />
+        )}
+
         {activeTab === "trainer" && (
           <TrainerView
             canonicalSpots={canonicalSpots}
@@ -790,16 +849,16 @@ export function PokerStudioApp({
         )}
       </main>
 
-      <footer className="w-full border-t border-[#202428] bg-[#0B0D0F] py-3 px-3 sm:px-5 lg:px-7">
-        <div className="w-full flex flex-wrap items-center justify-between gap-2 text-xs text-[#A1A6AA]">
+      <footer className="w-full border-t border-[#1E293B] bg-[#06080E] py-3 px-3 sm:px-5 lg:px-7">
+        <div className="w-full flex flex-wrap items-center justify-between gap-2 text-xs text-[#94A3B8]">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-[#18B88D]/15 border border-[#18B88D]/40 text-[#A1F5AE] font-serif font-bold">
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-gradient-to-br from-[#DC2626] to-[#2563EB] text-white font-serif font-bold">
               π
             </span>
-            <span className="font-bold text-[#E6E9EC]">TreinerLM</span>
+            <span className="font-bold text-[#F8FAFC]">TreinerLM</span>
             <span>· Laboratório GTO Offline &amp; Revisão</span>
           </div>
-          <span className="font-semibold text-[#D3D8DC]">
+          <span className="font-semibold text-[#CBD5E1]">
             Desenvolvido por Luiz Miguel N. C.
           </span>
         </div>

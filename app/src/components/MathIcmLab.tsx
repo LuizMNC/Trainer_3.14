@@ -92,7 +92,7 @@ export function MathIcmLab() {
     <div className="flex flex-col gap-5">
       <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-4">
         <div className="flex items-center gap-2">
-          <Calculator className="w-5 h-5 text-emerald-400" />
+          <Calculator className="w-5 h-5 text-[#60A5FA]" />
           <h2 className="text-lg font-bold text-white">
             Laboratório Matemático: Pot Odds, EV, ICM ($EV) e PKO
           </h2>
@@ -104,11 +104,11 @@ export function MathIcmLab() {
 
       {/* Seção 1: Pot Odds, Bluff Fold Equity & MDF */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        <div className="lg:col-span-6 rounded-2xl bg-slate-900/90 border border-slate-800 p-4 space-y-4">
-          <h3 className="text-sm font-bold text-emerald-300">
+        <div className="lg:col-span-6 rounded-2xl bg-[#090D16] border border-[#1E293B] p-4 space-y-4">
+          <h3 className="text-sm font-bold text-[#60A5FA]">
             1. Pot Odds, Fold Equity de Blefe e MDF (chipEV)
           </h3>
-          <div className="grid grid-cols-3 gap-3 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <label className="space-y-1">
               <span className="text-slate-400 block">Pote inicial (P)</span>
               <input
@@ -147,36 +147,36 @@ export function MathIcmLab() {
           {mathResults.ok ? (
             <div className="space-y-3 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div className="rounded-xl bg-slate-950 border border-slate-800 p-3">
+                <div className="rounded-xl bg-[#05070B] border border-[#1E293B] p-3">
                   <span className="text-slate-400 block">Equidade Limiar (Pot Odds)</span>
-                  <span className="text-lg font-extrabold font-mono text-emerald-400">
+                  <span className="text-lg font-extrabold font-mono text-[#60A5FA]">
                     {mathResults.potOdds.requiredEquityPct.toFixed(2)}%
                   </span>
                   <span className="block text-[0.625rem] font-mono text-slate-500 mt-0.5">
                     {mathResults.potOdds.formula}
                   </span>
                 </div>
-                <div className="rounded-xl bg-slate-950 border border-slate-800 p-3">
+                <div className="rounded-xl bg-[#05070B] border border-[#1E293B] p-3">
                   <span className="text-slate-400 block">Fold Equity Blefe Puro</span>
-                  <span className="text-lg font-extrabold font-mono text-amber-300">
+                  <span className="text-lg font-extrabold font-mono text-[#F87171]">
                     {mathResults.bluff.requiredFoldEquityPct.toFixed(2)}%
                   </span>
                   <span className="block text-[0.625rem] font-mono text-slate-500 mt-0.5">
                     {mathResults.bluff.formula}
                   </span>
                 </div>
-                <div className="rounded-xl bg-slate-950 border border-slate-800 p-3">
+                <div className="rounded-xl bg-[#05070B] border border-[#1E293B] p-3">
                   <span className="text-slate-400 block">MDF Simplificado</span>
-                  <span className="text-lg font-extrabold font-mono text-indigo-300">
+                  <span className="text-lg font-extrabold font-mono text-sky-300">
                     {mathResults.mdf.mdfPct.toFixed(2)}%
                   </span>
                   <span className="block text-[0.625rem] font-mono text-slate-500 mt-0.5">
                     {mathResults.mdf.formula}
                   </span>
                 </div>
-                <div className="rounded-xl bg-slate-950 border border-slate-800 p-3">
+                <div className="rounded-xl bg-[#05070B] border border-[#1E293B] p-3">
                   <span className="text-slate-400 block">Fração de Blefe Polarizado (River)</span>
-                  <span className="text-lg font-extrabold font-mono text-rose-300">
+                  <span className="text-lg font-extrabold font-mono text-[#F87171]">
                     {mathResults.riverPolar.bluffFractionPct.toFixed(2)}% blefe /{" "}
                     {mathResults.riverPolar.valueFractionPct.toFixed(2)}% valor
                   </span>
@@ -187,15 +187,21 @@ export function MathIcmLab() {
                 </div>
               </div>
 
-              <div className="rounded-xl bg-slate-950/70 border border-slate-800 p-3 text-[0.6875rem] text-slate-300 space-y-1">
-                <div className="font-semibold text-slate-200 flex items-center gap-1.5">
-                  <Info className="w-3.5 h-3.5 text-emerald-400" /> Hipóteses explícitas
+              <details className="rounded-xl bg-[#05070B] border border-[#1E293B] p-3 text-[0.6875rem] text-slate-300 group">
+                <summary className="cursor-pointer font-semibold text-slate-200 flex items-center justify-between gap-1.5 list-none">
+                  <span className="flex items-center gap-1.5">
+                    <Info className="w-3.5 h-3.5 text-[#60A5FA]" /> Hipóteses explícitas
+                  </span>
+                  <span className="text-[0.625rem] text-[#60A5FA] group-open:hidden">Ver</span>
+                  <span className="text-[0.625rem] text-slate-400 hidden group-open:inline">Ocultar</span>
+                </summary>
+                <div className="mt-2 pt-2 border-t border-[#1E293B] space-y-1">
+                  {mathResults.potOdds.assumptions.map((a, i) => (
+                    <p key={i}>• {a}</p>
+                  ))}
+                  <p className="text-[#F87171]/90">• {mathResults.mdf.caveat}</p>
                 </div>
-                {mathResults.potOdds.assumptions.map((a, i) => (
-                  <p key={i}>• {a}</p>
-                ))}
-                <p className="text-amber-300/90">• {mathResults.mdf.caveat}</p>
-              </div>
+              </details>
             </div>
           ) : (
             <div className="text-xs text-rose-300">{mathResults.error}</div>
@@ -203,12 +209,12 @@ export function MathIcmLab() {
         </div>
 
         {/* Seção 2: ICM Malmuth-Harville ($EV) */}
-        <div className="lg:col-span-6 rounded-2xl bg-slate-900/90 border border-slate-800 p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-amber-300">
+        <div className="lg:col-span-6 rounded-2xl bg-[#090D16] border border-[#1E293B] p-4 space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-sm font-bold text-[#F87171]">
               2. Modelo ICM Malmuth-Harville ($EV ≠ chipEV)
             </h3>
-            <span className="text-[0.625rem] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-200 border border-amber-500/30">
+            <span className="text-[0.625rem] font-mono px-2 py-0.5 rounded bg-[#2B0B11] text-red-200 border border-[#DC2626]/40">
               Unidade: $EV
             </span>
           </div>
@@ -260,7 +266,7 @@ export function MathIcmLab() {
                 <span>Prize Pool: ${icmResults.icm.totalPrizePool.toFixed(2)}</span>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 text-[0.6875rem]">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[0.6875rem]">
                 <label className="space-y-1">
                   <span className="text-slate-400 block">ICM Win ($EV)</span>
                   <input
@@ -312,12 +318,12 @@ export function MathIcmLab() {
       </div>
 
       {/* Seção 3: Engine Separado PKO */}
-      <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 space-y-3">
+      <div className="rounded-2xl bg-[#090D16] border border-[#1E293B] p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-sm font-bold text-indigo-300">
+          <h3 className="text-sm font-bold text-[#60A5FA]">
             3. Simulador Separado de Bounty PKO (não usa ICM puro)
           </h3>
-          <span className="text-[0.6875rem] text-amber-300 flex items-center gap-1">
+          <span className="text-[0.6875rem] text-[#F87171] flex items-center gap-1">
             <ShieldAlert className="w-3.5 h-3.5" /> PKO exige ajuste de bounty — não confundir com GTO puro
           </span>
         </div>
@@ -371,7 +377,7 @@ export function MathIcmLab() {
             </span>
             <span>
               Equidade necessária ajustada:{" "}
-              <strong className="text-emerald-400 font-mono">
+              <strong className="text-[#60A5FA] font-mono">
                 {(pkoResult.data.adjustedRequiredEquity * 100).toFixed(2)}%
               </strong>
             </span>

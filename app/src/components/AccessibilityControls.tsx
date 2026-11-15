@@ -33,10 +33,10 @@ export function AccessibilityControls() {
     }
   }
 
-  const buttonClass = "min-h-9 px-2.5 rounded-lg text-xs font-semibold text-slate-200 hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-400 disabled:opacity-35 disabled:cursor-not-allowed";
+  const buttonClass = "min-h-9 px-2.5 rounded-lg text-xs font-semibold text-slate-200 hover:bg-[#151D2E] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#3B82F6] disabled:opacity-35 disabled:cursor-not-allowed";
 
   return (
-    <div data-tour="font-size" role="group" aria-label="Tamanho da fonte" className="flex items-center rounded-xl border border-slate-700 bg-slate-900 p-0.5">
+    <div data-tour="font-size" role="group" aria-label="Tamanho da fonte" className="flex items-center rounded-xl border border-[#26334A] bg-[#090D16] p-0.5">
       <button type="button" aria-label="Diminuir fonte" title="Diminuir fonte" disabled={fontSize === MIN_SIZE} onClick={() => changeFontSize(fontSize - 10)} className={buttonClass}>A−</button>
       <button type="button" aria-label="Restaurar tamanho padrão da fonte" title="Restaurar fonte para 100%" onClick={() => changeFontSize(MIN_SIZE)} className={buttonClass}>
         <span role="status" aria-label={`Tamanho da fonte: ${fontSize}%`}>{fontSize}%</span>

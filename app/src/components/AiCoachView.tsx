@@ -207,9 +207,9 @@ export function AiCoachView({
       {/* Chat principal */}
       <div className="lg:col-span-8 flex flex-col rounded-2xl bg-slate-900/90 border border-slate-800 overflow-hidden min-h-[620px] max-h-[82vh]">
         {/* Header do Coach */}
-        <div className="px-4 py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 bg-slate-950/60">
+        <div className="px-4 py-3 border-b border-[#1E293B] flex flex-wrap items-center justify-between gap-2 bg-[#05070B]/80">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-8 h-8 rounded-xl bg-[#2563EB]/20 border border-[#3B82F6]/40 flex items-center justify-center text-[#60A5FA]">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
@@ -218,7 +218,7 @@ export function AiCoachView({
               </h2>
               <p className="text-[0.6875rem] text-slate-400">
                 Base RAG local com{" "}
-                <span className="text-emerald-400 font-semibold">
+                <span className="text-[#60A5FA] font-semibold">
                   {totalChunks} trechos
                 </span>{" "}
                 dos seus PDFs e livros · Modelo{" "}
@@ -232,7 +232,7 @@ export function AiCoachView({
               <button
                 type="button"
                 onClick={handleResetChat}
-                className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
+                className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-[#141D2F] hover:bg-[#1E293B] text-slate-200 transition"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 Nova Conversa
@@ -243,8 +243,8 @@ export function AiCoachView({
               onClick={onOpenSettings}
               className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition ${
                 hasAnyKey
-                  ? "bg-emerald-950/50 border-emerald-700/60 text-emerald-300 hover:bg-emerald-900/50"
-                  : "bg-amber-950/60 border-amber-600/70 text-amber-200 hover:bg-amber-900/60"
+                  ? "bg-[#0F1B33] border-[#2563EB]/60 text-sky-200 hover:bg-[#162647]"
+                  : "bg-[#2B0B11] border-[#DC2626]/70 text-red-200 hover:bg-[#3A1018]"
               }`}
             >
               <Settings className="w-3.5 h-3.5" />
@@ -303,7 +303,7 @@ export function AiCoachView({
                     key={q}
                     type="button"
                     onClick={() => sendMessage(q)}
-                    className="text-left p-3 rounded-xl bg-slate-950/80 hover:bg-slate-800/80 border border-slate-800 hover:border-emerald-700/60 text-xs text-slate-300 transition"
+                    className="text-left p-3 rounded-xl bg-[#05070B] hover:bg-[#101829] border border-[#1E293B] hover:border-[#3B82F6]/60 text-xs text-slate-300 transition"
                   >
                     {q}
                   </button>
@@ -321,10 +321,10 @@ export function AiCoachView({
                 <div
                   className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                     m.role === "user"
-                      ? "bg-emerald-600/20 border border-emerald-600/40 text-slate-100"
+                      ? "bg-[#2563EB]/20 border border-[#3B82F6]/50 text-slate-100"
                       : m.error
-                        ? "bg-rose-950/50 border border-rose-700/60 text-rose-200"
-                        : "bg-slate-950/90 border border-slate-800 text-slate-200"
+                        ? "bg-[#2B0B11] border border-[#DC2626]/60 text-red-200"
+                        : "bg-[#05070B] border border-[#1E293B] text-slate-200"
                   }`}
                 >
                   {m.imagePreviewUrl && (
@@ -345,7 +345,7 @@ export function AiCoachView({
                       {m.sourcesUsed.map((src) => (
                         <span
                           key={src}
-                          className="text-[0.625rem] px-2 py-0.5 rounded-md bg-slate-900 border border-slate-700 text-emerald-300"
+                          className="text-[0.625rem] px-2 py-0.5 rounded-md bg-[#0F1B33] border border-[#2563EB]/40 text-sky-200"
                         >
                           {src}
                         </span>
@@ -378,7 +378,7 @@ export function AiCoachView({
           )}
 
           {loading && (
-            <div className="flex items-center gap-2 text-xs text-emerald-300 px-2">
+            <div className="flex items-center gap-2 text-xs text-[#60A5FA] px-2">
               <Loader2 className="w-4 h-4 animate-spin" />
               Consultando base de conhecimento e Gemini ({model})...
             </div>
@@ -442,14 +442,14 @@ export function AiCoachView({
               }}
               rows={2}
               placeholder="Pergunte sobre um spot GTO, cole um print de mão (Ctrl+V) ou envie a descrição de uma jogada..."
-              className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 resize-none focus:outline-none focus:border-emerald-500"
+              className="flex-1 bg-[#05070B] border border-[#26334A] rounded-xl px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 resize-none focus:outline-none focus:border-[#3B82F6]"
             />
 
             <button
               type="button"
               onClick={() => sendMessage()}
               disabled={loading || (!input.trim() && !imageBase64)}
-              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:pointer-events-none text-white font-semibold text-sm flex items-center gap-1.5 transition shrink-0"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#DC2626] to-[#2563EB] hover:brightness-110 disabled:opacity-40 disabled:pointer-events-none text-white font-semibold text-sm flex items-center gap-1.5 transition shrink-0"
             >
               <Send className="w-4 h-4" />
               Enviar
@@ -458,62 +458,67 @@ export function AiCoachView({
         </div>
       </div>
 
-      {/* Sidebar: Catálogo das Aulas em Vídeo */}
-      <div className="lg:col-span-4 rounded-2xl bg-slate-900/90 border border-slate-800 p-4 flex flex-col gap-3 max-h-[82vh]">
-        <div className="flex items-center justify-between gap-2">
+      {/* Sidebar: Catálogo das Aulas em Vídeo (recolhível via details) */}
+      <details open className="lg:col-span-4 rounded-2xl bg-[#090D16] border border-[#1E293B] p-4 flex flex-col gap-3 lg:max-h-[82vh] group">
+        <summary className="cursor-pointer list-none flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Film className="w-4 h-4 text-emerald-400" />
+            <Film className="w-4 h-4 text-[#60A5FA]" />
             <h3 className="text-sm font-bold text-slate-100">
               Biblioteca de Aulas ({videos.length})
             </h3>
           </div>
-          <span className="text-[0.625rem] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold">
-            TreinerLM
+          <span className="text-[0.625rem] px-2 py-0.5 rounded bg-[#141D2F] text-sky-200 font-semibold group-open:hidden">
+            Abrir
           </span>
-        </div>
+          <span className="text-[0.625rem] px-2 py-0.5 rounded bg-[#141D2F] text-slate-400 font-semibold hidden group-open:inline">
+            Recolher
+          </span>
+        </summary>
 
-        <input
-          type="text"
-          value={videoSearch}
-          onChange={(e) => setVideoSearch(e.target.value)}
-          placeholder="Filtrar vídeo por tema ou pasta..."
-          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder:text-slate-500"
-        />
+        <div className="flex flex-col gap-3 mt-2 overflow-hidden">
+          <input
+            type="text"
+            value={videoSearch}
+            onChange={(e) => setVideoSearch(e.target.value)}
+            placeholder="Filtrar vídeo por tema ou pasta..."
+            className="w-full bg-[#05070B] border border-[#1E293B] focus:border-[#3B82F6] outline-none rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder:text-slate-500"
+          />
 
-        <div className="flex-1 overflow-y-auto space-y-2 pr-1">
-          {filteredVideos.map((v) => (
-            <div
-              key={v.relativePath}
-              className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 flex flex-col gap-1"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <span className="text-xs font-semibold text-slate-200 leading-snug">
-                  {v.title}
-                </span>
-                <span className="text-[0.625rem] font-mono text-slate-500 shrink-0">
-                  {v.sizeMb} MB
-                </span>
+          <div className="max-h-[380px] lg:max-h-[60vh] overflow-y-auto space-y-2 pr-1">
+            {filteredVideos.map((v) => (
+              <div
+                key={v.relativePath}
+                className="p-2.5 rounded-xl bg-[#05070B] border border-[#1E293B] flex flex-col gap-1"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-xs font-semibold text-slate-200 leading-snug">
+                    {v.title}
+                  </span>
+                  <span className="text-[0.625rem] font-mono text-slate-500 shrink-0">
+                    {v.sizeMb} MB
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[0.625rem] text-[#60A5FA] truncate">
+                    {v.category}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setInput(
+                        `Resuma os principais conceitos e recomendações práticas sobre "${v.title}" (${v.category}).`,
+                      )
+                    }
+                    className="text-[0.625rem] text-slate-400 hover:text-[#60A5FA] underline shrink-0"
+                  >
+                    Perguntar ao Coach
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[0.625rem] text-emerald-400/90 truncate">
-                  {v.category}
-                </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setInput(
-                      `Resuma os principais conceitos e recomendações práticas sobre "${v.title}" (${v.category}).`,
-                    )
-                  }
-                  className="text-[0.625rem] text-slate-400 hover:text-emerald-300 underline shrink-0"
-                >
-                  Perguntar ao Coach
-                </button>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      </details>
     </div>
   );
 }

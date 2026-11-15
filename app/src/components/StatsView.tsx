@@ -129,10 +129,10 @@ function renderDimensionTable(items: DimensionProgressItem[], emptyLabel: string
                 <span
                   className={`font-bold ${
                     item.accuracyPct >= 80
-                      ? "text-[#A1F5AE]"
+                      ? "text-[#60A5FA]"
                       : item.accuracyPct >= 60
-                        ? "text-[#F1BE60]"
-                        : "text-[#EF6666]"
+                        ? "text-amber-300"
+                        : "text-[#F87171]"
                   }`}
                 >
                   {item.accuracyPct.toFixed(1)}%
@@ -150,10 +150,10 @@ function renderDimensionTable(items: DimensionProgressItem[], emptyLabel: string
                 <span
                   className={`inline-block px-2 py-0.5 rounded-full text-[0.625rem] font-semibold ${
                     item.sampleConfidence.startsWith("amostra_solida")
-                      ? "bg-emerald-950/80 text-emerald-300 border border-emerald-700/50"
+                      ? "bg-[#0F1B33] text-sky-200 border border-[#2563EB]/50"
                       : item.sampleConfidence.startsWith("amostra_em_formacao")
                         ? "bg-amber-950/80 text-amber-300 border border-amber-700/50"
-                        : "bg-[#090B0C] text-[#A1A6AA] border border-[#292C2F]"
+                        : "bg-[#05070B] text-slate-400 border border-[#1E293B]"
                   }`}
                 >
                   {item.sampleConfidence}
@@ -596,20 +596,20 @@ export function StatsView({
   return (
     <div className="flex flex-col gap-5">
       {/* BARRA SUPERIOR DE COMANDO: TÍTULO, BOTÃO "ADICIONAR MÃO" E BOTÃO "LIMPAR TUDO" */}
-      <div className="rounded-2xl bg-[#191B1D] border border-[#292C2F] p-4 flex flex-wrap items-center justify-between gap-3 shadow-lg">
+      <div className="rounded-2xl bg-[#090D16] border border-[#1E293B] p-4 flex flex-wrap items-center justify-between gap-3 shadow-lg">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#18B88D]/15 border border-[#18B88D]/40 flex items-center justify-center text-[#A1F5AE]">
+          <div className="w-10 h-10 rounded-xl bg-[#2563EB]/20 border border-[#3B82F6]/40 flex items-center justify-center text-[#60A5FA]">
             <BarChart3 className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-extrabold text-[#F4F5F5]">
+            <h2 className="text-base font-extrabold text-[#F8FAFC]">
               Diagnóstico &amp; Leaks · Gestão de Revisão de Mãos
             </h2>
-            <p className="text-xs text-[#A1A6AA]">
-              Filtre e classifique as mãos que <strong className="text-[#F4F5F5]">precisam revisar</strong>, que você{" "}
-              <strong className="text-[#EF6666]">errou</strong>,{" "}
-              <strong className="text-[#A1F5AE]">acertou</strong> ou{" "}
-              <strong className="text-[#F1BE60]">ficou em dúvida</strong>.
+            <p className="text-xs text-[#94A3B8]">
+              Filtre e classifique as mãos que <strong className="text-[#F8FAFC]">precisam revisar</strong>, que você{" "}
+              <strong className="text-[#F87171]">errou</strong>,{" "}
+              <strong className="text-[#60A5FA]">acertou</strong> ou{" "}
+              <strong className="text-amber-300">ficou em dúvida</strong>.
             </p>
           </div>
         </div>
@@ -618,7 +618,7 @@ export function StatsView({
           <button
             type="button"
             onClick={() => setShowAddForm((v) => !v)}
-            className="flex items-center gap-1.5 rounded-xl bg-[#18B88D] hover:bg-[#22ce9f] text-[#090B0C] font-extrabold text-xs px-3.5 py-2 transition shadow"
+            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#DC2626] to-[#2563EB] hover:brightness-110 text-white font-extrabold text-xs px-3.5 py-2 transition shadow"
           >
             <PlusCircle className="w-4 h-4" />
             {showAddForm ? "Fechar formulário" : "Colocar mão na revisão"}
@@ -629,27 +629,27 @@ export function StatsView({
               type="button"
               onClick={() => setConfirmClear(true)}
               data-testid="stats-clear-all-btn"
-              className="flex items-center gap-1.5 rounded-xl bg-[#202224] hover:bg-rose-950/70 border border-[#363A3D] hover:border-rose-600/60 text-xs font-bold text-[#EF6666] px-3.5 py-2 transition"
+              className="flex items-center gap-1.5 rounded-xl bg-[#05070B] hover:bg-[#2B0B11] border border-[#1E293B] hover:border-[#DC2626]/60 text-xs font-bold text-[#F87171] px-3.5 py-2 transition"
             >
               <Trash2 className="w-4 h-4" />
               Limpar tudo
             </button>
           ) : (
-            <div className="flex items-center gap-2 rounded-xl bg-rose-950/80 border border-rose-600/70 px-3 py-1.5">
-              <span className="text-xs font-bold text-rose-200">
+            <div className="flex items-center gap-2 rounded-xl bg-[#2B0B11] border border-[#DC2626]/70 px-3 py-1.5">
+              <span className="text-xs font-bold text-red-200">
                 Apagar todo o histórico e marcações?
               </span>
               <button
                 type="button"
                 onClick={handleClearAllEverything}
-                className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold transition"
+                className="px-2.5 py-1 rounded-lg bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs font-extrabold transition"
               >
                 Sim, limpar tudo
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmClear(false)}
-                className="px-2.5 py-1 rounded-lg bg-[#191B1D] text-slate-300 hover:text-white text-xs font-semibold transition"
+                className="px-2.5 py-1 rounded-lg bg-[#090D16] text-slate-300 hover:text-white text-xs font-semibold transition"
               >
                 Cancelar
               </button>
@@ -662,10 +662,10 @@ export function StatsView({
       {showAddForm && (
         <form
           onSubmit={handleAddCustomHand}
-          className="rounded-2xl bg-[#191B1D] border border-[#18B88D]/50 p-4 space-y-3 shadow-xl"
+          className="rounded-2xl bg-[#090D16] border border-[#3B82F6]/50 p-4 space-y-3 shadow-xl"
         >
-          <div className="flex items-center justify-between border-b border-[#292C2F] pb-2">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-[#A1F5AE]">
+          <div className="flex items-center justify-between border-b border-[#1E293B] pb-2">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-[#60A5FA]">
               Colocar Mão para Revisão (Errei · Acertei · Fiquei em dúvida · Precisa revisar)
             </span>
             <span className="text-[0.6875rem] text-[#A1A6AA]">
@@ -745,7 +745,7 @@ export function StatsView({
                   [
                     { id: "revisar", label: "Precisa revisar", cls: "border-amber-500/60 text-amber-300" },
                     { id: "errei", label: "Errei", cls: "border-rose-500/60 text-rose-300" },
-                    { id: "acertei", label: "Acertei", cls: "border-emerald-500/60 text-emerald-300" },
+                    { id: "acertei", label: "Acertei", cls: "border-[#3B82F6]/60 text-sky-200" },
                     { id: "duvida", label: "Fiquei em dúvida", cls: "border-indigo-500/60 text-indigo-300" },
                   ] as const
                 ).map((opt) => (
@@ -781,7 +781,7 @@ export function StatsView({
             <div className="sm:col-span-2">
               <button
                 type="submit"
-                className="w-full py-2 px-3 rounded-lg bg-[#18B88D] hover:bg-[#22ce9f] text-[#090B0C] font-extrabold text-xs transition"
+                className="w-full py-2 px-3 rounded-lg bg-[#2563EB] hover:bg-[#3B82F6] text-white font-extrabold text-xs transition"
               >
                 Salvar Mão
               </button>
@@ -791,24 +791,24 @@ export function StatsView({
       )}
 
       {/* BARRA DE FILTROS DE MÃOS: TODAS | PRECISAM REVISAR | ERREI | ACERTEI | FIQUEI EM DÚVIDA */}
-      <div className="rounded-2xl bg-[#191B1D] border border-[#292C2F] p-4 space-y-3">
+      <div className="rounded-2xl bg-[#090D16] border border-[#1E293B] p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-[#A1F5AE]" />
-            <h3 className="text-sm font-bold text-[#F4F5F5]">
+            <Filter className="w-4 h-4 text-[#60A5FA]" />
+            <h3 className="text-sm font-bold text-[#F8FAFC]">
               Filtro de Mãos por Status de Revisão
             </h3>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-[#A1A6AA] absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-[#94A3B8] absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar mão (ex: AKo), spot ou nota..."
-                className="rounded-xl bg-[#090B0C] border border-[#292C2F] pl-8 pr-3 py-1.5 text-xs text-[#F4F5F5] outline-none focus:border-[#18B88D]"
+                className="rounded-xl bg-[#05070B] border border-[#1E293B] pl-8 pr-3 py-1.5 text-xs text-[#F8FAFC] outline-none focus:border-[#3B82F6]"
               />
             </div>
 
@@ -816,7 +816,7 @@ export function StatsView({
               aria-label="Filtrar mãos por posição"
               value={positionFilter}
               onChange={(e) => setPositionFilter(e.target.value)}
-              className="rounded-xl bg-[#090B0C] border border-[#292C2F] px-2.5 py-1.5 text-xs text-[#F4F5F5] outline-none"
+              className="rounded-xl bg-[#05070B] border border-[#1E293B] px-2.5 py-1.5 text-xs text-[#F8FAFC] outline-none"
             >
               <option value="ALL">Todas as posições</option>
               {POSITIONS_8MAX.map((p) => (
@@ -841,35 +841,35 @@ export function StatsView({
                 label: "Todas as mãos",
                 count: filterCounts.todas,
                 icon: <Layers className="w-3.5 h-3.5" />,
-                activeCls: "bg-[#18B88D] text-[#090B0C] border-[#18B88D]",
+                activeCls: "bg-[#2563EB] text-white border-[#3B82F6]",
               },
               {
                 id: "revisar",
                 label: "Precisam revisar",
                 count: filterCounts.revisar,
                 icon: <BookmarkCheck className="w-3.5 h-3.5" />,
-                activeCls: "bg-amber-500 text-[#090B0C] border-amber-400",
+                activeCls: "bg-amber-500 text-[#05070B] border-amber-400",
               },
               {
                 id: "errei",
                 label: "Errei",
                 count: filterCounts.errei,
                 icon: <XCircle className="w-3.5 h-3.5" />,
-                activeCls: "bg-[#EF6666] text-[#090B0C] border-[#EF6666]",
+                activeCls: "bg-[#DC2626] text-white border-[#EF4444]",
               },
               {
                 id: "acertei",
                 label: "Acertei",
                 count: filterCounts.acertei,
                 icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-                activeCls: "bg-[#18B88D] text-[#090B0C] border-[#A1F5AE]",
+                activeCls: "bg-[#2563EB] text-white border-[#60A5FA]",
               },
               {
                 id: "duvida",
                 label: "Fiquei em dúvida",
                 count: filterCounts.duvida,
                 icon: <HelpCircle className="w-3.5 h-3.5" />,
-                activeCls: "bg-indigo-500 text-white border-indigo-400",
+                activeCls: "bg-slate-200 text-[#05070B] border-white",
               },
             ] as const
           ).map((pill) => {
@@ -884,7 +884,7 @@ export function StatsView({
                 className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-extrabold border transition ${
                   active
                     ? `${pill.activeCls} shadow`
-                    : "bg-[#090B0C] border-[#292C2F] text-[#A1A6AA] hover:text-white hover:bg-[#202224]"
+                    : "bg-[#05070B] border-[#1E293B] text-[#94A3B8] hover:text-white hover:bg-[#141D2F]"
                 }`}
               >
                 {pill.icon}
@@ -893,7 +893,7 @@ export function StatsView({
                   className={`ml-1 rounded-full px-1.5 py-0.2 font-mono text-[0.65rem] ${
                     active
                       ? "bg-black/25 text-current"
-                      : "bg-[#191B1D] text-[#F4F5F5]"
+                      : "bg-[#141D2F] text-[#F8FAFC]"
                   }`}
                 >
                   {pill.count}
@@ -905,8 +905,8 @@ export function StatsView({
 
         {/* Lista / Tabela Interativa das Mãos Filtradas */}
         {filteredReviewRows.length === 0 ? (
-          <div className="rounded-xl bg-[#090B0C] border border-dashed border-[#292C2F] p-6 text-center space-y-2">
-            <p className="text-xs font-bold text-[#F4F5F5]">
+          <div className="rounded-xl bg-[#05070B] border border-dashed border-[#1E293B] p-6 text-center space-y-2">
+            <p className="text-xs font-bold text-[#F8FAFC]">
               Nenhuma mão encontrada para o filtro &ldquo;
               {reviewFilter === "todas"
                 ? "Todas as mãos"
@@ -919,12 +919,12 @@ export function StatsView({
                       : "Fiquei em dúvida"}
               &rdquo;.
             </p>
-            <p className="text-[0.6875rem] text-[#A1A6AA]">
+            <p className="text-[0.6875rem] text-[#94A3B8]">
               Jogue mãos no <strong>Modo Trainer</strong> ou clique em{" "}
               <button
                 type="button"
                 onClick={() => setShowAddForm(true)}
-                className="text-[#A1F5AE] underline font-bold"
+                className="text-[#60A5FA] underline font-bold"
               >
                 Colocar mão na revisão
               </button>{" "}
@@ -932,7 +932,7 @@ export function StatsView({
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-[#292C2F] bg-[#090B0C]">
+          <div className="overflow-x-auto rounded-xl border border-[#1E293B] bg-[#05070B]">
             <table className="w-full text-xs text-left border-collapse">
               <thead>
                 <tr className="text-[#A1A6AA] border-b border-[#292C2F] bg-[#141618]">
@@ -970,10 +970,10 @@ export function StatsView({
                     </td>
 
                     <td className="py-2.5 px-2.5">
-                      <div className="text-[#F4F5F5]">
-                        Escolheu: <strong className="text-[#A1F5AE]">{row.chosenAction}</strong>
+                      <div className="text-[#F8FAFC]">
+                        Escolheu: <strong className="text-[#60A5FA]">{row.chosenAction}</strong>
                       </div>
-                      <div className="text-[0.65rem] text-[#A1A6AA] font-mono">
+                      <div className="text-[0.65rem] text-[#94A3B8] font-mono">
                         Ref: {row.dominantAction}
                         {row.chosenFreq !== null
                           ? ` (${Math.round(row.chosenFreq * 100)}%)`
@@ -988,13 +988,13 @@ export function StatsView({
                       <span
                         className={`inline-block px-2 py-0.5 rounded-full text-[0.625rem] font-bold ${
                           row.classification === "exact_primary"
-                            ? "bg-emerald-950 text-emerald-300 border border-emerald-700/60"
+                            ? "bg-[#0F1B33] text-sky-200 border border-[#2563EB]/60"
                             : row.classification === "valid_mixed" ||
                                 row.classification === "low_freq_acceptable"
                               ? "bg-amber-950 text-amber-300 border border-amber-700/60"
                               : row.classification === "unsolved"
                                 ? "bg-slate-800 text-slate-300 border border-slate-700"
-                                : "bg-rose-950 text-rose-300 border border-rose-700/60"
+                                : "bg-[#2B0B11] text-red-200 border border-[#DC2626]/60"
                         }`}
                       >
                         {row.classification === "exact_primary"
@@ -1020,17 +1020,17 @@ export function StatsView({
                             {
                               id: "errei",
                               label: "Errei",
-                              activeCls: "bg-rose-500/25 border-rose-400 text-rose-200",
+                              activeCls: "bg-[#DC2626]/25 border-[#EF4444] text-red-200",
                             },
                             {
                               id: "acertei",
                               label: "Acertei",
-                              activeCls: "bg-emerald-500/25 border-emerald-400 text-emerald-200",
+                              activeCls: "bg-[#2563EB]/25 border-[#3B82F6] text-sky-200",
                             },
                             {
                               id: "duvida",
                               label: "Dúvida",
-                              activeCls: "bg-indigo-500/25 border-indigo-400 text-indigo-200",
+                              activeCls: "bg-slate-500/25 border-slate-300 text-slate-100",
                             },
                           ] as const
                         ).map((btn) => {
@@ -1043,7 +1043,7 @@ export function StatsView({
                               className={`px-2 py-1 rounded-lg text-[0.65rem] font-bold border transition ${
                                 isCurrent
                                   ? btn.activeCls
-                                  : "bg-[#141618] border-[#292C2F] text-[#A1A6AA] hover:text-white"
+                                  : "bg-[#090D16] border-[#1E293B] text-[#94A3B8] hover:text-white"
                               }`}
                             >
                               {btn.label}
@@ -1059,7 +1059,7 @@ export function StatsView({
                           <button
                             type="button"
                             onClick={() => onPracticeSpot(row.spotId)}
-                            className="px-2.5 py-1 rounded-lg bg-[#18B88D] hover:bg-[#22ce9f] text-[#090B0C] font-extrabold text-[0.6875rem] transition"
+                            className="px-2.5 py-1 rounded-lg bg-[#2563EB] hover:bg-[#3B82F6] text-white font-extrabold text-[0.6875rem] transition"
                           >
                             Treinar
                           </button>
@@ -1099,15 +1099,15 @@ export function StatsView({
           </div>
         </div>
 
-        <div className="rounded-2xl bg-[#191B1D] border border-[#292C2F] p-4">
-          <div className="text-[0.6875rem] uppercase tracking-wider text-[#A1A6AA] font-semibold flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5 text-[#18B88D]" />
+        <div className="rounded-2xl bg-[#090D16] border border-[#1E293B] p-4">
+          <div className="text-[0.6875rem] uppercase tracking-wider text-[#94A3B8] font-semibold flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#60A5FA]" />
             Aderência Válida
           </div>
-          <div className="text-2xl font-extrabold text-[#A1F5AE] mt-1">
+          <div className="text-2xl font-extrabold text-[#60A5FA] mt-1">
             {summary.accuracy}%
           </div>
-          <div className="text-[0.6875rem] text-[#A1A6AA] mt-1">
+          <div className="text-[0.6875rem] text-[#94A3B8] mt-1">
             Inclui ações presentes no mix de referência
           </div>
         </div>
@@ -1175,7 +1175,7 @@ export function StatsView({
         </div>
 
         {adaptiveAnalysis.classifiedLeaks.length === 0 ? (
-          <div className="rounded-xl bg-[#090B0C] border border-[#292C2F] p-4 text-xs text-[#A1F5AE] flex items-center gap-2">
+          <div className="rounded-xl bg-[#05070B] border border-[#1E293B] p-4 text-xs text-[#60A5FA] flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             Nenhum leak classificado até o momento. Continue praticando para gerar o ranking taxonômico de desvios.
           </div>
@@ -1231,25 +1231,25 @@ export function StatsView({
       </div>
 
       {/* ETAPA 5 (Item 4): Fila de Repetição Espaçada (Leitner Adaptativo) */}
-      <div className="rounded-2xl bg-[#191B1D] border border-[#292C2F] p-4 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-sm font-bold text-[#F4F5F5] flex items-center gap-2">
-            <Repeat className="w-4 h-4 text-[#18B88D]" />
+      <details open className="rounded-2xl bg-[#090D16] border border-[#1E293B] p-4 group">
+        <summary className="cursor-pointer list-none flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-sm font-bold text-[#F8FAFC] flex items-center gap-2">
+            <Repeat className="w-4 h-4 text-[#60A5FA]" />
             Agenda de Repetição Espaçada (Sistema Leitner Adaptativo · Caixas 0 a 5)
           </h3>
-          <span className="text-[0.6875rem] text-[#A1A6AA]">
-            Intervalos: 0d (revisão imediata) · 1d · 3d · 7d · 14d · 30d
+          <span className="text-[0.6875rem] text-[#94A3B8]">
+            Intervalos: 0d · 1d · 3d · 7d · 14d · 30d
           </span>
-        </div>
+        </summary>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 mt-3">
           {adaptiveAnalysis.spacedSchedule.slice(0, 9).map((item) => (
             <div
               key={item.spotId}
               className={`rounded-xl border p-3 flex items-center justify-between gap-2.5 text-xs ${
                 item.isDueNow
-                  ? "bg-amber-950/25 border-amber-700/50"
-                  : "bg-[#090B0C] border-[#292C2F]"
+                  ? "bg-[#2B0B11]/60 border-[#DC2626]/50"
+                  : "bg-[#05070B] border-[#1E293B]"
               }`}
             >
               <div className="min-w-0 space-y-1">
@@ -1257,21 +1257,21 @@ export function StatsView({
                   <span
                     className={`text-[0.625rem] font-mono font-bold px-1.5 py-0.5 rounded ${
                       item.isDueNow
-                        ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                        : "bg-emerald-950 text-emerald-300 border border-emerald-700/40"
+                        ? "bg-[#DC2626]/20 text-red-200 border border-[#DC2626]/40"
+                        : "bg-[#0F1B33] text-sky-200 border border-[#2563EB]/40"
                     }`}
                   >
                     Caixa {item.boxLevel} ({item.intervalDays}d)
                   </span>
-                  <span className="text-[0.625rem] text-[#A1A6AA] flex items-center gap-1">
+                  <span className="text-[0.625rem] text-[#94A3B8] flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     {item.isDueNow ? "Revisar Agora" : "Agendado"}
                   </span>
                 </div>
-                <div className="font-bold text-[#F4F5F5] truncate">
+                <div className="font-bold text-[#F8FAFC] truncate">
                   {item.spotName}
                 </div>
-                <div className="text-[0.625rem] text-[#A1A6AA]">
+                <div className="text-[0.625rem] text-[#94A3B8]">
                   {item.reason} · Conf. última:{" "}
                   <strong className="text-slate-200 uppercase">
                     {item.lastConfidence}
@@ -1283,7 +1283,7 @@ export function StatsView({
                 <button
                   type="button"
                   onClick={() => onPracticeSpot(item.spotId)}
-                  className="px-2.5 py-1.5 rounded-lg bg-[#18B88D] hover:bg-[#22ce9f] text-[#090B0C] font-extrabold text-[0.6875rem] shrink-0 transition"
+                  className="px-2.5 py-1.5 rounded-lg bg-[#2563EB] hover:bg-[#3B82F6] text-white font-extrabold text-[0.6875rem] shrink-0 transition"
                 >
                   Treinar
                 </button>
@@ -1291,39 +1291,41 @@ export function StatsView({
             </div>
           ))}
         </div>
-      </div>
+      </details>
 
       {/* ETAPA 5 (Item 5): Progresso Multidimensional por Posição, Stack, Formato e Street */}
-      <div className="rounded-2xl bg-[#191B1D] border border-[#292C2F] p-4 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-sm font-bold text-[#F4F5F5] flex items-center gap-2">
-            <Compass className="w-4 h-4 text-indigo-400" />
+      <details open className="rounded-2xl bg-[#090D16] border border-[#1E293B] p-4 space-y-3 group">
+        <summary className="cursor-pointer list-none flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-sm font-bold text-[#F8FAFC] flex items-center gap-2">
+            <Compass className="w-4 h-4 text-[#60A5FA]" />
             Progresso Multidimensional: Posição, Stack, Formato de Torneio e Street
           </h3>
+          <span className="text-[0.65rem] text-[#60A5FA] group-open:hidden">Expandir</span>
+          <span className="text-[0.65rem] text-slate-400 hidden group-open:inline">Recolher</span>
+        </summary>
 
-          <div className="flex flex-wrap items-center gap-1 bg-[#090B0C] border border-[#292C2F] rounded-xl p-1">
-            {(
-              [
-                { id: "position", label: "Por Posição" },
-                { id: "stack", label: "Por Stack Efetivo" },
-                { id: "format", label: "Por Formato (chipEV / ICM / PKO / Spin)" },
-                { id: "street", label: "Por Street (Pré / Flop / Turn / River)" },
-              ] as { id: DimensionTab; label: string }[]
-            ).map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setDimensionTab(tab.id)}
-                className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-semibold transition ${
-                  dimensionTab === tab.id
-                    ? "bg-[#18B88D] text-[#090B0C] font-bold"
-                    : "text-[#A1A6AA] hover:text-white"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-wrap items-center gap-1 bg-[#05070B] border border-[#1E293B] rounded-xl p-1">
+          {(
+            [
+              { id: "position", label: "Por Posição" },
+              { id: "stack", label: "Por Stack Efetivo" },
+              { id: "format", label: "Por Formato (chipEV / ICM / PKO / Spin)" },
+              { id: "street", label: "Por Street (Pré / Flop / Turn / River)" },
+            ] as { id: DimensionTab; label: string }[]
+          ).map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setDimensionTab(tab.id)}
+              className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-semibold transition ${
+                dimensionTab === tab.id
+                  ? "bg-[#2563EB] text-white font-bold"
+                  : "text-[#94A3B8] hover:text-white"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {dimensionTab === "position" &&
@@ -1346,13 +1348,13 @@ export function StatsView({
             adaptiveAnalysis.dimensionalProgress.byStreet,
             "Sem registros por street.",
           )}
-      </div>
+      </details>
 
       {/* Heatmap Posição x Stack + Tipo de Spot */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        <div className="lg:col-span-8 rounded-2xl bg-[#191B1D] border border-[#292C2F] p-4">
-          <h3 className="text-sm font-bold text-[#F4F5F5] mb-3 flex items-center gap-2">
-            <Layers className="w-4 h-4 text-[#18B88D]" />
+        <div className="lg:col-span-8 rounded-2xl bg-[#090D16] border border-[#1E293B] p-4">
+          <h3 className="text-sm font-bold text-[#F8FAFC] mb-3 flex items-center gap-2">
+            <Layers className="w-4 h-4 text-[#60A5FA]" />
             Mapa de Precisão: Posição &times; Stack Efetivo (MTT 8-Max)
           </h3>
           <div className="overflow-x-auto">
@@ -1389,10 +1391,10 @@ export function StatsView({
                       const pct = Math.round((cell.ok / cell.total) * 100);
                       const colorClass =
                         pct >= 80
-                          ? "bg-emerald-950/70 border-emerald-700/60 text-emerald-300"
+                          ? "bg-[#0F1B33] border-[#2563EB]/60 text-sky-200"
                           : pct >= 55
                             ? "bg-amber-950/70 border-amber-700/60 text-amber-300"
-                            : "bg-rose-950/70 border-rose-700/60 text-rose-300";
+                            : "bg-[#2B0B11] border-[#DC2626]/60 text-red-200";
                       return (
                         <td key={st} className="p-1 text-center">
                           <div
@@ -1436,9 +1438,9 @@ export function StatsView({
                         {stats ? `${pct}% (${stats.total})` : "0 mão"}
                       </span>
                     </div>
-                    <div className="h-2 rounded-full bg-[#090B0C] overflow-hidden">
+                    <div className="h-2 rounded-full bg-[#05070B] overflow-hidden">
                       <div
-                        className="h-full bg-[#18B88D] transition-all"
+                        className="h-full bg-gradient-to-r from-[#DC2626] to-[#2563EB] transition-all"
                         style={{ width: `${stats ? pct : 0}%` }}
                       />
                     </div>
@@ -1448,15 +1450,15 @@ export function StatsView({
             </div>
           </div>
 
-          <div className="pt-3 border-t border-[#292C2F] flex items-center justify-between">
-            <span className="text-[0.6875rem] text-[#A1A6AA] flex items-center gap-1">
-              <Gauge className="w-3.5 h-3.5 text-[#18B88D]" />
+          <div className="pt-3 border-t border-[#1E293B] flex items-center justify-between">
+            <span className="text-[0.6875rem] text-[#94A3B8] flex items-center gap-1">
+              <Gauge className="w-3.5 h-3.5 text-[#60A5FA]" />
               {unifiedReviewRows.length} mão(s) registrada(s)
             </span>
             <button
               type="button"
               onClick={() => setConfirmClear(true)}
-              className="flex items-center gap-1.5 text-xs text-[#EF6666] hover:underline font-semibold transition"
+              className="flex items-center gap-1.5 text-xs text-[#F87171] hover:underline font-semibold transition"
             >
               <Trash2 className="w-3.5 h-3.5" />
               Limpar tudo

@@ -135,7 +135,7 @@ export function RangeMatrix({
             onClick={() => onSelectHand?.(hand)}
             style={{ background: `linear-gradient(to right, ${stops.join(", ")})` }}
             className={`relative flex items-center justify-center select-none transition-all duration-100 rounded-[3px] border ${
-              compact ? "h-6 text-[0.625rem]" : "h-8 sm:h-9 text-[0.6875rem] sm:text-xs"
+              compact ? "h-5 sm:h-6 text-[0.52rem] sm:text-[0.625rem]" : "h-6 sm:h-9 text-[0.55rem] sm:text-xs"
             } font-semibold text-white shadow-inner ${
               isActive
                 ? "ring-2 ring-amber-300 border-amber-200 z-10 scale-105 shadow-lg shadow-amber-500/30"
@@ -224,7 +224,7 @@ export function RangeMatrix({
                 onClick={() => setFilterMode(id)}
                 className={`px-2 py-1 rounded-md transition ${
                   filterMode === id
-                    ? "bg-emerald-600 text-white font-semibold"
+                    ? "bg-[#2563EB] text-white font-semibold"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
@@ -277,7 +277,7 @@ export function RangeMatrix({
                     <span className="text-slate-200 font-semibold">{action}:</span>
                     <span className="text-white">{Math.round(prob * 100)}%</span>
                     {evVal !== undefined && evUnit && (
-                      <span className="text-emerald-300/90 text-[0.625rem]">
+                      <span className="text-sky-300/90 text-[0.625rem]">
                         ({evVal >= 0 ? "+" : ""}
                         {evVal.toFixed(2)} {evUnit})
                       </span>
