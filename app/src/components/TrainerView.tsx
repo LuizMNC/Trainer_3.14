@@ -15,6 +15,7 @@ import {
   Layers,
   Lock,
   Minimize2,
+  Palette,
   Play,
   RefreshCw,
   RotateCcw,
@@ -57,6 +58,18 @@ import {
   type TexasSolverBundleV1,
   type TrainerModeId,
 } from "@/lib/poker";
+import {
+  CARD_STYLE_OPTIONS,
+  CHIP_STYLE_OPTIONS,
+  DEFAULT_TABLE_APPEARANCE,
+  loadTableAppearance,
+  normalizeHexColor,
+  saveTableAppearance,
+  TABLE_COLOR_PRESETS,
+  type CardStyleId,
+  type ChipStyleId,
+  type TableAppearanceConfig,
+} from "@/lib/poker/tableAppearance";
 import { PokerTable } from "./PokerTable";
 import { RangeMatrix } from "./RangeMatrix";
 import { TrainingViewport } from "./TrainingViewport";
@@ -244,6 +257,38 @@ export function TrainerView({
   const [openMathPanel, setOpenMathPanel] = useState(false);
   const [openSourcePanel, setOpenSourcePanel] = useState(false);
   const [showRangePanel, setShowRangePanel] = useState(true);
+  const [showAppearancePanel, setShowAppearancePanel] = useState(false);
+  const [tableAppearance, setTableAppearance] = useState<TableAppearanceConfig>(
+    DEFAULT_TABLE_APPEARANCE,
+  );
+  const [feltHexInput, setFeltHexInput] = useState(
+    DEFAULT_TABLE_APPEARANCE.feltColor,
+  );
+  const [railHexInput, setRailHexInput] = useState(
+    DEFAULT_TABLE_APPEARANCE.railColor,
+  );
+
+  useEffect(() => {
+    let active = true;
+    const saved = loadTableAppearance();
+    queueMicrotask(() => {
+      if (!active) return;
+      setTableAppearance(saved);
+      setFeltHexInput(saved.feltColor);
+      setRailHexInput(saved.railColor);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  function updateTableAppearance(patch: Partial<TableAppearanceConfig>) {
+    const next: TableAppearanceConfig = { ...tableAppearance, ...patch };
+    saveTableAppearance(next);
+    setTableAppearance(next);
+    setFeltHexInput(next.feltColor);
+    setRailHexInput(next.railColor);
+  }
 
   useEffect(() => {
     try {
@@ -1155,6 +1200,25 @@ export function TrainerView({
           </div>
 
           <div className="trainer-session-tools">
+            <button
+              type="button"
+              onClick={() => setShowAppearancePanel((open) => !open)}
+              aria-expanded={showAppearancePanel}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                showAppearancePanel
+                  ? "bg-[#18B88D]/20 border-[#18B88D] text-[#A1F5AE]"
+                  : "bg-[#191B1D] border-[#292C2F] text-[#D7DBDF] hover:border-[#3E4348] hover:text-white"
+              }`}
+              title="Personalizar cores da mesa, estilos de cartas e fichas"
+            >
+              <Palette className="w-3.5 h-3.5 text-[#18B88D]" />
+              <span>Personalizar mesa</span>
+              <span
+                className="w-3 h-3 rounded-full border border-white/30 shrink-0"
+                style={{ backgroundColor: tableAppearance.feltColor }}
+                aria-hidden="true"
+              />
+            </button>
             <label className="trainer-motion-label">
               Animações
               <select
@@ -1227,6 +1291,248 @@ export function TrainerView({
           />
         ) : (
           <>
+            {showAppearancePanel && (
+              <section
+                aria-label="Personalização visual da mesa"
+                className="rounded-2xl bg-[#191B1D] border border-[#2D3339] p-4 shadow-xl flex flex-col gap-4"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#262B30] pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <Palette className="w-4 h-4 text-[#18B88D]" />
+                    <h3 className="text-xs sm:text-sm font-bold text-[#F4F5F5]">
+                      Personalizar Mesa, Cartas &amp; Fichas (TreinerLM)
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateTableAppearance({ ...DEFAULT_TABLE_APPEARANCE })
+                      }
+                      className="px-2.5 py-1 rounded-lg bg-[#121417] border border-[#2D3339] text-[0.6875rem] font-semibold text-[#C8CDD2] hover:text-white hover:border-[#49525C]"
+                    >
+                      Restaurar padrão
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowAppearancePanel(false)}
+                      className="px-2.5 py-1 rounded-lg bg-[#18B88D]/15 border border-[#18B88D]/40 text-[0.6875rem] font-bold text-[#A1F5AE] hover:bg-[#18B88D]/25"
+                    >
+                      Concluir
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  {/* Cores da mesa (presets + qualquer cor via seletor/hex) */}
+                  <div className="space-y-2.5">
+                    <span className="text-[0.6875rem] uppercase tracking-wider font-bold text-[#A1A6AA] block">
+                      Cor da Mesa &amp; Borda (qualquer cor)
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {TABLE_COLOR_PRESETS.map((preset) => {
+                        const active =
+                          tableAppearance.presetId === preset.id &&
+                          tableAppearance.feltColor === preset.feltColor &&
+                          tableAppearance.railColor === preset.railColor;
+                        return (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            onClick={() =>
+                              updateTableAppearance({
+                                presetId: preset.id,
+                                feltColor: preset.feltColor,
+                                railColor: preset.railColor,
+                              })
+                            }
+                            className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[0.6875rem] font-semibold transition-colors ${
+                              active
+                                ? "bg-[#18B88D]/20 border-[#18B88D] text-[#A1F5AE]"
+                                : "bg-[#121417] border-[#292C2F] text-[#D0D5DA] hover:border-[#454B52]"
+                            }`}
+                          >
+                            <span
+                              className="w-3 h-3 rounded-full border border-white/30"
+                              style={{ backgroundColor: preset.feltColor }}
+                              aria-hidden="true"
+                            />
+                            {preset.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2.5 pt-1">
+                      <label className="flex flex-col gap-1 text-[0.6875rem] text-[#C8CDD2]">
+                        <span>Cor do pano (feltro)</span>
+                        <div className="flex items-center gap-1.5 bg-[#121417] border border-[#2D3339] rounded-lg px-2 py-1">
+                          <input
+                            type="color"
+                            aria-label="Selecionar qualquer cor da mesa"
+                            value={tableAppearance.feltColor}
+                            onChange={(event) =>
+                              updateTableAppearance({
+                                presetId: "custom",
+                                feltColor: event.target.value.toUpperCase(),
+                              })
+                            }
+                            className="w-7 h-6 rounded border-0 bg-transparent cursor-pointer p-0"
+                          />
+                          <input
+                            type="text"
+                            aria-label="Código hexadecimal da cor da mesa"
+                            value={feltHexInput}
+                            maxLength={7}
+                            onChange={(event) => {
+                              const raw = event.target.value;
+                              setFeltHexInput(raw);
+                              if (/^#[0-9a-fA-F]{6}$/.test(raw.trim())) {
+                                updateTableAppearance({
+                                  presetId: "custom",
+                                  feltColor: normalizeHexColor(
+                                    raw,
+                                    tableAppearance.feltColor,
+                                  ),
+                                });
+                              }
+                            }}
+                            onBlur={() =>
+                              setFeltHexInput(tableAppearance.feltColor)
+                            }
+                            className="w-full bg-transparent text-xs font-mono text-[#F4F5F5] focus:outline-none"
+                          />
+                        </div>
+                      </label>
+
+                      <label className="flex flex-col gap-1 text-[0.6875rem] text-[#C8CDD2]">
+                        <span>Cor do aro (borda)</span>
+                        <div className="flex items-center gap-1.5 bg-[#121417] border border-[#2D3339] rounded-lg px-2 py-1">
+                          <input
+                            type="color"
+                            aria-label="Selecionar qualquer cor da borda da mesa"
+                            value={tableAppearance.railColor}
+                            onChange={(event) =>
+                              updateTableAppearance({
+                                presetId: "custom",
+                                railColor: event.target.value.toUpperCase(),
+                              })
+                            }
+                            className="w-7 h-6 rounded border-0 bg-transparent cursor-pointer p-0"
+                          />
+                          <input
+                            type="text"
+                            aria-label="Código hexadecimal da cor da borda"
+                            value={railHexInput}
+                            maxLength={7}
+                            onChange={(event) => {
+                              const raw = event.target.value;
+                              setRailHexInput(raw);
+                              if (/^#[0-9a-fA-F]{6}$/.test(raw.trim())) {
+                                updateTableAppearance({
+                                  presetId: "custom",
+                                  railColor: normalizeHexColor(
+                                    raw,
+                                    tableAppearance.railColor,
+                                  ),
+                                });
+                              }
+                            }}
+                            onBlur={() =>
+                              setRailHexInput(tableAppearance.railColor)
+                            }
+                            className="w-full bg-transparent text-xs font-mono text-[#F4F5F5] focus:outline-none"
+                          />
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Estilos de cartas */}
+                  <div className="space-y-2">
+                    <span className="text-[0.6875rem] uppercase tracking-wider font-bold text-[#A1A6AA] block">
+                      Estilo das Cartas
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                      {CARD_STYLE_OPTIONS.map((option) => {
+                        const active = tableAppearance.cardStyle === option.id;
+                        return (
+                          <button
+                            key={option.id}
+                            type="button"
+                            onClick={() =>
+                              updateTableAppearance({
+                                cardStyle: option.id as CardStyleId,
+                              })
+                            }
+                            className={`text-left px-2.5 py-2 rounded-lg border transition-colors ${
+                              active
+                                ? "bg-[#18B88D]/20 border-[#18B88D] text-[#F4F5F5]"
+                                : "bg-[#121417] border-[#292C2F] text-[#C8CDD2] hover:border-[#454B52]"
+                            }`}
+                          >
+                            <div className="text-xs font-bold">
+                              {option.label}
+                            </div>
+                            <div className="text-[0.625rem] text-[#9BA3AB] mt-0.5">
+                              {option.hint}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Estilos de fichas */}
+                  <div className="space-y-2">
+                    <span className="text-[0.6875rem] uppercase tracking-wider font-bold text-[#A1A6AA] block">
+                      Estilo das Fichas
+                    </span>
+                    <div className="grid grid-cols-1 gap-1.5">
+                      {CHIP_STYLE_OPTIONS.map((option) => {
+                        const active = tableAppearance.chipStyle === option.id;
+                        return (
+                          <button
+                            key={option.id}
+                            type="button"
+                            onClick={() =>
+                              updateTableAppearance({
+                                chipStyle: option.id as ChipStyleId,
+                              })
+                            }
+                            className={`text-left px-2.5 py-2 rounded-lg border transition-colors flex items-center justify-between gap-2 ${
+                              active
+                                ? "bg-[#18B88D]/20 border-[#18B88D] text-[#F4F5F5]"
+                                : "bg-[#121417] border-[#292C2F] text-[#C8CDD2] hover:border-[#454B52]"
+                            }`}
+                          >
+                            <div>
+                              <div className="text-xs font-bold">
+                                {option.label}
+                              </div>
+                              <div className="text-[0.625rem] text-[#9BA3AB]">
+                                {option.hint}
+                              </div>
+                            </div>
+                            <span
+                              className={`w-5 h-5 rounded-full shrink-0 border-2 ${
+                                option.id === "neon-pro"
+                                  ? "bg-[#090D16] border-[#22D3EE]"
+                                  : option.id === "classic-gold"
+                                    ? "bg-[#3B2608] border-[#FACC15]"
+                                    : "bg-[#B91C1C] border-dashed border-white/90"
+                              }`}
+                              aria-hidden="true"
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+
             {/* Alerta de Bloqueio caso o usuário tente abrir spot didático/não resolvido no Modo GTO Técnico */}
             {blockedSpotWarning && (
               <div className="rounded-xl bg-amber-950/50 border border-amber-500/60 p-3 text-xs text-amber-200 flex flex-wrap items-center justify-between gap-3">
@@ -1284,10 +1590,16 @@ export function TrainerView({
             )}
 
             {/* LAYOUT DE 3 COLUNAS ESTILO GTO WIZARD: CONTROLES & STATS (ESQ) · MESA & AÇÃO (CENTRO) · MATRIZ 13x13 (DIR) */}
-            <div className="trainer-workspace grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
+            <div
+              className={`trainer-workspace grid grid-cols-1 gap-4 items-start ${
+                showRangePanel
+                  ? "xl:grid-cols-[minmax(255px,300px)_minmax(0,1fr)_minmax(390px,465px)]"
+                  : "xl:grid-cols-[minmax(255px,310px)_minmax(0,1fr)]"
+              }`}
+            >
               {/* COLUNA ESQUERDA: Controles Compactos + Placar da Sessão */}
               <aside
-                className="xl:col-span-3 flex flex-col gap-3 rounded-2xl bg-[#191B1D] border border-[#292C2F] p-3.5 shadow-lg"
+                className="flex flex-col gap-3 rounded-2xl bg-[#191B1D] border border-[#292C2F] p-3.5 shadow-lg"
                 aria-label="Controles e Estatísticas da Sessão"
               >
                 {/* Seletor de Modo: GTO Técnico vs Aprendizagem */}
@@ -1697,11 +2009,7 @@ export function TrainerView({
               </aside>
 
               {/* COLUNA CENTRAL: Mesa + Botões de Ação + Feedback Enxuto Pós-Decisão */}
-              <div
-                className={`${
-                  showRangePanel ? "xl:col-span-5" : "xl:col-span-9"
-                } flex flex-col gap-3`}
-              >
+              <div className="flex flex-col gap-3 min-w-0">
                 {/* Cabeçalho Compacto do Spot */}
                 <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-[#191B1D] border border-[#292C2F] px-3.5 py-2.5">
                   <div className="min-w-0">
@@ -1773,6 +2081,7 @@ export function TrainerView({
                   formatLabel={`${currentSpot.format} ${currentSpot.playersInitial}-Max`}
                   animationKey={dealId}
                   heroAction={chosenAction}
+                  appearance={tableAppearance}
                 />
 
                 {/* BOTÕES DE AÇÃO ESTILO GTO WIZARD (Fold Azul, Check/Call Verde, Bet/Raise Vermelho, All-in Vinho) */}
@@ -2311,7 +2620,7 @@ export function TrainerView({
 
               {/* COLUNA DIREITA: Matriz 13x13 & Info do Range (Oculta antes da decisão) */}
               {showRangePanel && (
-                <div className="trainer-range-panel xl:col-span-4 rounded-2xl bg-[#191B1D] border border-[#292C2F] p-3.5 shadow-xl">
+                <div className="trainer-range-panel rounded-2xl bg-[#191B1D] border border-[#292C2F] p-3.5 shadow-xl">
                   <div className="flex items-center justify-between mb-2.5">
                     <div>
                       <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#F4F5F5]">

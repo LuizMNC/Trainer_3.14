@@ -468,7 +468,7 @@ export function AiCoachView({
             </h3>
           </div>
           <span className="text-[0.625rem] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold">
-            PDF de Poker
+            TreinerLM
           </span>
         </div>
 

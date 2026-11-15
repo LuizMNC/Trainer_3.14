@@ -57,7 +57,9 @@ describe("Fase 1 — Navegação e renderização dos componentes reais", () => 
   it("inclui a nova aba e preserva as seis abas existentes", () => {
     const markup = renderToStaticMarkup(createElement(PokerStudioApp, { spots: [], totalChunks: 0, videos: [] }));
     for (const label of ["Erros Fatais", "Modo Trainer", "Currículo &amp; 18 Aulas", "Explorador de Ranges", "Lab EV &amp; ICM", "AI Poker Coach", "Diagnóstico &amp; Leaks"]) assert.ok(markup.includes(label), label);
-    assert.match(markup, /PDF de Poker/);
+    assert.match(markup, /TreinerLM/);
+    assert.match(markup, /Desenvolvido por Luiz Miguel N\. C\./);
+    assert.doesNotMatch(markup, /PDF de Poker/);
     assert.doesNotMatch(markup, /reglife/i);
     for (const label of ["Aumentar fonte", "Diminuir fonte", "Restaurar tamanho padrão da fonte", "Fazer um tour"]) assert.ok(markup.includes(label), label);
   });

@@ -336,7 +336,7 @@ export function CurriculumView({ onLaunchDrill }: CurriculumViewProps) {
       <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <span className="text-[0.6875rem] uppercase tracking-wider text-emerald-400 font-bold">
-            PDF de Poker — 7 Trilhas + 18 Aulas + 7 Vídeos Complementares
+            TreinerLM — 7 Trilhas + 18 Aulas + 7 Vídeos Complementares
           </span>
           <h2 className="text-lg font-bold text-white">
             Separação Estrita: Conteúdo Didático vs Heurística Explorativa vs Solução GTO
@@ -761,7 +761,7 @@ export function CurriculumView({ onLaunchDrill }: CurriculumViewProps) {
               <div className="space-y-2 pt-2 border-t border-slate-800 text-xs">
                 <div className="rounded-lg bg-slate-950/80 border border-slate-800 p-2.5">
                   <span className="text-emerald-400 font-bold block mb-0.5">
-                    Aplicação no PDF de Poker:
+                    Aplicação no TreinerLM:
                   </span>
                   <span className="text-slate-200">{vid.softwareTranslation}</span>
                 </div>

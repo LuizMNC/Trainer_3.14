@@ -122,7 +122,7 @@ body {
 .poker-hero-cards { transition:opacity 200ms ease,transform 200ms ease; }
 .poker-hero-cards[data-folded="true"] { opacity:.4; transform:translateY(-.35rem) scale(.94); }
 .poker-seat-label[data-awaiting="true"] { animation:poker-your-turn 2.2s ease-in-out infinite; }
-.poker-action-toast { position:absolute; top:10%; padding:.3rem .75rem; border:1px solid var(--gto-selection-green); border-radius:2rem; font-size:.72rem; color:var(--gto-accent-green); background:#090B0CE6; animation:trainer-feedback-in var(--feedback-duration,200ms) ease-out both; }
+.poker-action-toast { position:absolute; top:0.75rem; right:0.75rem; z-index:30; padding:.3rem .75rem; border:1px solid var(--gto-selection-green); border-radius:2rem; font-size:.72rem; color:var(--gto-accent-green); background:#090B0CE6; animation:trainer-feedback-in var(--feedback-duration,200ms) ease-out both; }
 .trainer-feedback { animation:trainer-feedback-in var(--feedback-duration,200ms) ease-out both; }
 @keyframes poker-deal { from { opacity:0; transform:translate(-1.2rem,-2.5rem) rotate(-8deg) scale(.82); } to { opacity:1; transform:translate(0,0) rotate(0) scale(1); } }
 @keyframes poker-your-turn { 0%,100% { box-shadow:0 0 0 0 rgba(24,184,141,0); } 50% { box-shadow:0 0 0 4px rgba(24,184,141,0.28),0 0 18px rgba(161,245,174,0.18); } }

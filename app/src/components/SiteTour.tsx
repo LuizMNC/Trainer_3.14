@@ -13,7 +13,7 @@ interface TourStep {
 }
 
 const STEPS: readonly TourStep[] = [
-  { title: "Bem-vindo ao PDF de Poker", description: "Vamos conhecer as ferramentas para organizar seus estudos e revisar suas decisões. A área de cada etapa aparece destacada ao fundo.", tip: "Use Próximo e Anterior para explorar. Você pode sair a qualquer momento com Esc e repetir o tour pelo botão no topo.", target: "navigation" },
+  { title: "Bem-vindo ao TreinerLM", description: "Vamos conhecer as ferramentas para organizar seus estudos e revisar suas decisões. A área de cada etapa aparece destacada ao fundo.", tip: "Use Próximo e Anterior para explorar. Você pode sair a qualquer momento com Esc e repetir o tour pelo botão no topo.", target: "navigation" },
   { title: "Biblioteca de Mãos", description: "Importe históricos de mãos, organize seu acervo e encontre situações para revisar depois da sessão.", tip: "Selecione uma mão da biblioteca para abri-la no Replayer. Durante o tour, nenhum arquivo é importado.", target: "hand-library", tab: "hand-library" },
   { title: "Modo Trainer", description: "Pratique decisões de poker com filtros por cenário, posição e stack. Clique em Iniciar treino em tela cheia para abrir a mesa dedicada, com estatísticas e animações.", tip: "Use Esc para sair sem perder a sessão. Em Animações, escolha Normal, Rápidas ou Desligadas. Observe a origem e a verificação de cada estratégia.", target: "trainer", tab: "trainer" },
   { title: "Currículo e aulas", description: "Siga as trilhas de estudo, consulte as 18 aulas e os vídeos complementares e teste os conceitos nos quizzes.", tip: "Os botões de prática levam aos exercícios relacionados no Trainer.", target: "curriculum", tab: "curriculum" },
@@ -25,7 +25,7 @@ const STEPS: readonly TourStep[] = [
   { title: "AI Poker Coach", description: "Converse sobre conceitos e revise dúvidas com apoio do seu material de estudo e da integração com o Google AI Studio.", tip: "A chave de API é opcional para as outras áreas. O tour não envia mensagens nem faz consultas à IA.", target: "coach", tab: "coach" },
   { title: "Diagnóstico e Leaks", description: "Acompanhe o histórico dos exercícios e identifique os cenários que merecem mais prática.", tip: "Os resultados começam a aparecer conforme você treina. Use os atalhos de prática para revisar suas dificuldades.", target: "stats", tab: "stats" },
   { title: "Uma fonte mais confortável", description: "No topo do site, use A+ para aumentar a fonte em etapas de 10%, até 150%. Use A− para diminuir.", tip: "Clique no percentual para voltar a 100%. Sua preferência fica salva neste navegador.", target: "font-size" },
-  { title: "Configurações e próximos passos", description: "O botão de configurações permite ajustar a integração com o AI Poker Coach. Você já pode começar a explorar o PDF de Poker.", tip: "Ao concluir, você volta à área em que estava. Para rever este guia, clique em Fazer um tour.", target: "settings" },
+  { title: "Configurações e próximos passos", description: "O botão de configurações permite ajustar a integração com o AI Poker Coach. Você já pode começar a explorar o TreinerLM.", tip: "Ao concluir, você volta à área em que estava. Para rever este guia, clique em Fazer um tour.", target: "settings" },
 ];
 
 interface SiteTourProps {

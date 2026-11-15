@@ -2,6 +2,14 @@
 
 import React from "react";
 import { POSITIONS_8MAX, type PlayingCard as Card, type LegacyRangeSpot } from "@/lib/poker";
+import {
+  buildFeltGradient,
+  DEFAULT_TABLE_APPEARANCE,
+  getOpponentScientistName,
+  type CardStyleId,
+  type ChipStyleId,
+  type TableAppearanceConfig,
+} from "@/lib/poker/tableAppearance";
 
 interface PokerTableProps {
   spot: LegacyRangeSpot;
@@ -14,39 +22,97 @@ interface PokerTableProps {
   formatLabel?: string;
   animationKey?: number;
   heroAction?: string | null;
+  appearance?: TableAppearanceConfig;
 }
 
 const SEAT_COORDS: { top: string; left: string }[] = [
-  { top: "82%", left: "50%" }, // 0: Herói (Base central)
-  { top: "72%", left: "16%" }, // 1: Esquerda inferior
-  { top: "42%", left: "8%" },  // 2: Esquerda média
-  { top: "16%", left: "23%" }, // 3: Topo esquerdo
-  { top: "12%", left: "50%" }, // 4: Topo central
-  { top: "16%", left: "77%" }, // 5: Topo direito
-  { top: "42%", left: "92%" }, // 6: Direita média
-  { top: "72%", left: "84%" }, // 7: Direita inferior
+  { top: "84%", left: "50%" }, // 0: Herói (Base central)
+  { top: "73%", left: "15%" }, // 1: Esquerda inferior
+  { top: "45%", left: "8%" },  // 2: Esquerda média
+  { top: "17%", left: "22%" }, // 3: Topo esquerdo
+  { top: "11%", left: "50%" }, // 4: Topo central
+  { top: "17%", left: "78%" }, // 5: Topo direito
+  { top: "45%", left: "92%" }, // 6: Direita média
+  { top: "73%", left: "85%" }, // 7: Direita inferior
 ];
 
-function FourColorCard({
-  rank,
-  suit,
-  size = "md",
-  index = 0,
-}: {
-  rank: string;
-  suit: string;
-  size?: "sm" | "md" | "lg";
-  index?: number;
-}) {
+const SUIT_SYMBOL: Record<string, string> = {
+  s: "♠",
+  h: "♥",
+  d: "♦",
+  c: "♣",
+};
+
+function getCardPalette(styleId: CardStyleId, suit: string): {
+  container: string;
+  suitColor: string;
+  accentRing: string;
+} {
+  if (styleId === "classic-two") {
+    const isRed = suit === "h" || suit === "d";
+    return {
+      container: "bg-[#FAF8F2] border-[#D7D2C5]",
+      suitColor: isRed ? "text-[#C8232C]" : "text-[#17191E]",
+      accentRing: "shadow-[0_6px_16px_rgba(0,0,0,0.45)]",
+    };
+  }
+  if (styleId === "dark-gold") {
+    const suitColors: Record<string, string> = {
+      s: "text-[#E2E8F0]",
+      h: "text-[#FB7185]",
+      d: "text-[#60A5FA]",
+      c: "text-[#34D399]",
+    };
+    return {
+      container: "bg-[#111317] border-[#C9A449]",
+      suitColor: suitColors[suit] ?? "text-[#E2E8F0]",
+      accentRing: "shadow-[0_6px_18px_rgba(201,164,73,0.22)]",
+    };
+  }
+  if (styleId === "high-contrast") {
+    const suitColors: Record<string, string> = {
+      s: "text-[#111317]",
+      h: "text-[#DC2626]",
+      d: "text-[#1D4ED8]",
+      c: "text-[#15803D]",
+    };
+    return {
+      container: "bg-white border-[#090B0C]",
+      suitColor: suitColors[suit] ?? "text-[#111317]",
+      accentRing: "shadow-[0_6px_18px_rgba(0,0,0,0.6)]",
+    };
+  }
+  // Padrão: four-color
   const bgBySuit: Record<string, string> = {
     s: "bg-[#2B3036] border-[#4B535D] text-white",
     h: "bg-[#B82E2E] border-[#E05252] text-white",
     d: "bg-[#2358A6] border-[#4B83D8] text-white",
     c: "bg-[#1F8244] border-[#3EB369] text-white",
   };
+  return {
+    container: bgBySuit[suit] ?? "bg-[#2B3036] border-[#4B535D] text-white",
+    suitColor: "text-white",
+    accentRing: "shadow-[0_6px_16px_rgba(0,0,0,0.55)]",
+  };
+}
+
+function StyledCard({
+  rank,
+  suit,
+  size = "md",
+  index = 0,
+  cardStyle = "four-color",
+}: {
+  rank: string;
+  suit: string;
+  size?: "sm" | "md" | "lg";
+  index?: number;
+  cardStyle?: CardStyleId;
+}) {
+  const palette = getCardPalette(cardStyle, suit);
   const dims =
     size === "lg"
-      ? "w-12 h-16 sm:w-14 sm:h-[4.5rem] text-lg sm:text-xl"
+      ? "w-11 h-15 sm:w-[3.25rem] sm:h-[4.35rem] text-lg sm:text-xl"
       : size === "md"
         ? "w-10 h-14 sm:w-12 sm:h-16 text-base sm:text-lg"
         : "w-7 h-9 text-xs";
@@ -54,17 +120,80 @@ function FourColorCard({
   return (
     <div
       style={{ "--card-index": index } as React.CSSProperties}
-      className={`poker-dealt-card relative rounded-lg ${
-        bgBySuit[suit] ?? "bg-[#2B3036] border-[#4B535D] text-white"
-      } border-2 shadow-[0_6px_16px_rgba(0,0,0,0.55)] flex flex-col items-center justify-center font-extrabold select-none shrink-0`}
+      className={`poker-dealt-card relative rounded-lg ${palette.container} ${palette.suitColor} ${palette.accentRing} border-2 flex flex-col items-center justify-center font-extrabold select-none shrink-0`}
     >
       <div className={`${dims} flex flex-col items-center justify-center leading-none`}>
         <span className="tracking-tighter font-mono">{rank}</span>
-        <span className="text-[0.75em] mt-0.5 opacity-95">
-          {suit === "s" ? "♠" : suit === "h" ? "♥" : suit === "d" ? "♦" : suit === "c" ? "♣" : suit}
+        <span className="text-[0.78em] mt-0.5 opacity-95">
+          {SUIT_SYMBOL[suit] ?? suit}
         </span>
       </div>
     </div>
+  );
+}
+
+function PokerChipStack({
+  chipStyle,
+  count = 3,
+  compact = false,
+}: {
+  chipStyle: ChipStyleId;
+  count?: number;
+  compact?: boolean;
+}) {
+  const paletteByStyle: Record<
+    ChipStyleId,
+    { fill: string[]; border: string; inner: string; ring: string }
+  > = {
+    "casino-clay": {
+      fill: ["#18B88D", "#D9383A", "#2563EB"],
+      border: "#F4F5F5",
+      inner: "#090B0C",
+      ring: "border-dashed",
+    },
+    "neon-pro": {
+      fill: ["#090B0C", "#101418", "#0D1F1A"],
+      border: "#22D3EE",
+      inner: "#18B88D",
+      ring: "border-solid",
+    },
+    "classic-gold": {
+      fill: ["#C9A449", "#FAF3DC", "#9A7421"],
+      border: "#FFFBEB",
+      inner: "#29200C",
+      ring: "border-dotted",
+    },
+  };
+
+  const theme = paletteByStyle[chipStyle];
+  const sizeCls = compact ? "w-3.5 h-3.5" : "w-4 h-4";
+
+  return (
+    <span
+      className="inline-flex items-center -space-x-1.5 shrink-0"
+      data-chip-style={chipStyle}
+      aria-hidden="true"
+    >
+      {Array.from({ length: count }).map((_, idx) => (
+        <span
+          key={idx}
+          style={{
+            backgroundColor: theme.fill[idx % theme.fill.length],
+            borderColor: theme.border,
+            boxShadow:
+              chipStyle === "neon-pro"
+                ? "0 0 6px rgba(34,211,238,0.65)"
+                : "0 1px 3px rgba(0,0,0,0.7)",
+          }}
+          className={`${sizeCls} rounded-full border-[2px] ${theme.ring} flex items-center justify-center`}
+        >
+          <span
+            style={{ backgroundColor: theme.inner }}
+            className="w-1.5 h-1.5 rounded-full opacity-80"
+          />
+        </span>
+      ))}
+    </span>
   );
 }
 
@@ -160,6 +289,7 @@ export function PokerTable({
   formatLabel = "MTT 8-Max",
   animationKey = 0,
   heroAction = null,
+  appearance = DEFAULT_TABLE_APPEARANCE,
 }: PokerTableProps) {
   const { safeHeroIdx, villainPos, villainIdx, potBb } = buildTableContext(
     spot,
@@ -180,9 +310,14 @@ export function PokerTable({
     heroAction,
   );
 
+  const feltStyle: React.CSSProperties = {
+    background: buildFeltGradient(appearance.feltColor),
+    borderColor: appearance.railColor,
+  };
+
   return (
     <div className="flex flex-col gap-2 w-full select-none">
-      {/* Faixa Superior de Sequência da Mão (Estilo GTO Wizard Imagens 05, 06, 07) */}
+      {/* Faixa Superior de Sequência da Mão */}
       <div
         className="flex items-center gap-1.5 overflow-x-auto rounded-xl bg-[#090B0C] border border-[#363A3D] px-2.5 py-2 text-xs"
         aria-label="Sequência de ações da mão"
@@ -218,45 +353,63 @@ export function PokerTable({
         </div>
       </div>
 
-      {/* Palco Principal da Mesa (Fundo #101112, feltro escuro minimalista) */}
+      {/* Palco Principal da Mesa (cor do feltro e aro customizáveis) */}
       <div
         key={animationKey}
-        className="poker-table-stage relative w-full aspect-[16/10] sm:aspect-[16/9] max-h-[380px] rounded-2xl bg-[#101112] border border-[#363A3D] shadow-2xl overflow-hidden flex items-center justify-center"
+        className="poker-table-stage relative w-full aspect-[16/10] sm:aspect-[16/9] min-h-[365px] lg:min-h-[420px] max-h-[500px] rounded-2xl bg-[#101112] border border-[#363A3D] shadow-2xl overflow-hidden flex items-center justify-center"
       >
-        {/* Oval minimalista estilo GTO Wizard */}
-        <div className="poker-table-felt absolute inset-5 sm:inset-7 rounded-[999px] bg-[radial-gradient(ellipse_at_center,#172321_0%,#121618_70%,#101112_100%)] border-[2px] border-[#292C2F] shadow-[inset_0_0_50px_rgba(0,0,0,0.85)]" />
+        {/* Oval do Feltro com Cor Personalizável */}
+        <div
+          style={feltStyle}
+          data-felt-color={appearance.feltColor}
+          className="poker-table-felt absolute inset-5 sm:inset-7 rounded-[999px] border-[4px] shadow-[inset_0_0_60px_rgba(0,0,0,0.82),0_0_24px_rgba(0,0,0,0.65)] transition-colors duration-200"
+        >
+          {/* Marca d'água central da mesa */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 flex items-center justify-center"
+          >
+            <span className="text-xl sm:text-3xl font-black tracking-[0.26em] uppercase text-white/[0.06] select-none">
+              π TREINERLM
+            </span>
+          </div>
+        </div>
 
-        {/* Centro da Mesa: Identificação do Spot + Pote em Destaque + Board */}
-        <div className="relative z-10 flex flex-col items-center gap-1.5 text-center px-3 -mt-3">
-          <span className="text-[0.6875rem] font-medium text-[#A1A6AA] tracking-wide">
-            {spot.heroPosition} vs {villainPos || "Mesa"} · {spot.stackBb} BB
-          </span>
+        {/* Centro da Mesa: Marca TreinerLM + Spot + Fichas & Pote + Board */}
+        <div className="relative z-10 flex flex-col items-center gap-1.5 text-center px-3 -mt-6">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-[#090B0C]/60 border border-white/15 px-2.5 py-0.5 text-[0.65rem] font-extrabold tracking-wider text-[#A1F5AE]">
+            <span className="font-serif text-xs leading-none">π</span>
+            <span>TreinerLM</span>
+            <span className="text-white/40">·</span>
+            <span className="text-[#F4F5F5]/90 font-semibold">
+              {spot.heroPosition} vs {villainPos || "Mesa"} · {spot.stackBb} BB
+            </span>
+          </div>
 
-          <div className="text-base sm:text-xl font-extrabold font-mono text-[#F4F5F5] tracking-tight">
-            {potBb.toFixed(1)} BB
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#090B0C]/85 border border-[#363A3D] px-3 py-1 shadow-md">
+            <PokerChipStack chipStyle={appearance.chipStyle} count={3} />
+            <span className="text-sm sm:text-base font-extrabold font-mono text-[#F4F5F5] tracking-tight">
+              Pote: {potBb.toFixed(1)} BB
+            </span>
           </div>
 
           {parsedBoard.length > 0 && (
-            <div className="flex items-center gap-1.5 my-0.5">
+            <div className="flex items-center gap-1.5 mt-0.5">
               {parsedBoard.map((c, idx) => (
-                <FourColorCard
+                <StyledCard
                   key={`${c.rank}${c.suit}-${idx}`}
                   rank={c.rank}
                   suit={c.suit}
                   size="md"
                   index={idx + 2}
+                  cardStyle={appearance.cardStyle}
                 />
               ))}
             </div>
           )}
-
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-[#191B1D]/95 border border-[#363A3D] px-2.5 py-0.5 text-[0.6875rem] font-mono text-[#A1F5AE]">
-            <span className="w-2 h-2 rounded-full bg-[#18B88D]" />
-            Pote: {potBb.toFixed(1)} BB
-          </div>
         </div>
 
-        {/* 8 Assentos ao Redor da Mesa */}
+        {/* 8 Assentos ao Redor da Mesa (Oponentes com nomes de cientistas famosos) */}
         {POSITIONS_8MAX.map((pos, idx) => {
           const offset = (idx - safeHeroIdx + 8) % 8;
           const coord = SEAT_COORDS[offset];
@@ -264,6 +417,7 @@ export function PokerTable({
           const isVillain = idx === villainIdx;
           const isActive = isHero || isVillain;
           const isBtn = pos === "BTN";
+          const scientistName = getOpponentScientistName(pos, idx);
 
           return (
             <div
@@ -271,34 +425,45 @@ export function PokerTable({
               style={{ top: coord.top, left: coord.left }}
               className={`poker-seat ${
                 isHero ? "poker-seat-hero z-20" : "z-10"
-              } absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-2`}
+              } absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1.5 sm:gap-2`}
             >
               {/* Botão de Dealer (D) */}
               {isBtn && (
                 <span
                   title="Botão (Dealer)"
-                  className="w-5 h-5 rounded-full bg-[#F4F5F5] text-[#090B0C] font-extrabold text-[0.625rem] flex items-center justify-center shadow"
+                  className="w-5 h-5 rounded-full bg-[#F4F5F5] text-[#090B0C] font-extrabold text-[0.625rem] flex items-center justify-center shadow shrink-0"
                 >
                   D
                 </span>
               )}
 
-              {/* Círculo / Pílula de Posição e Stack */}
+              {/* Pílula do Jogador: Nome (Cientista / Você) + Posição + Stack */}
               <div
                 data-awaiting={isHero && !heroAction}
-                className={`poker-seat-label rounded-full px-3 py-1.5 border text-center transition-all ${
+                className={`poker-seat-label rounded-2xl px-2.5 py-1 border text-center transition-all ${
                   isHero
-                    ? "bg-[#191B1D] border-2 border-[#18B88D] text-[#F4F5F5] shadow-[0_0_18px_rgba(24,184,141,0.35)] min-w-[4.6rem]"
+                    ? "bg-[#191B1D] border-2 border-[#18B88D] text-[#F4F5F5] shadow-[0_0_18px_rgba(24,184,141,0.35)] min-w-[5.2rem]"
                     : isVillain
-                      ? "bg-[#191B1D] border-2 border-[#F1BE60] text-[#F4F5F5] shadow-[0_0_14px_rgba(241,190,96,0.25)] min-w-[4.4rem]"
-                      : "bg-[#141618]/90 border border-[#292C2F] text-[#A1A6AA] opacity-65 min-w-[3.8rem]"
+                      ? "bg-[#191B1D] border-2 border-[#F1BE60] text-[#F4F5F5] shadow-[0_0_14px_rgba(241,190,96,0.28)] min-w-[5.4rem]"
+                      : "bg-[#141618]/90 border border-[#292C2F] text-[#A1A6AA] opacity-80 min-w-[4.7rem]"
                 }`}
               >
-                <div className="text-[0.6875rem] font-extrabold tracking-tight leading-tight">
-                  {pos}
+                <div className="flex items-center justify-center gap-1 text-[0.6875rem] font-extrabold tracking-tight leading-tight">
+                  <span>{isHero ? "Você" : scientistName}</span>
+                  <span
+                    className={`text-[0.58rem] px-1 py-0.2 rounded font-mono ${
+                      isHero
+                        ? "bg-[#18B88D]/20 text-[#A1F5AE]"
+                        : isVillain
+                          ? "bg-[#F1BE60]/20 text-[#F1BE60]"
+                          : "bg-white/5 text-[#A1A6AA]"
+                    }`}
+                  >
+                    {pos}
+                  </span>
                 </div>
                 <div
-                  className={`text-[0.6875rem] font-mono leading-tight ${
+                  className={`flex items-center justify-center gap-1 text-[0.65rem] font-mono leading-tight mt-0.5 ${
                     isHero
                       ? "text-[#A1F5AE] font-bold"
                       : isVillain
@@ -306,27 +471,32 @@ export function PokerTable({
                         : "text-[#A1A6AA]"
                   }`}
                 >
-                  {isActive ? `${spot.stackBb}` : "fold"}
+                  {isActive && (
+                    <PokerChipStack chipStyle={appearance.chipStyle} count={2} compact />
+                  )}
+                  <span>{isActive ? `${spot.stackBb}bb` : "fold"}</span>
                 </div>
               </div>
 
-              {/* Cartas do Herói posicionadas ao lado do assento (como nas Imagens 05, 06 e 07) */}
+              {/* Cartas do Herói posicionadas ao lado do assento */}
               {isHero && (
                 <div
                   className="poker-hero-cards flex items-center gap-1"
                   data-folded={heroAction?.toLowerCase() === "fold"}
                 >
-                  <FourColorCard
+                  <StyledCard
                     rank={cards[0].rank}
                     suit={cards[0].suit}
                     size="lg"
                     index={0}
+                    cardStyle={appearance.cardStyle}
                   />
-                  <FourColorCard
+                  <StyledCard
                     rank={cards[1].rank}
                     suit={cards[1].suit}
                     size="lg"
                     index={1}
+                    cardStyle={appearance.cardStyle}
                   />
                 </div>
               )}

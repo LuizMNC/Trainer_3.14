@@ -23,7 +23,6 @@ import {
   RotateCcw,
   Settings,
   ShieldCheck,
-  Spade,
   Sparkles,
   Target,
   Zap,
@@ -395,19 +394,27 @@ export function PokerStudioApp({
             : "sticky"
         } top-0 z-30 border-b border-[#292C2F] bg-[#090B0C]/95 backdrop-blur-md`}
       >
-        <div className="max-w-[1440px] mx-auto px-4 py-2 flex flex-wrap items-center justify-between gap-2.5">
+        <div className="w-full px-3 sm:px-5 lg:px-7 py-2 flex flex-wrap items-center justify-between gap-2.5">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#18B88D] flex items-center justify-center shadow-md">
-              <Spade className="w-4 h-4 text-[#090B0C] fill-[#090B0C]/20" />
+            <div
+              className="w-8 h-8 rounded-xl bg-[#18B88D] flex items-center justify-center shadow-md shrink-0"
+              aria-hidden="true"
+            >
+              <span className="text-[1.25rem] leading-none font-black font-serif text-[#090B0C] select-none">
+                π
+              </span>
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-sm font-extrabold tracking-tight text-[#F4F5F5]">
-                  PDF de Poker
+                  TreinerLM
                 </h1>
                 <span className="text-[0.6rem] px-1.5 py-0.5 rounded bg-[#18B88D]/15 border border-[#18B88D]/40 text-[#A1F5AE] font-bold">
                   Study Lab V2
+                </span>
+                <span className="text-[0.6rem] px-1.5 py-0.5 rounded bg-[#1E2226] border border-[#2D3238] text-[#C8CDD2] font-semibold">
+                  Desenvolvido por Luiz Miguel N. C.
                 </span>
               </div>
               <p className="text-[0.65rem] text-[#A1A6AA]">
@@ -509,7 +516,7 @@ export function PokerStudioApp({
           aria-label="Central de treinamento rápido"
           className="border-b border-[#292C2F] bg-[#090B0C]/80"
         >
-          <div className="max-w-[1440px] mx-auto px-4 py-3 flex flex-col gap-3">
+          <div className="w-full px-3 sm:px-5 lg:px-7 py-3 flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-3">
                 <button
@@ -675,7 +682,7 @@ export function PokerStudioApp({
       )}
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 py-4">
+      <main className="flex-1 w-full px-3 sm:px-5 lg:px-7 py-4">
         {activeTab === "trainer" && (
           <TrainerView
             canonicalSpots={canonicalSpots}
@@ -782,6 +789,21 @@ export function PokerStudioApp({
           />
         )}
       </main>
+
+      <footer className="w-full border-t border-[#202428] bg-[#0B0D0F] py-3 px-3 sm:px-5 lg:px-7">
+        <div className="w-full flex flex-wrap items-center justify-between gap-2 text-xs text-[#A1A6AA]">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-[#18B88D]/15 border border-[#18B88D]/40 text-[#A1F5AE] font-serif font-bold">
+              π
+            </span>
+            <span className="font-bold text-[#E6E9EC]">TreinerLM</span>
+            <span>· Laboratório GTO Offline &amp; Revisão</span>
+          </div>
+          <span className="font-semibold text-[#D3D8DC]">
+            Desenvolvido por Luiz Miguel N. C.
+          </span>
+        </div>
+      </footer>
 
       {tourOrigin !== null && (
         <SiteTour

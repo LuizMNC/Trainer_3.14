@@ -170,7 +170,7 @@ export function FatalErrorsView({ spots, onLaunchDrill }: FatalErrorsViewProps) 
 
           <details className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 group" aria-label="Aulas relacionadas">
             <summary className="cursor-pointer flex items-center justify-between font-bold text-sm">
-              <span className="flex items-center gap-2"><BookOpen className="w-4 h-4 text-emerald-400" />Conceitos relacionados · PDF de Poker</span>
+              <span className="flex items-center gap-2"><BookOpen className="w-4 h-4 text-emerald-400" />Conceitos relacionados · TreinerLM</span>
               <span className="text-xs text-slate-400 group-open:hidden">Consultar fonte</span>
             </summary>
             <div className="space-y-3 mt-3 pt-3 border-t border-slate-800">

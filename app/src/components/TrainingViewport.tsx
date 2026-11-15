@@ -29,7 +29,7 @@ export function TrainingViewport({ active, onClose, children }: {
   return (
     <>
       {!active && children}
-      <dialog ref={dialogRef} className="trainer-fullscreen" aria-label="Treinamento PDF de Poker" onCancel={event => { event.preventDefault(); onClose(); }}>
+      <dialog ref={dialogRef} className="trainer-fullscreen" aria-label="Treinamento TreinerLM" onCancel={event => { event.preventDefault(); onClose(); }}>
         {active && children}
       </dialog>
     </>

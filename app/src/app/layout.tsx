@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PDF de Poker",
+  title: "TreinerLM",
   description:
-    "Plataforma pessoal de estudos GTO pré-flop com Modo Trainer interativo, Explorador de Ranges (229 spots) e AI Poker Coach via Google AI Studio.",
+    "TreinerLM — Plataforma de estudos GTO com Modo Trainer interativo, Explorador de Ranges (229 spots), Laboratório Matemático e AI Poker Coach. Desenvolvido por Luiz Miguel N. C.",
 };
 
 export default function RootLayout({

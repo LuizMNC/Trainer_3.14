@@ -103,7 +103,8 @@ def browser_ready(url: str) -> bool:
     try:
         opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
         with opener.open(url,timeout=3) as response:
-            return response.status==200 and b"<title>PDF de Poker</title>" in response.read(1_000_000)
+            body=response.read(1_000_000)
+            return response.status==200 and (b"<title>TreinerLM</title>" in body or b"<title>PDF de Poker</title>" in body)
     except (OSError,urllib.error.URLError): return False
 
 def identity(root: Path) -> str:
