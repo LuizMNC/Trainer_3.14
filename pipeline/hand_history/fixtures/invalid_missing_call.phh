@@ -1,0 +1,7 @@
+# Inválido: board antes das ações pré-flop. Não inserir calls para reparar.
+variant = "NT"
+antes = [0, 0]
+blinds_or_straddles = [1, 2]
+min_bet = 2
+starting_stacks = [100, 100]
+actions = ["d dh p1 ????", "d dh p2 AsKd", "d db 2c3d4h"]

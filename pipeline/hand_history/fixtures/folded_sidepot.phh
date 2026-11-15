@@ -1,0 +1,13 @@
+# Fold do SB deixa 1 no principal. AA ganha 151; KK ganha lateral 100.
+variant = "NT"
+antes = [0, 0, 0, 0]
+blinds_or_straddles = [1, 2, 0, 0]
+min_bet = 2
+starting_stacks = [100, 100, 50, 200]
+finishing_stacks = [99, 100, 151, 100]
+actions = [
+  "d dh p1 ????", "d dh p2 KsKd", "d dh p3 AsAd", "d dh p4 QsQd",
+  "p3 cbr 50", "p4 cbr 200", "p1 f", "p2 cc",
+  "p2 sm -", "p3 sm -", "p4 sm -",
+  "d db 2c3d7h", "d db 8s", "d db 9c",
+]

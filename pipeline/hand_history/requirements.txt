@@ -1,0 +1,2 @@
+# Dependência isolada do importador, sem dependências transitivas.
+pokerkit==0.7.7 --hash=sha256:4e946cc5c48558a9a4583f3a00f13960bd5b719144643104642031552c59ec76

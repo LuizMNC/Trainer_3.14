@@ -4,11 +4,23 @@
 
 :root {
   color-scheme: dark;
+  --gto-bg-main: #101112;
+  --gto-bg-topbar: #090B0C;
+  --gto-bg-sidebar: #191B1D;
+  --gto-bg-panel: #202224;
+  --gto-bg-elevated: #292C2F;
+  --gto-border: #363A3D;
+  --gto-text-primary: #F4F5F5;
+  --gto-text-secondary: #A1A6AA;
+  --gto-accent-green: #A1F5AE;
+  --gto-selection-green: #18B88D;
+  --gto-error-red: #EF6666;
+  --gto-warning-yellow: #F1BE60;
 }
 
 body {
-  background-color: #020617;
-  color: #f1f5f9;
+  background-color: var(--gto-bg-main);
+  color: var(--gto-text-primary);
   font-family:
     Inter,
     ui-sans-serif,
@@ -20,6 +32,30 @@ body {
     sans-serif;
 }
 
+/* O diálogo nativo mantém o foco no tour e permite encerrá-lo com Esc. */
+.site-tour {
+  position: fixed;
+  inset: auto 1rem 1rem auto;
+  margin: 0;
+  width: min(28rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  border: 1px solid var(--gto-border);
+  border-radius: 1rem;
+  background: var(--gto-bg-sidebar);
+  color: var(--gto-text-primary);
+  box-shadow: 0 20px 70px #000c;
+}
+
+.site-tour::backdrop {
+  background: #090b0ccc;
+}
+
+[data-tour-active="true"] {
+  outline: 3px solid var(--gto-accent-green);
+  outline-offset: 3px;
+}
+
 /* Scrollbar discreta */
 ::-webkit-scrollbar {
   width: 8px;
@@ -27,14 +63,77 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: var(--gto-bg-topbar);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: var(--gto-bg-elevated);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: var(--gto-border);
+}
+
+/* Apresentação do treino: a avaliação continua independente das animações. */
+.trainer-experience { --deal-duration: 360ms; --deal-stagger: 65ms; --feedback-duration: 200ms; }
+.trainer-experience[data-motion="fast"] { --deal-duration: 150ms; --deal-stagger: 25ms; --feedback-duration: 100ms; }
+.trainer-session-bar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.75rem; padding:0.9rem 1.15rem; border:1px solid var(--gto-border); border-radius:0.85rem; background:var(--gto-bg-sidebar); }
+.trainer-eyebrow { color:var(--gto-accent-green); font-size:.625rem; font-weight:700; letter-spacing:.14em; margin-bottom:.2rem; }
+.trainer-session-title { color:var(--gto-text-primary); font-size:1.05rem; font-weight:750; outline:none; }
+.trainer-session-description { color:var(--gto-text-secondary); font-size:.75rem; margin-top:.15rem; }
+.trainer-session-tools { display:flex; align-items:center; flex-wrap:wrap; gap:.5rem; }
+.trainer-tool-button,.trainer-start-button { display:inline-flex; align-items:center; justify-content:center; gap:.45rem; padding:.55rem .85rem; border-radius:.55rem; font-size:.75rem; font-weight:700; min-height:2.35rem; transition:background 150ms ease,border-color 150ms ease,transform 100ms ease; }
+.trainer-tool-button { color:var(--gto-text-primary); background:var(--gto-bg-panel); border:1px solid var(--gto-border); }
+.trainer-tool-button:hover { background:var(--gto-bg-elevated); color:white; }
+.trainer-start-button { color:#090B0C; background:var(--gto-selection-green); border:1px solid var(--gto-accent-green); box-shadow:0 3px 16px rgba(24,184,141,0.22); }
+.trainer-start-button:hover { background:var(--gto-accent-green); }
+.trainer-tool-button:focus-visible,.trainer-start-button:focus-visible,.trainer-motion-label select:focus-visible { outline:2px solid var(--gto-accent-green); outline-offset:2px; }
+.trainer-tool-button kbd { font-size:.6rem; color:var(--gto-text-secondary); border:1px solid var(--gto-border); border-radius:.2rem; padding:.1rem .25rem; }
+.trainer-motion-label { display:flex; align-items:center; gap:.4rem; color:var(--gto-text-secondary); font-size:.7rem; }
+.trainer-motion-label select { min-height:2.35rem; background:var(--gto-bg-panel); border:1px solid var(--gto-border); border-radius:.55rem; padding:.35rem .5rem; color:var(--gto-text-primary); }
+.trainer-fullscreen { position:fixed; inset:0; margin:0; width:100%; height:100dvh; max-width:none; max-height:none; border:0; padding:0; background:var(--gto-bg-main); color:var(--gto-text-primary); overflow:auto; overscroll-behavior:contain; }
+.trainer-fullscreen::backdrop { background:#090B0C; }
+.trainer-focus { min-height:100%; padding-bottom:1rem; gap:0.85rem; background:var(--gto-bg-main); }
+.trainer-focus .trainer-session-bar { position:sticky; top:0; z-index:25; border-width:0 0 1px; border-color:var(--gto-border); border-radius:0; background:var(--gto-bg-topbar); padding:.65rem 1rem; }
+.trainer-focus .trainer-session-title { font-size:.95rem; }
+.trainer-focus .trainer-configuration { margin:0 1rem; background:var(--gto-bg-sidebar); }
+.trainer-focus .trainer-workspace { padding:0 1rem; }
+.trainer-table-column,.trainer-range-panel { min-width:0; }
+.trainer-quick-feedback { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.7rem; padding:.75rem 1rem; border:1px solid var(--gto-selection-green); border-radius:.75rem; background:#14241F; animation:trainer-feedback-in var(--feedback-duration) ease-out both; }
+.trainer-quick-feedback p { flex:1; min-width:10rem; font-size:.82rem; color:var(--gto-text-primary); font-weight:650; }
+.trainer-session-sidebar { min-width:0; padding:.9rem; border:1px solid var(--gto-border); border-radius:.85rem; background:var(--gto-bg-sidebar); }
+.trainer-sidebar-heading { display:flex; align-items:center; gap:.5rem; color:var(--gto-text-primary); font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+.trainer-sidebar-heading svg { color:var(--gto-accent-green); }
+.trainer-sidebar-mode { font-size:.68rem; color:var(--gto-text-secondary); margin-top:.3rem; }
+.trainer-score-grid { display:grid; grid-template-columns:1fr 1fr; gap:.75rem .5rem; padding:.9rem 0; margin-bottom:.85rem; border-bottom:1px solid var(--gto-border); }
+.trainer-score-grid dt { font-size:.65rem; color:var(--gto-text-secondary); text-transform:uppercase; }
+.trainer-score-grid dd { font-size:1.35rem; font-weight:800; font-variant-numeric:tabular-nums; color:var(--gto-text-primary); }
+.trainer-sidebar-empty,.trainer-sidebar-footnote { font-size:.7rem; line-height:1.6; color:var(--gto-text-secondary); margin-top:.65rem; }
+.trainer-sidebar-footnote { border-top:1px solid var(--gto-border); padding-top:.75rem; margin-top:.75rem; font-size:.625rem; }
+.trainer-recent-decisions { display:grid; gap:.45rem; margin-top:.65rem; }
+.trainer-recent-decisions li { padding:.45rem .6rem; border-radius:.4rem; background:var(--gto-bg-panel); border-left:3px solid var(--gto-warning-yellow); animation:trainer-feedback-in var(--feedback-duration) ease-out both; }
+.trainer-recent-decisions li[data-result="exact_primary"] { border-color:var(--gto-accent-green); }
+.trainer-recent-decisions li[data-result="ev_error"] { border-color:var(--gto-error-red); }
+.trainer-recent-decisions li[data-result="unsolved"] { border-color:#94a3b8; }
+.trainer-recent-decisions li > span { display:flex; justify-content:space-between; gap:.3rem; font-size:.75rem; color:var(--gto-text-primary); }
+.trainer-recent-decisions small { display:block; margin-top:.15rem; color:var(--gto-text-secondary); font-size:.625rem; }
+.poker-dealt-card { animation:poker-deal var(--deal-duration,360ms) cubic-bezier(.16,.8,.3,1) both; animation-delay:calc(var(--card-index,0) * var(--deal-stagger,65ms)); }
+.poker-hero-cards { transition:opacity 200ms ease,transform 200ms ease; }
+.poker-hero-cards[data-folded="true"] { opacity:.4; transform:translateY(-.35rem) scale(.94); }
+.poker-seat-label[data-awaiting="true"] { animation:poker-your-turn 2.2s ease-in-out infinite; }
+.poker-action-toast { position:absolute; top:10%; padding:.3rem .75rem; border:1px solid var(--gto-selection-green); border-radius:2rem; font-size:.72rem; color:var(--gto-accent-green); background:#090B0CE6; animation:trainer-feedback-in var(--feedback-duration,200ms) ease-out both; }
+.trainer-feedback { animation:trainer-feedback-in var(--feedback-duration,200ms) ease-out both; }
+@keyframes poker-deal { from { opacity:0; transform:translate(-1.2rem,-2.5rem) rotate(-8deg) scale(.82); } to { opacity:1; transform:translate(0,0) rotate(0) scale(1); } }
+@keyframes poker-your-turn { 0%,100% { box-shadow:0 0 0 0 rgba(24,184,141,0); } 50% { box-shadow:0 0 0 4px rgba(24,184,141,0.28),0 0 18px rgba(161,245,174,0.18); } }
+@keyframes trainer-feedback-in { from { opacity:0; transform:translateY(.35rem); } to { opacity:1; transform:translateY(0); } }
+@media (max-width:799px) {
+  .poker-table-stage { min-height:20rem; }
+  .poker-seat-label { min-width:3.3rem !important; padding:.25rem .45rem !important; }
+}
+.trainer-experience[data-motion="off"] .poker-dealt-card,.trainer-experience[data-motion="off"] .poker-seat-label,.trainer-experience[data-motion="off"] .poker-action-toast,.trainer-experience[data-motion="off"] .trainer-feedback,.trainer-experience[data-motion="off"] .trainer-quick-feedback,.trainer-experience[data-motion="off"] .trainer-recent-decisions li { animation:none; }
+.trainer-experience[data-motion="off"] .poker-hero-cards,.trainer-experience[data-motion="off"] .trainer-actions button { transition:none; }
+@media (prefers-reduced-motion:reduce) {
+  .trainer-experience .poker-dealt-card,.trainer-experience .poker-seat-label,.trainer-experience .poker-action-toast,.trainer-experience .trainer-feedback,.trainer-experience .trainer-quick-feedback,.trainer-experience .trainer-recent-decisions li { animation:none; }
+  .trainer-experience .poker-hero-cards,.trainer-experience .trainer-actions button { transition:none; }
 }

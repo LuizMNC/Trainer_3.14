@@ -152,7 +152,7 @@ export function MathIcmLab() {
                   <span className="text-lg font-extrabold font-mono text-emerald-400">
                     {mathResults.potOdds.requiredEquityPct.toFixed(2)}%
                   </span>
-                  <span className="block text-[10px] font-mono text-slate-500 mt-0.5">
+                  <span className="block text-[0.625rem] font-mono text-slate-500 mt-0.5">
                     {mathResults.potOdds.formula}
                   </span>
                 </div>
@@ -161,7 +161,7 @@ export function MathIcmLab() {
                   <span className="text-lg font-extrabold font-mono text-amber-300">
                     {mathResults.bluff.requiredFoldEquityPct.toFixed(2)}%
                   </span>
-                  <span className="block text-[10px] font-mono text-slate-500 mt-0.5">
+                  <span className="block text-[0.625rem] font-mono text-slate-500 mt-0.5">
                     {mathResults.bluff.formula}
                   </span>
                 </div>
@@ -170,7 +170,7 @@ export function MathIcmLab() {
                   <span className="text-lg font-extrabold font-mono text-indigo-300">
                     {mathResults.mdf.mdfPct.toFixed(2)}%
                   </span>
-                  <span className="block text-[10px] font-mono text-slate-500 mt-0.5">
+                  <span className="block text-[0.625rem] font-mono text-slate-500 mt-0.5">
                     {mathResults.mdf.formula}
                   </span>
                 </div>
@@ -180,14 +180,14 @@ export function MathIcmLab() {
                     {mathResults.riverPolar.bluffFractionPct.toFixed(2)}% blefe /{" "}
                     {mathResults.riverPolar.valueFractionPct.toFixed(2)}% valor
                   </span>
-                  <span className="block text-[10px] font-mono text-slate-500 mt-0.5">
+                  <span className="block text-[0.625rem] font-mono text-slate-500 mt-0.5">
                     {mathResults.riverPolar.formula} · razão V:B ={" "}
                     {mathResults.riverPolar.valueToBluffRatio.toFixed(2)}:1
                   </span>
                 </div>
               </div>
 
-              <div className="rounded-xl bg-slate-950/70 border border-slate-800 p-3 text-[11px] text-slate-300 space-y-1">
+              <div className="rounded-xl bg-slate-950/70 border border-slate-800 p-3 text-[0.6875rem] text-slate-300 space-y-1">
                 <div className="font-semibold text-slate-200 flex items-center gap-1.5">
                   <Info className="w-3.5 h-3.5 text-emerald-400" /> Hipóteses explícitas
                 </div>
@@ -208,7 +208,7 @@ export function MathIcmLab() {
             <h3 className="text-sm font-bold text-amber-300">
               2. Modelo ICM Malmuth-Harville ($EV ≠ chipEV)
             </h3>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-200 border border-amber-500/30">
+            <span className="text-[0.625rem] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-200 border border-amber-500/30">
               Unidade: $EV
             </span>
           </div>
@@ -242,7 +242,7 @@ export function MathIcmLab() {
                     key={i}
                     className="rounded-xl bg-slate-950 border border-slate-800 p-2.5 text-center"
                   >
-                    <span className="text-[10px] text-slate-400 block">
+                    <span className="text-[0.625rem] text-slate-400 block">
                       Jogador {i + 1} ({icmResults.icm.stacks[i]} ch)
                     </span>
                     <span className="text-sm font-mono font-bold text-amber-300">
@@ -252,7 +252,7 @@ export function MathIcmLab() {
                 ))}
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-slate-400 bg-slate-950/70 border border-slate-800 rounded-lg px-3 py-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-[0.6875rem] font-mono text-slate-400 bg-slate-950/70 border border-slate-800 rounded-lg px-3 py-2">
                 <span>
                   Soma $EV: $
                   {icmResults.icm.icmValues.reduce((a, b) => a + b, 0).toFixed(2)}
@@ -260,7 +260,7 @@ export function MathIcmLab() {
                 <span>Prize Pool: ${icmResults.icm.totalPrizePool.toFixed(2)}</span>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 text-[11px]">
+              <div className="grid grid-cols-3 gap-2 text-[0.6875rem]">
                 <label className="space-y-1">
                   <span className="text-slate-400 block">ICM Win ($EV)</span>
                   <input
@@ -317,7 +317,7 @@ export function MathIcmLab() {
           <h3 className="text-sm font-bold text-indigo-300">
             3. Simulador Separado de Bounty PKO (não usa ICM puro)
           </h3>
-          <span className="text-[11px] text-amber-300 flex items-center gap-1">
+          <span className="text-[0.6875rem] text-amber-300 flex items-center gap-1">
             <ShieldAlert className="w-3.5 h-3.5" /> PKO exige ajuste de bounty — não confundir com GTO puro
           </span>
         </div>
@@ -375,7 +375,7 @@ export function MathIcmLab() {
                 {(pkoResult.data.adjustedRequiredEquity * 100).toFixed(2)}%
               </strong>
             </span>
-            <span className="text-slate-400 text-[11px]">
+            <span className="text-slate-400 text-[0.6875rem]">
               {pkoResult.data.assumptions[0]}
             </span>
           </div>

@@ -138,7 +138,7 @@ export function RangeExplorerView({ spots }: RangeExplorerViewProps) {
                   }`}
                 >
                   <span className="truncate">{sp.name}</span>
-                  <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 shrink-0 ml-2">
+                  <span className="text-[0.625rem] uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 shrink-0 ml-2">
                     {sp.spotType.replace("_", " ")}
                   </span>
                 </button>
@@ -162,12 +162,12 @@ export function RangeExplorerView({ spots }: RangeExplorerViewProps) {
                   </h3>
                   <p className="text-xs text-slate-400">{primarySpot.source}</p>
                 </div>
-                <span className="text-[10px] px-2 py-0.5 rounded border font-bold bg-sky-500/15 border-sky-500/40 text-sky-200">
+                <span className="text-[0.625rem] px-2 py-0.5 rounded border font-bold bg-sky-500/15 border-sky-500/40 text-sky-200">
                   IMPORTED_CHART_NO_EV (Sem Tabela EV)
                 </span>
               </div>
               {primaryCanonical.referenceStrategy.validationWarnings && (
-                <div className="mb-3 rounded-lg bg-amber-950/40 border border-amber-600/40 px-3 py-2 text-[11px] text-amber-200 flex items-start gap-2">
+                <div className="mb-3 rounded-lg bg-amber-950/40 border border-amber-600/40 px-3 py-2 text-[0.6875rem] text-amber-200 flex items-start gap-2">
                   <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-400" />
                   <span>
                     <strong>Aviso de Auditoria (Dados Legados Não Normalizados):</strong>{" "}
@@ -198,7 +198,7 @@ export function RangeExplorerView({ spots }: RangeExplorerViewProps) {
             {compareMode && (
               <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 shadow-xl">
                 <div className="mb-3">
-                  <label className="block text-[11px] text-amber-300 font-semibold mb-1">
+                  <label className="block text-[0.6875rem] text-amber-300 font-semibold mb-1">
                     Spot para Comparação:
                   </label>
                   <select
@@ -214,7 +214,7 @@ export function RangeExplorerView({ spots }: RangeExplorerViewProps) {
                   </select>
                 </div>
                 {secondaryCanonical.referenceStrategy.validationWarnings && (
-                  <div className="mb-3 rounded-lg bg-amber-950/40 border border-amber-600/40 px-3 py-2 text-[11px] text-amber-200 flex items-start gap-2">
+                  <div className="mb-3 rounded-lg bg-amber-950/40 border border-amber-600/40 px-3 py-2 text-[0.6875rem] text-amber-200 flex items-start gap-2">
                     <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-400" />
                     <span>
                       <strong>Aviso de Auditoria:</strong>{" "}

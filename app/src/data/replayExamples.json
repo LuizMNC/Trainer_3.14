@@ -1,0 +1,74 @@
+[
+  {
+    "id": "hu_fold",
+    "label": "Heads-up · fold e devolução",
+    "path": "/replays/hu_fold.json",
+    "canonicalSha256": "f3ba76d39b9a308bc4b1996d088babb3495c055a319334749df8b54682d79a71",
+    "sourceSha256": "bda62ebd116c466cc750c16b023fa6573c40b05ee877915fa71717d3c2f9337e",
+    "status": "VALIDATED_COMPLETE",
+    "source": "Fixture sintética de regras; não é estratégia GTO."
+  },
+  {
+    "id": "decimal_fold",
+    "label": "Valores em centésimos",
+    "path": "/replays/decimal_fold.json",
+    "canonicalSha256": "4688c7b1626c827fffec5a333020589c1ff27a6b70459e4abef9ceef6309006b",
+    "sourceSha256": "e65cc599e7b038267e4eba18332230beb648103f3bdcbfbdc2a5f85fbfb67554",
+    "status": "VALIDATED_COMPLETE",
+    "source": "Fixture sintética de regras; não é estratégia GTO."
+  },
+  {
+    "id": "three_way_allin",
+    "label": "Três all-ins · dois potes",
+    "path": "/replays/three_way_allin.json",
+    "canonicalSha256": "99d344418ff8e24f0d9ab956eeeef43e082eba4644f38a3a7a23ef128a90a4a7",
+    "sourceSha256": "6e63a7658a35ec2cbf20ef9e9c40014cc5e85927bbdff11bd61479922af080ae",
+    "status": "VALIDATED_COMPLETE",
+    "source": "Fixture sintética de regras; não é estratégia GTO."
+  },
+  {
+    "id": "folded_sidepot",
+    "label": "Side pot · contribuição de jogador em fold",
+    "path": "/replays/folded_sidepot.json",
+    "canonicalSha256": "78be9b9a3f452759b397e8e5eacea5d1fc321197ac35570a552fdf283fdff5b0",
+    "sourceSha256": "fb1109eba7251acceb7d8ce23d96d4a96a7f96b11b838858a84d0bbbfde75a0c",
+    "status": "VALIDATED_COMPLETE",
+    "source": "Fixture sintética de regras; não é estratégia GTO."
+  },
+  {
+    "id": "split_odd_ante",
+    "label": "Empate · ante e ficha indivisível",
+    "path": "/replays/split_odd_ante.json",
+    "canonicalSha256": "f52fd56ea9446538b62cffe8f3a4e505309f0ee901862904ab787ab6769c5b8e",
+    "sourceSha256": "3960dfa3a10067dce0d72868456dc032a4f7443b98c193595c8a6bd4a2b96fb7",
+    "status": "VALIDATED_COMPLETE",
+    "source": "Fixture sintética de regras; não é estratégia GTO."
+  },
+  {
+    "id": "showdown_muck",
+    "label": "Showdown · muck",
+    "path": "/replays/showdown_muck.json",
+    "canonicalSha256": "11720158ec00edb4ef1794b3e39e130c780e8b83d6f91edf1f89ff9321996e19",
+    "sourceSha256": "847ef78ae3925b9eff22f432fc1ee6377a7e7e3b9dfccb9732e9a8de954a9d84",
+    "status": "VALIDATED_COMPLETE",
+    "source": "Fixture sintética de regras; não é estratégia GTO."
+  },
+  {
+    "id": "partial_flop",
+    "label": "Prefixo parcial · flop",
+    "path": "/replays/partial_flop.json",
+    "canonicalSha256": "befb8de7763e6872c2e1a6286e59b15f9c45904d6e827532b0149b2c886348ee",
+    "sourceSha256": "2738aeed7ee7cc768b7354d8285a7986fb097d3279df4159e8b81f283c282609",
+    "status": "VALIDATED_PARTIAL",
+    "source": "Fixture sintética de regras; não é estratégia GTO."
+  },
+  {
+    "id": "late_reveal",
+    "label": "Cartas desconhecidas · revelação no showdown",
+    "path": "/replays/late_reveal.json",
+    "canonicalSha256": "9d5fbcb037efd83b10bfc58dd7f0b199095452b58ad5261527e83e7faff8f730",
+    "sourceSha256": "60856b0b1363a9ab72f4d8ea382f5b7562ababf8f1409bac6ee960d4fd84fe33",
+    "status": "VALIDATED_COMPLETE",
+    "source": "Fixture sintética de regras; não é estratégia GTO."
+  }
+]

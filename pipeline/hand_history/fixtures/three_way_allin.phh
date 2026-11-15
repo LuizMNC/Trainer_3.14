@@ -1,0 +1,13 @@
+# AA ganha o principal (150); KK ganha o lateral (100); excesso 100 volta a QQ.
+variant = "NT"
+antes = [0, 0, 0]
+blinds_or_straddles = [1, 2, 0]
+min_bet = 2
+starting_stacks = [50, 100, 200]
+finishing_stacks = [150, 100, 100]
+actions = [
+  "d dh p1 AsAd", "d dh p2 KsKd", "d dh p3 QsQd",
+  "p3 cbr 200", "p1 cc", "p2 cc",
+  "p1 sm -", "p2 sm -", "p3 sm -",
+  "d db 2c3d7h", "d db 8s", "d db 9c",
+]

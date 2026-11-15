@@ -1,0 +1,10 @@
+# Prefixo legal; falta a decisão de p2 no flop, não há vencedor conhecido.
+variant = "NT"
+antes = [0, 0]
+blinds_or_straddles = [1, 2]
+min_bet = 2
+starting_stacks = [100, 100]
+actions = [
+  "d dh p1 ????", "d dh p2 AsKd", "p2 cc", "p1 cc",
+  "d db 2c3d4h", "p1 cc",
+]

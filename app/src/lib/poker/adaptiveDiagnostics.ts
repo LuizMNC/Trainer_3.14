@@ -72,10 +72,21 @@ export interface ClassifiedLeakSummary {
   impactScore: number;
 }
 
-export interface SpacedRepetitionItem {
+/** Entrada mínima compartilhada pelo treinador e pelos quizzes conceituais. */
+export interface SpacedRepetitionRecord<TTrack = CurriculumTrackId> {
   spotId: string;
   spotName: string;
-  trackId: CurriculumTrackId;
+  trackId: TTrack;
+  timestamp: number;
+  confidenceLevel: ConfidenceLevel;
+  evLoss: number | null;
+  isAcceptable: boolean;
+}
+
+export interface SpacedRepetitionItem<TTrack = CurriculumTrackId> {
+  spotId: string;
+  spotName: string;
+  trackId: TTrack;
   boxLevel: 0 | 1 | 2 | 3 | 4 | 5;
   intervalDays: number;
   lastAttemptAt: number;
@@ -312,10 +323,10 @@ export function classifyAndRankLeaks(
 /**
  * Calcula a agenda de repetição espaçada (Leitner adaptativo por EV loss e confiança).
  */
-export function computeSpacedRepetitionSchedule(
-  records: readonly AdaptiveExerciseRecord[],
+export function computeSpacedRepetitionSchedule<TTrack = CurriculumTrackId>(
+  records: readonly SpacedRepetitionRecord<TTrack>[],
   nowMs: number = Date.now(),
-): SpacedRepetitionItem[] {
+): SpacedRepetitionItem<TTrack>[] {
   if (records.length === 0) return [];
 
   // Ordena cronologicamente para simular a evolução da caixa de Leitner de cada spot
@@ -325,7 +336,7 @@ export function computeSpacedRepetitionSchedule(
     string,
     {
       spotName: string;
-      trackId: CurriculumTrackId;
+      trackId: TTrack;
       box: 0 | 1 | 2 | 3 | 4 | 5;
       lastAttemptAt: number;
       attempts: number;
@@ -365,7 +376,7 @@ export function computeSpacedRepetitionSchedule(
       prev.lastWasError = true;
     } else if (rec.confidenceLevel === "baixa") {
       // Acertou mas com baixa confiança -> mantém em Box 1 (1 dia) para consolidar
-      prev.box = Math.min(prev.box, 1) as 0 | 1 | 2 | 3 | 4 | 5;
+      prev.box = 1;
       prev.lastWasError = false;
     } else {
       // Acertou com confiança média/alta -> avança uma caixa até o limite 5 (30 dias)
@@ -376,7 +387,7 @@ export function computeSpacedRepetitionSchedule(
     stateBySpot.set(rec.spotId, prev);
   }
 
-  const schedule: SpacedRepetitionItem[] = [];
+  const schedule: SpacedRepetitionItem<TTrack>[] = [];
   const DAY_MS = 24 * 60 * 60 * 1000;
 
   for (const [spotId, st] of stateBySpot.entries()) {

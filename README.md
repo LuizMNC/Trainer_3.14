@@ -38,6 +38,10 @@ npm run dev
 
 Abra <http://localhost:3000> no navegador.
 
+Na interface **PDF de Poker**, use **A+** e **A−** no topo para ajustar a fonte entre 100% e 150%. Clique no percentual para restaurar o tamanho padrão; a preferência é salva neste navegador. O botão **Fazer um tour** apresenta as áreas do site, com navegação por etapas, retorno à área inicial ao sair e fechamento pela tecla `Esc`.
+
+No **Modo Trainer**, configure o cenário e clique em **Iniciar treino em tela cheia**. A mesa fica ao centro, com estatísticas da sessão e o range ao lado em telas maiores. Use **Configurar treino** para rever os filtros e **Esc** ou **Sair da tela cheia** para voltar, mantendo a mão e a sessão. As animações de cartas, fichas e resultados têm velocidades **Normal**, **Rápidas** e **Desligadas**, respeitando também a preferência de reduzir movimento do sistema. Quando o navegador não permite tela cheia nativa, o treino ocupa toda a janela.
+
 ---
 
 ## Como Re-executar a Extração (caso adicione novos materiais)

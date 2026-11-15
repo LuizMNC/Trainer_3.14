@@ -1,0 +1,2855 @@
+{
+  "schemaVersion": "1.0.0",
+  "profile": "PHH_NT_SUBSET_1",
+  "recordId": "phh-sha256:3960dfa3a10067dce0d72868456dc032a4f7443b98c193595c8a6bd4a2b96fb7",
+  "source": {
+    "format": "PHH",
+    "targetStandardVersion": "0.0.2",
+    "sha256": "3960dfa3a10067dce0d72868456dc032a4f7443b98c193595c8a6bd4a2b96fb7",
+    "byteLength": 434,
+    "fileName": {
+      "status": "REPORTED",
+      "value": "split_odd_ante.phh"
+    },
+    "handId": {
+      "status": "MISSING"
+    },
+    "importedAtUtc": "2026-11-14T01:39:27.623802+00:00"
+  },
+  "variant": "NLHE",
+  "gameFormat": {
+    "status": "MISSING"
+  },
+  "amountPolicy": {
+    "encoding": "UNSIGNED_INTEGER_STRING",
+    "decimalPlaces": 0,
+    "currency": {
+      "status": "MISSING"
+    }
+  },
+  "table": {
+    "playerCount": 3,
+    "seatCount": {
+      "status": "MISSING"
+    },
+    "rawBlindsAtoms": [
+      "1",
+      "2",
+      "0"
+    ],
+    "rawAntesAtoms": [
+      "0",
+      "1",
+      "0"
+    ],
+    "minBetAtoms": "2",
+    "anteTrimming": {
+      "status": "INFERRED",
+      "value": false,
+      "reason": "Padrão documentado do perfil: false."
+    }
+  },
+  "players": [
+    {
+      "index": 0,
+      "sourceLabel": "p1",
+      "name": {
+        "status": "MISSING"
+      },
+      "seat": {
+        "status": "MISSING"
+      },
+      "position": {
+        "status": "INFERRED",
+        "value": "SB",
+        "reason": "Ordem PHH; HU inverte blinds/antes, sem inventar assento físico."
+      },
+      "initialStackAtoms": "100",
+      "holeCards": {
+        "status": "REPORTED",
+        "value": [
+          "2c",
+          "3d"
+        ],
+        "sourceActionIndex": 15
+      }
+    },
+    {
+      "index": 1,
+      "sourceLabel": "p2",
+      "name": {
+        "status": "MISSING"
+      },
+      "seat": {
+        "status": "MISSING"
+      },
+      "position": {
+        "status": "INFERRED",
+        "value": "BB",
+        "reason": "Ordem PHH; HU inverte blinds/antes, sem inventar assento físico."
+      },
+      "initialStackAtoms": "100",
+      "holeCards": {
+        "status": "REPORTED",
+        "value": [
+          "4c",
+          "5d"
+        ],
+        "sourceActionIndex": 16
+      }
+    },
+    {
+      "index": 2,
+      "sourceLabel": "p3",
+      "name": {
+        "status": "MISSING"
+      },
+      "seat": {
+        "status": "MISSING"
+      },
+      "position": {
+        "status": "INFERRED",
+        "value": "BTN",
+        "reason": "Ordem PHH; HU inverte blinds/antes, sem inventar assento físico."
+      },
+      "initialStackAtoms": "100",
+      "holeCards": {
+        "status": "REPORTED",
+        "value": [
+          null,
+          null
+        ],
+        "sourceActionIndex": 2
+      }
+    }
+  ],
+  "sourceActions": [
+    "d dh p1 2c3d",
+    "d dh p2 4c5d",
+    "d dh p3 ????",
+    "p3 f",
+    "p1 cc",
+    "p2 cc",
+    "d db AsKsQs",
+    "p1 cc",
+    "p2 cc",
+    "d db Js",
+    "p1 cc",
+    "p2 cc",
+    "d db Ts",
+    "p1 cc",
+    "p2 cc",
+    "p1 sm -",
+    "p2 sm -"
+  ],
+  "events": [
+    {
+      "sequence": 0,
+      "sourceActionIndex": null,
+      "origin": "RULE_DERIVED",
+      "kind": "AntePosting",
+      "playerIndex": 1,
+      "amountAtoms": "1",
+      "cards": [],
+      "paidAtoms": [
+        "0",
+        "1",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "100",
+          "100",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "0",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          false
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "100",
+          "99",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "1",
+          "0"
+        ],
+        "potAtoms": "1",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          false
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 1,
+      "sourceActionIndex": null,
+      "origin": "RULE_DERIVED",
+      "kind": "BetCollection",
+      "playerIndex": null,
+      "amountAtoms": null,
+      "cards": [],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "100",
+          "99",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "1",
+          "0"
+        ],
+        "potAtoms": "1",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          false
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "100",
+          "99",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "1",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          false
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 2,
+      "sourceActionIndex": null,
+      "origin": "RULE_DERIVED",
+      "kind": "BlindOrStraddlePosting",
+      "playerIndex": 0,
+      "amountAtoms": "1",
+      "cards": [],
+      "paidAtoms": [
+        "1",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "100",
+          "99",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "1",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          false
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "99",
+          "99",
+          "100"
+        ],
+        "betsAtoms": [
+          "1",
+          "0",
+          "0"
+        ],
+        "potAtoms": "2",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          false
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 3,
+      "sourceActionIndex": null,
+      "origin": "RULE_DERIVED",
+      "kind": "BlindOrStraddlePosting",
+      "playerIndex": 1,
+      "amountAtoms": "2",
+      "cards": [],
+      "paidAtoms": [
+        "0",
+        "2",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "99",
+          "99",
+          "100"
+        ],
+        "betsAtoms": [
+          "1",
+          "0",
+          "0"
+        ],
+        "potAtoms": "2",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          false
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "99",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "1",
+          "2",
+          "0"
+        ],
+        "potAtoms": "4",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          false
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 4,
+      "sourceActionIndex": 0,
+      "origin": "PHH",
+      "kind": "HoleDealing",
+      "playerIndex": 0,
+      "amountAtoms": null,
+      "cards": [
+        "2c",
+        "3d"
+      ],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "99",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "1",
+          "2",
+          "0"
+        ],
+        "potAtoms": "4",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          false
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "99",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "1",
+          "2",
+          "0"
+        ],
+        "potAtoms": "4",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          false
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 5,
+      "sourceActionIndex": 1,
+      "origin": "PHH",
+      "kind": "HoleDealing",
+      "playerIndex": 1,
+      "amountAtoms": null,
+      "cards": [
+        "4c",
+        "5d"
+      ],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "99",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "1",
+          "2",
+          "0"
+        ],
+        "potAtoms": "4",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          false
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "99",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "1",
+          "2",
+          "0"
+        ],
+        "potAtoms": "4",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          false
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 6,
+      "sourceActionIndex": 2,
+      "origin": "PHH",
+      "kind": "HoleDealing",
+      "playerIndex": 2,
+      "amountAtoms": null,
+      "cards": [
+        null,
+        null
+      ],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "99",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "1",
+          "2",
+          "0"
+        ],
+        "potAtoms": "4",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          false
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "99",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "1",
+          "2",
+          "0"
+        ],
+        "potAtoms": "4",
+        "actorIndex": 2,
+        "folded": [
+          false,
+          false,
+          false
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 7,
+      "sourceActionIndex": 3,
+      "origin": "PHH",
+      "kind": "Folding",
+      "playerIndex": 2,
+      "amountAtoms": null,
+      "cards": [],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "99",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "1",
+          "2",
+          "0"
+        ],
+        "potAtoms": "4",
+        "actorIndex": 2,
+        "folded": [
+          false,
+          false,
+          false
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "99",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "1",
+          "2",
+          "0"
+        ],
+        "potAtoms": "4",
+        "actorIndex": 0,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 8,
+      "sourceActionIndex": 4,
+      "origin": "PHH",
+      "kind": "CheckingOrCalling",
+      "playerIndex": 0,
+      "amountAtoms": "1",
+      "cards": [],
+      "paidAtoms": [
+        "1",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "99",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "1",
+          "2",
+          "0"
+        ],
+        "potAtoms": "4",
+        "actorIndex": 0,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "2",
+          "2",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": 1,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 9,
+      "sourceActionIndex": 5,
+      "origin": "PHH",
+      "kind": "CheckingOrCalling",
+      "playerIndex": 1,
+      "amountAtoms": "0",
+      "cards": [],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "2",
+          "2",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": 1,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "2",
+          "2",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 10,
+      "sourceActionIndex": 5,
+      "origin": "RULE_DERIVED",
+      "kind": "BetCollection",
+      "playerIndex": null,
+      "amountAtoms": null,
+      "cards": [],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "PREFLOP",
+        "board": [],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "2",
+          "2",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "FLOP",
+        "board": [],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 11,
+      "sourceActionIndex": 5,
+      "origin": "RULE_DERIVED",
+      "kind": "CardBurning",
+      "playerIndex": null,
+      "amountAtoms": null,
+      "cards": [
+        null
+      ],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "FLOP",
+        "board": [],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "FLOP",
+        "board": [],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 12,
+      "sourceActionIndex": 6,
+      "origin": "PHH",
+      "kind": "BoardDealing",
+      "playerIndex": null,
+      "amountAtoms": null,
+      "cards": [
+        "As",
+        "Ks",
+        "Qs"
+      ],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "FLOP",
+        "board": [],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "FLOP",
+        "board": [
+          "As",
+          "Ks",
+          "Qs"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": 0,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 13,
+      "sourceActionIndex": 7,
+      "origin": "PHH",
+      "kind": "CheckingOrCalling",
+      "playerIndex": 0,
+      "amountAtoms": "0",
+      "cards": [],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "FLOP",
+        "board": [
+          "As",
+          "Ks",
+          "Qs"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": 0,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "FLOP",
+        "board": [
+          "As",
+          "Ks",
+          "Qs"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": 1,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 14,
+      "sourceActionIndex": 8,
+      "origin": "PHH",
+      "kind": "CheckingOrCalling",
+      "playerIndex": 1,
+      "amountAtoms": "0",
+      "cards": [],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "FLOP",
+        "board": [
+          "As",
+          "Ks",
+          "Qs"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": 1,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "TURN",
+        "board": [
+          "As",
+          "Ks",
+          "Qs"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 15,
+      "sourceActionIndex": 8,
+      "origin": "RULE_DERIVED",
+      "kind": "CardBurning",
+      "playerIndex": null,
+      "amountAtoms": null,
+      "cards": [
+        null
+      ],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "TURN",
+        "board": [
+          "As",
+          "Ks",
+          "Qs"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "TURN",
+        "board": [
+          "As",
+          "Ks",
+          "Qs"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 16,
+      "sourceActionIndex": 9,
+      "origin": "PHH",
+      "kind": "BoardDealing",
+      "playerIndex": null,
+      "amountAtoms": null,
+      "cards": [
+        "Js"
+      ],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "TURN",
+        "board": [
+          "As",
+          "Ks",
+          "Qs"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "TURN",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": 0,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 17,
+      "sourceActionIndex": 10,
+      "origin": "PHH",
+      "kind": "CheckingOrCalling",
+      "playerIndex": 0,
+      "amountAtoms": "0",
+      "cards": [],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "TURN",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": 0,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "TURN",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": 1,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 18,
+      "sourceActionIndex": 11,
+      "origin": "PHH",
+      "kind": "CheckingOrCalling",
+      "playerIndex": 1,
+      "amountAtoms": "0",
+      "cards": [],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "TURN",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": 1,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 19,
+      "sourceActionIndex": 11,
+      "origin": "RULE_DERIVED",
+      "kind": "CardBurning",
+      "playerIndex": null,
+      "amountAtoms": null,
+      "cards": [
+        null
+      ],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 20,
+      "sourceActionIndex": 12,
+      "origin": "PHH",
+      "kind": "BoardDealing",
+      "playerIndex": null,
+      "amountAtoms": null,
+      "cards": [
+        "Ts"
+      ],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js",
+          "Ts"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": 0,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 21,
+      "sourceActionIndex": 13,
+      "origin": "PHH",
+      "kind": "CheckingOrCalling",
+      "playerIndex": 0,
+      "amountAtoms": "0",
+      "cards": [],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js",
+          "Ts"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": 0,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js",
+          "Ts"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": 1,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 22,
+      "sourceActionIndex": 14,
+      "origin": "PHH",
+      "kind": "CheckingOrCalling",
+      "playerIndex": 1,
+      "amountAtoms": "0",
+      "cards": [],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js",
+          "Ts"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": 1,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js",
+          "Ts"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 23,
+      "sourceActionIndex": 15,
+      "origin": "PHH",
+      "kind": "HoleCardsShowingOrMucking",
+      "playerIndex": 0,
+      "amountAtoms": null,
+      "cards": [
+        "2c",
+        "3d"
+      ],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js",
+          "Ts"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js",
+          "Ts"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 24,
+      "sourceActionIndex": 16,
+      "origin": "PHH",
+      "kind": "HoleCardsShowingOrMucking",
+      "playerIndex": 1,
+      "amountAtoms": null,
+      "cards": [
+        "4c",
+        "5d"
+      ],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js",
+          "Ts"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js",
+          "Ts"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 25,
+      "sourceActionIndex": 16,
+      "origin": "RULE_DERIVED",
+      "kind": "ChipsPushing",
+      "playerIndex": null,
+      "amountAtoms": null,
+      "cards": [],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "3",
+        "2",
+        "0"
+      ],
+      "before": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js",
+          "Ts"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js",
+          "Ts"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "3",
+          "2",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 26,
+      "sourceActionIndex": 16,
+      "origin": "RULE_DERIVED",
+      "kind": "ChipsPulling",
+      "playerIndex": 0,
+      "amountAtoms": "3",
+      "cards": [],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js",
+          "Ts"
+        ],
+        "stacksAtoms": [
+          "98",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "3",
+          "2",
+          "0"
+        ],
+        "potAtoms": "5",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js",
+          "Ts"
+        ],
+        "stacksAtoms": [
+          "101",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "2",
+          "0"
+        ],
+        "potAtoms": "2",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "sequence": 27,
+      "sourceActionIndex": 16,
+      "origin": "RULE_DERIVED",
+      "kind": "ChipsPulling",
+      "playerIndex": 1,
+      "amountAtoms": "2",
+      "cards": [],
+      "paidAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "returnedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "awardedAtoms": [
+        "0",
+        "0",
+        "0"
+      ],
+      "before": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js",
+          "Ts"
+        ],
+        "stacksAtoms": [
+          "101",
+          "97",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "2",
+          "0"
+        ],
+        "potAtoms": "2",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "street": "RIVER",
+        "board": [
+          "As",
+          "Ks",
+          "Qs",
+          "Js",
+          "Ts"
+        ],
+        "stacksAtoms": [
+          "101",
+          "99",
+          "100"
+        ],
+        "betsAtoms": [
+          "0",
+          "0",
+          "0"
+        ],
+        "potAtoms": "0",
+        "actorIndex": null,
+        "folded": [
+          false,
+          false,
+          true
+        ],
+        "mucked": [
+          false,
+          false,
+          false
+        ],
+        "allIn": [
+          false,
+          false,
+          false
+        ]
+      }
+    }
+  ],
+  "ending": {
+    "street": "RIVER",
+    "board": [
+      "As",
+      "Ks",
+      "Qs",
+      "Js",
+      "Ts"
+    ],
+    "stacksAtoms": [
+      "101",
+      "99",
+      "100"
+    ],
+    "betsAtoms": [
+      "0",
+      "0",
+      "0"
+    ],
+    "potAtoms": "0",
+    "actorIndex": null,
+    "folded": [
+      false,
+      false,
+      true
+    ],
+    "mucked": [
+      false,
+      false,
+      false
+    ],
+    "allIn": [
+      false,
+      false,
+      false
+    ]
+  },
+  "pots": [
+    {
+      "index": 0,
+      "amountAtoms": "5",
+      "eligiblePlayerIndices": [
+        0,
+        1
+      ],
+      "awardsAtoms": [
+        "3",
+        "2",
+        "0"
+      ],
+      "origin": "RULE_DERIVED"
+    }
+  ],
+  "results": {
+    "complete": true,
+    "computedFinalStacksAtoms": [
+      "101",
+      "99",
+      "100"
+    ],
+    "reportedEndingStacksAtoms": {
+      "status": "REPORTED",
+      "value": [
+        "101",
+        "99",
+        "100"
+      ]
+    },
+    "grossContributionsAtoms": [
+      "2",
+      "3",
+      "0"
+    ],
+    "returnedAtoms": [
+      "0",
+      "0",
+      "0"
+    ],
+    "netContributionsAtoms": [
+      "2",
+      "3",
+      "0"
+    ],
+    "awardsAtoms": [
+      "3",
+      "2",
+      "0"
+    ]
+  },
+  "integrity": {
+    "status": "VALIDATED_COMPLETE",
+    "validator": "PokerKit",
+    "validatorVersion": "0.7.7",
+    "engineMode": "CASH_GAME",
+    "gtoAnalysis": "NOT_EVALUATED",
+    "evLoss": null,
+    "assumptions": [
+      "Sem rake; uma única corrida de board; divisão inteira por ordem PHH no motor; sem reparo de ações.",
+      "Modo do motor é política de execução, não evidência de modalidade da mão."
+    ],
+    "warnings": []
+  },
+  "metadata": {
+    "finishing_stacks": [
+      101,
+      99,
+      100
+    ]
+  }
+}

@@ -415,7 +415,8 @@ describe("ETAPA 1 — Testes Ampliados: Card Removal, Ações Legais, All-In, Si
     assert.equal(evalDidactic.gtoScored, false);
     assert.equal(evalDidactic.evLoss, null);
 
-    // Somente status VERIFIED computa EV Loss em $EV
+    // Promover uma fixture didática apenas pelo rótulo não prova proveniência.
+    // O caminho numérico de importação com EV é coberto pela suíte da Etapa 6.
     const verifiedIcmSpot: CanonicalSpot = {
       ...icmSpot,
       referenceStrategy: {
@@ -428,10 +429,12 @@ describe("ETAPA 1 — Testes Ampliados: Card Removal, Ações Legais, All-In, Si
       handClass: "AKo",
       chosenAction: "Allin",
     });
-    assert.equal(evalUsd.gtoScored, true);
-    assert.equal(evalUsd.classification, "low_freq_acceptable");
-    assert.equal(evalUsd.evLoss, 1.45);
-    assert.equal(evalUsd.evUnit, "$EV");
+    assert.equal(evalUsd.gtoScored, false);
+    assert.equal(evalUsd.classification, "unsolved");
+    assert.equal(evalUsd.evLoss, null);
+    assert.equal(evalUsd.evUnit, null);
+    assert.equal(evalUsd.bestEv, null);
+    assert.equal(evalUsd.chosenEv, null);
 
     // Aderência de estratégia mista: distribuição idêntica tem adherencePct = 100%
     const perfectStats = computeMixedAdherenceStats([

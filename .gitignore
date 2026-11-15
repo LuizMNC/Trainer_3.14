@@ -25,3 +25,6 @@ livros/
 # Sistema operacional
 Thumbs.db
 .DS_Store
+
+# Acervo pessoal local e backups (Fase 2C)
+.local/

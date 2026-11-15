@@ -68,7 +68,7 @@ export function RangeMatrix({
           <Lock className="w-5 h-5" />
         </div>
         <div>
-          <span className="inline-block px-2 py-0.5 rounded bg-amber-500/20 text-amber-200 font-mono text-[11px] font-bold mb-1.5">
+          <span className="inline-block px-2 py-0.5 rounded bg-amber-500/20 text-amber-200 font-mono text-[0.6875rem] font-bold mb-1.5">
             UNSOLVED
           </span>
           <h4 className="text-sm font-bold text-slate-100">
@@ -80,7 +80,7 @@ export function RangeMatrix({
           </p>
         </div>
         {deadCards.length > 0 && (
-          <div className="text-[11px] font-mono text-slate-400 bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5">
+          <div className="text-[0.6875rem] font-mono text-slate-400 bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5">
             Card removal ativo ({deadCards.join(" ")}): {comboStats.totalCombos} / 1326 combos disponíveis
           </div>
         )}
@@ -135,7 +135,7 @@ export function RangeMatrix({
             onClick={() => onSelectHand?.(hand)}
             style={{ background: `linear-gradient(to right, ${stops.join(", ")})` }}
             className={`relative flex items-center justify-center select-none transition-all duration-100 rounded-[3px] border ${
-              compact ? "h-6 text-[10px]" : "h-8 sm:h-9 text-[11px] sm:text-xs"
+              compact ? "h-6 text-[0.625rem]" : "h-8 sm:h-9 text-[0.6875rem] sm:text-xs"
             } font-semibold text-white shadow-inner ${
               isActive
                 ? "ring-2 ring-amber-300 border-amber-200 z-10 scale-105 shadow-lg shadow-amber-500/30"
@@ -191,7 +191,7 @@ export function RangeMatrix({
                 <button
                   type="button"
                   onClick={onExportCsv}
-                  className="flex items-center gap-1 rounded-md bg-slate-900 border border-slate-700 hover:border-slate-500 px-2 py-1 text-[10px] font-semibold text-slate-300"
+                  className="flex items-center gap-1 rounded-md bg-slate-900 border border-slate-700 hover:border-slate-500 px-2 py-1 text-[0.625rem] font-semibold text-slate-300"
                   title="Exportar matriz 169 em CSV com unidades documentadas"
                 >
                   <Download className="w-3 h-3" /> CSV
@@ -201,7 +201,7 @@ export function RangeMatrix({
                 <button
                   type="button"
                   onClick={onExportJson}
-                  className="flex items-center gap-1 rounded-md bg-slate-900 border border-slate-700 hover:border-slate-500 px-2 py-1 text-[10px] font-semibold text-slate-300"
+                  className="flex items-center gap-1 rounded-md bg-slate-900 border border-slate-700 hover:border-slate-500 px-2 py-1 text-[0.625rem] font-semibold text-slate-300"
                   title="Exportar spot completo em JSON canônico"
                 >
                   <Download className="w-3 h-3" /> JSON
@@ -210,7 +210,7 @@ export function RangeMatrix({
             </div>
           )}
 
-          <div className="flex items-center rounded-lg bg-slate-900/90 p-0.5 border border-slate-700/70 text-[11px]">
+          <div className="flex items-center rounded-lg bg-slate-900/90 p-0.5 border border-slate-700/70 text-[0.6875rem]">
             {(
               [
                 ["all", "Tudo"],
@@ -277,7 +277,7 @@ export function RangeMatrix({
                     <span className="text-slate-200 font-semibold">{action}:</span>
                     <span className="text-white">{Math.round(prob * 100)}%</span>
                     {evVal !== undefined && evUnit && (
-                      <span className="text-emerald-300/90 text-[10px]">
+                      <span className="text-emerald-300/90 text-[0.625rem]">
                         ({evVal >= 0 ? "+" : ""}
                         {evVal.toFixed(2)} {evUnit})
                       </span>
@@ -290,7 +290,7 @@ export function RangeMatrix({
       </div>
 
       {inspectedCombos && Object.keys(inspectedCombos).length > 0 && (
-        <div className="rounded-lg bg-slate-950/90 border border-slate-800/80 px-3 py-2 text-[10px] font-mono text-slate-300 space-y-1">
+        <div className="rounded-lg bg-slate-950/90 border border-slate-800/80 px-3 py-2 text-[0.625rem] font-mono text-slate-300 space-y-1">
           <div className="text-slate-400 uppercase tracking-wider font-semibold">
             Frequências exatas por combo ({inspectedHand})
           </div>
@@ -315,7 +315,7 @@ export function RangeMatrix({
       )}
 
       {deadCards.length > 0 && (
-        <div className="text-[11px] text-slate-400 font-mono flex items-center justify-between px-1">
+        <div className="text-[0.6875rem] text-slate-400 font-mono flex items-center justify-between px-1">
           <span>Bloqueadores ativos: {deadCards.join(" ")}</span>
           <span>{comboStats.totalCombos} / 1326 combos disponíveis</span>
         </div>

@@ -1,0 +1,65 @@
+[
+  {
+    "path": "LICENSE",
+    "sourceUrl": "https://raw.githubusercontent.com/uoftcprg/phh-dataset/v3/LICENSE",
+    "localFile": "docs/homologacao-fase2a/externos/LICENSE",
+    "sha256": "fd8a94019f50ff8cd84e674acd790427882a99b32435c85e43b8e1d5b37626d1",
+    "byteLength": 1130,
+    "revision": "v3",
+    "license": "MIT (repository; accompanying LICENSE)"
+  },
+  {
+    "path": "README.md",
+    "sourceUrl": "https://raw.githubusercontent.com/uoftcprg/phh-dataset/v3/README.md",
+    "localFile": "docs/homologacao-fase2a/externos/README.md",
+    "sha256": "89dbe1df654a309a2bb962e55178a4c9fc673016a971c2a8315e3204f02608aa",
+    "byteLength": 2554,
+    "revision": "v3",
+    "license": "MIT (repository; accompanying LICENSE)"
+  },
+  {
+    "path": "data/pluribus/100/0.phh",
+    "sourceUrl": "https://raw.githubusercontent.com/uoftcprg/phh-dataset/v3/data/pluribus/100/0.phh",
+    "localFile": "docs/homologacao-fase2a/externos/data__pluribus__100__0.phh",
+    "sha256": "794cf64c4225a081ab80a07ac05865e9691eca67980b0f480ba6df6ee67e2487",
+    "byteLength": 591,
+    "revision": "v3",
+    "license": "MIT (repository; accompanying LICENSE)"
+  },
+  {
+    "path": "data/pluribus/100/1.phh",
+    "sourceUrl": "https://raw.githubusercontent.com/uoftcprg/phh-dataset/v3/data/pluribus/100/1.phh",
+    "localFile": "docs/homologacao-fase2a/externos/data__pluribus__100__1.phh",
+    "sha256": "4e48de5a2031e038d4bbb4d2c6127bfbcf9a91f1a369c3eaa73eaec54f2be113",
+    "byteLength": 585,
+    "revision": "v3",
+    "license": "MIT (repository; accompanying LICENSE)"
+  },
+  {
+    "path": "data/pluribus/100/2.phh",
+    "sourceUrl": "https://raw.githubusercontent.com/uoftcprg/phh-dataset/v3/data/pluribus/100/2.phh",
+    "localFile": "docs/homologacao-fase2a/externos/data__pluribus__100__2.phh",
+    "sha256": "17c0ffb386d7f2876e5fad8a341ba48063e078ccf9de494e9a48c10125cb8d11",
+    "byteLength": 495,
+    "revision": "v3",
+    "license": "MIT (repository; accompanying LICENSE)"
+  },
+  {
+    "path": "data/dwan-ivey-2009.phh",
+    "sourceUrl": "https://raw.githubusercontent.com/uoftcprg/phh-dataset/v3/data/dwan-ivey-2009.phh",
+    "localFile": "docs/homologacao-fase2a/externos/data__dwan-ivey-2009.phh",
+    "sha256": "bfbdd09ac816d681a5262a6ca9869ab186d5533fedf7ef35f62a318dd411b24f",
+    "byteLength": 921,
+    "revision": "v3",
+    "license": "MIT (repository; accompanying LICENSE)"
+  },
+  {
+    "path": "data/arieh-yockey-2019.phh",
+    "sourceUrl": "https://raw.githubusercontent.com/uoftcprg/phh-dataset/v3/data/arieh-yockey-2019.phh",
+    "localFile": "docs/homologacao-fase2a/externos/data__arieh-yockey-2019.phh",
+    "sha256": "aea88da9cccf68256f5374ff145f3c4640074bf69c8b6db8e07cf911ecb3e71d",
+    "byteLength": 1336,
+    "revision": "v3",
+    "license": "MIT (repository; accompanying LICENSE)"
+  }
+]

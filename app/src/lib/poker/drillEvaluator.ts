@@ -50,7 +50,7 @@ export interface MixedAdherenceSummary {
 export interface LeakPriorityItem {
   spotId: string;
   attempts: number;
-  avgEvLoss: number;
+  avgEvLoss: number | null;
   errorRate: number;
   impactScore: number;
 }
@@ -140,7 +140,8 @@ export function evaluateDrillDecision(params: {
   } = params;
   const ref = spot.referenceStrategy;
 
-  if (mode === "GTO_TECHNICAL") {
+  // O rótulo VERIFIED sozinho não autoriza pontuação nem EV no modo educativo.
+  if (mode === "GTO_TECHNICAL" || ref.status === "VERIFIED") {
     const gate = assertSpotAllowedInTechnicalGtoMode(spot);
     if (!gate.allowed) {
       return {
@@ -159,7 +160,9 @@ export function evaluateDrillDecision(params: {
         evUnit: null,
         rngMatch: null,
         rngTargetAction: null,
-        headline: `BLOQUEADO NO MODO GTO TÉCNICO (${ref.status})`,
+        headline: mode === "GTO_TECHNICAL"
+          ? `BLOQUEADO NO MODO GTO TÉCNICO (${ref.status})`
+          : "REFERÊNCIA SEM PROVENIÊNCIA — pontuação e EV desativados",
         detail:
           gate.reason ??
           `O spot '${spot.name}' não atende aos critérios de verificação para o Modo GTO Técnico.`,
@@ -301,7 +304,7 @@ export function evaluateDrillDecision(params: {
   }
 
   // Estratégia mista: qualquer ação com frequência positiva não é erro bruto; se EV loss ~ 0, é indiferente / +EV válido!
-  if (chosenFreq >= 0.05 || (chosenFreq > 0 && evLoss !== null && evLoss <= 0.02)) {
+  if (chosenFreq >= 0.05 || (chosenFreq > 0 && (evLoss === null || evLoss <= 0.02))) {
     const isLowFreq = chosenFreq < 0.25 && chosenFreq < domFreq - 0.15;
     const classification: DecisionClassification = isLowFreq
       ? "low_freq_acceptable"
@@ -445,9 +448,11 @@ export function rankLeakSpots(
     const spotFreq = g.attempts / total;
     const errorRate = g.errors / g.attempts;
     const avgEvLoss =
-      g.evLossCount > 0 ? round4(g.evLossSum / g.evLossCount) : round4(errorRate);
+      g.evLossCount > 0 ? round4(g.evLossSum / g.evLossCount) : null;
     const lowConfidence = Math.min(1, 0.3 + errorRate * 0.7);
-    const impactScore = round4(spotFreq * Math.max(avgEvLoss, errorRate * 0.5) * lowConfidence);
+    // Fallback heurístico apenas para ordenar a revisão, nunca como EV medido.
+    const priorityLoss = avgEvLoss ?? round4(errorRate);
+    const impactScore = round4(spotFreq * Math.max(priorityLoss, errorRate * 0.5) * lowConfidence);
     items.push({
       spotId,
       attempts: g.attempts,

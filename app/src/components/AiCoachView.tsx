@@ -216,7 +216,7 @@ export function AiCoachView({
               <h2 className="text-sm font-bold text-slate-100">
                 AI Poker Coach (Gemini Interactions API)
               </h2>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[0.6875rem] text-slate-400">
                 Base RAG local com{" "}
                 <span className="text-emerald-400 font-semibold">
                   {totalChunks} trechos
@@ -339,13 +339,13 @@ export function AiCoachView({
 
                   {m.sourcesUsed && m.sourcesUsed.length > 0 && (
                     <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center gap-1.5">
-                      <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold flex items-center gap-1 mr-1">
+                      <span className="text-[0.625rem] uppercase tracking-wider text-slate-500 font-bold flex items-center gap-1 mr-1">
                         <BookOpen className="w-3 h-3" /> Fontes usadas:
                       </span>
                       {m.sourcesUsed.map((src) => (
                         <span
                           key={src}
-                          className="text-[10px] px-2 py-0.5 rounded-md bg-slate-900 border border-slate-700 text-emerald-300"
+                          className="text-[0.625rem] px-2 py-0.5 rounded-md bg-slate-900 border border-slate-700 text-emerald-300"
                         >
                           {src}
                         </span>
@@ -355,17 +355,17 @@ export function AiCoachView({
 
                   {m.relatedVideos && m.relatedVideos.length > 0 && (
                     <div className="mt-2 pt-2 border-t border-slate-800/80 flex flex-col gap-1">
-                      <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold flex items-center gap-1">
+                      <span className="text-[0.625rem] uppercase tracking-wider text-slate-500 font-bold flex items-center gap-1">
                         <Film className="w-3 h-3" /> Vídeos relacionados na sua
                         pasta:
                       </span>
                       {m.relatedVideos.map((v) => (
                         <div
                           key={v.relativePath}
-                          className="text-[11px] text-slate-300 flex items-center justify-between gap-2 bg-slate-900/70 px-2 py-1 rounded"
+                          className="text-[0.6875rem] text-slate-300 flex items-center justify-between gap-2 bg-slate-900/70 px-2 py-1 rounded"
                         >
                           <span className="truncate">{v.title}</span>
-                          <span className="text-[10px] text-slate-500 shrink-0">
+                          <span className="text-[0.625rem] text-slate-500 shrink-0">
                             {v.relativePath}
                           </span>
                         </div>
@@ -467,8 +467,8 @@ export function AiCoachView({
               Biblioteca de Aulas ({videos.length})
             </h3>
           </div>
-          <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold">
-            Projeto-Poker
+          <span className="text-[0.625rem] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold">
+            PDF de Poker
           </span>
         </div>
 
@@ -490,12 +490,12 @@ export function AiCoachView({
                 <span className="text-xs font-semibold text-slate-200 leading-snug">
                   {v.title}
                 </span>
-                <span className="text-[10px] font-mono text-slate-500 shrink-0">
+                <span className="text-[0.625rem] font-mono text-slate-500 shrink-0">
                   {v.sizeMb} MB
                 </span>
               </div>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] text-emerald-400/90 truncate">
+                <span className="text-[0.625rem] text-emerald-400/90 truncate">
                   {v.category}
                 </span>
                 <button
@@ -505,7 +505,7 @@ export function AiCoachView({
                       `Resuma os principais conceitos e recomendações práticas sobre "${v.title}" (${v.category}).`,
                     )
                   }
-                  className="text-[10px] text-slate-400 hover:text-emerald-300 underline shrink-0"
+                  className="text-[0.625rem] text-slate-400 hover:text-emerald-300 underline shrink-0"
                 >
                   Perguntar ao Coach
                 </button>

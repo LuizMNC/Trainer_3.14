@@ -146,7 +146,7 @@ export function SettingsModal({
                 )}
               </button>
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[0.6875rem] text-slate-500">
               Salva apenas no seu navegador (<code>localStorage</code>) ou no
               arquivo local{" "}
               <code className="text-slate-400">app/.env.local</code>. Obtenha em{" "}
@@ -179,7 +179,7 @@ export function SettingsModal({
                   }`}
                 >
                   <div className="text-xs font-bold">{opt.label}</div>
-                  <div className="text-[11px] text-slate-400">{opt.desc}</div>
+                  <div className="text-[0.6875rem] text-slate-400">{opt.desc}</div>
                 </button>
               ))}
             </div>

@@ -1,0 +1,12 @@
+# Muck é distinto de fold e não apaga as cartas antes conhecidas.
+variant = "NT"
+antes = [0, 0]
+blinds_or_straddles = [1, 2]
+min_bet = 2
+starting_stacks = [100, 100]
+finishing_stacks = [98, 102]
+actions = [
+  "d dh p1 2c3d", "d dh p2 AsKd", "p2 cc", "p1 cc",
+  "d db 4h5s7c", "p1 cc", "p2 cc", "d db 8h", "p1 cc", "p2 cc",
+  "d db 9h", "p1 cc", "p2 cc", "p1 sm", "p2 sm -",
+]

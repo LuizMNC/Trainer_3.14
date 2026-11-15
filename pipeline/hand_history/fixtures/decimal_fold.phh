@@ -1,0 +1,8 @@
+# Escala explícita de centésimos; a unidade monetária é desconhecida.
+variant = "NT"
+antes = [0, 0]
+blinds_or_straddles = [0.01, 0.02]
+min_bet = 0.02
+starting_stacks = [1.00, 1.00]
+finishing_stacks = [1.01, 0.99]
+actions = ["d dh p1 ????", "d dh p2 AsKd", "p2 f"]

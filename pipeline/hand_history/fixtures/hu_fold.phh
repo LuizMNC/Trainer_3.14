@@ -1,0 +1,12 @@
+# Fixture sintética de regras; não é uma estratégia nem evidência GTO.
+variant = "NT"
+antes = [0, 0]
+blinds_or_straddles = [1, 2]
+min_bet = 2
+starting_stacks = [100, 100]
+hand = "fixture-hu-fold"
+players = ["Jogador BB", "Jogador BTN"]
+seats = [4, 2]
+seat_count = 6
+finishing_stacks = [101, 99]
+actions = ["d dh p1 ????", "d dh p2 AsKd", "p2 f"]

@@ -1,0 +1,13 @@
+{
+  "ok": false,
+  "status": "INVALID",
+  "issues": [
+    {
+      "code": "ILLEGAL_ACTION",
+      "message": "Ação rejeitada pelo motor: No board dealing is pending.",
+      "field": "actions",
+      "actionIndex": 2
+    }
+  ],
+  "hand": null
+}
