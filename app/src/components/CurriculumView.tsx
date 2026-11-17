@@ -20,6 +20,7 @@ import {
 import { CURRICULUM_MODULES, type CurriculumModule } from "@/lib/curriculum";
 import {
   getLessonsByTrackId,
+  pluralizePtBr,
   REGLIFE_18_LESSONS,
   REGLIFE_CATALOG_METADATA,
   REGLIFE_SUPPLEMENTAL_VIDEOS,
@@ -141,7 +142,7 @@ export function CurriculumView({ onLaunchDrill }: CurriculumViewProps) {
               <Sparkles className="w-4 h-4" />
               Quiz de Fixação Conceitual (Spot {String(lesson.spotNumber).padStart(2, "0")})
             </span>
-            <span className="text-[0.625rem] font-mono px-2 py-0.5 rounded bg-[#090D16] border border-[#1E293B] text-slate-400">
+            <span className="text-[0.6875rem] font-mono px-2 py-0.5 rounded bg-[#090D16] border border-[#1E293B] text-slate-400">
               Evidência: {lesson.quiz.evidenceType}
             </span>
           </div>
@@ -214,7 +215,7 @@ export function CurriculumView({ onLaunchDrill }: CurriculumViewProps) {
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-bold text-white">{ex.title}</span>
                     <span
-                      className={`text-[0.625rem] font-bold px-2 py-0.5 rounded ${
+                      className={`text-[0.6875rem] font-bold px-2 py-0.5 rounded ${
                         ex.recommendedMode === "GTO_TECHNICAL"
                           ? "bg-[#2563EB]/20 text-sky-200 border border-[#3B82F6]/40"
                           : "bg-[#DC2626]/20 text-red-200 border border-[#DC2626]/40"
@@ -245,11 +246,11 @@ export function CurriculumView({ onLaunchDrill }: CurriculumViewProps) {
         <details className="rounded-xl bg-[#05070B] border border-[#1E293B] p-3.5 group">
           <summary className="cursor-pointer text-xs font-bold text-[#60A5FA] flex items-center justify-between">
             <span>Entenda o motivo — Separação: Didático vs Exploit vs Solver GTO</span>
-            <span className="text-[0.65rem] text-slate-400 group-open:hidden">Expandir</span>
+            <span className="text-[0.6875rem] text-slate-400 group-open:hidden">Expandir</span>
           </summary>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
             <div className="rounded-xl bg-[#0F1B33]/60 border border-[#2563EB]/40 p-3.5 space-y-1.5">
-              <span className="text-[0.625rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#2563EB]/25 text-sky-200 inline-block">
+              <span className="text-[0.6875rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#2563EB]/25 text-sky-200 inline-block">
                 1. Conteúdo Educacional ({lesson.evidenceType})
               </span>
               <p className="text-xs text-slate-200 leading-relaxed">
@@ -258,7 +259,7 @@ export function CurriculumView({ onLaunchDrill }: CurriculumViewProps) {
             </div>
 
             <div className="rounded-xl bg-[#2B0B11]/50 border border-[#DC2626]/40 p-3.5 space-y-1.5">
-              <span className="text-[0.625rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#DC2626]/20 text-red-200 inline-block">
+              <span className="text-[0.6875rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#DC2626]/20 text-red-200 inline-block">
                 2. Heurística Explorativa Condicionada
               </span>
               <p className="text-xs text-slate-200 leading-relaxed">
@@ -267,7 +268,7 @@ export function CurriculumView({ onLaunchDrill }: CurriculumViewProps) {
             </div>
 
             <div className="rounded-xl bg-[#090D16] border border-[#3B82F6]/40 p-3.5 space-y-1.5">
-              <span className="text-[0.625rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#3B82F6]/20 text-sky-200 inline-block">
+              <span className="text-[0.6875rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#3B82F6]/20 text-sky-200 inline-block">
                 3. Solução GTO Matemática (Solver)
               </span>
               <p className="text-xs text-slate-200 leading-relaxed">
@@ -280,7 +281,7 @@ export function CurriculumView({ onLaunchDrill }: CurriculumViewProps) {
         <details className="rounded-xl bg-[#05070B] border border-[#1E293B] p-3.5 group">
           <summary className="cursor-pointer text-xs font-bold text-slate-200 flex items-center justify-between">
             <span>Exemplo Estruturado, Armadilha Comum &amp; Timestamps ({lesson.timestamps.length})</span>
-            <span className="text-[0.65rem] text-slate-400 group-open:hidden">Expandir</span>
+            <span className="text-[0.6875rem] text-slate-400 group-open:hidden">Expandir</span>
           </summary>
           <div className="space-y-3 mt-3">
             {lesson.examples.map((ex, idx) => (
@@ -390,8 +391,8 @@ export function CurriculumView({ onLaunchDrill }: CurriculumViewProps) {
           <details open className="lg:col-span-4 rounded-2xl bg-[#090D16] border border-[#1E293B] p-3 group">
             <summary className="cursor-pointer list-none flex items-center justify-between text-xs font-bold text-slate-200 pb-2">
               <span>Trilhas (7) · {activeModule.title}</span>
-              <span className="text-[0.65rem] text-[#60A5FA] group-open:hidden">Abrir</span>
-              <span className="text-[0.65rem] text-slate-400 hidden group-open:inline">Recolher</span>
+              <span className="text-[0.6875rem] text-[#60A5FA] group-open:hidden">Abrir</span>
+              <span className="text-[0.6875rem] text-slate-400 hidden group-open:inline">Recolher</span>
             </summary>
             <div className="space-y-1.5">
               {CURRICULUM_MODULES.map((mod) => {
@@ -401,7 +402,13 @@ export function CurriculumView({ onLaunchDrill }: CurriculumViewProps) {
                   <button
                     key={mod.id}
                     type="button"
-                    onClick={() => setSelectedId(mod.id)}
+                    onClick={() => {
+                      setSelectedId(mod.id);
+                      const firstInTrack = getLessonsByTrackId(mod.id)[0];
+                      if (firstInTrack) {
+                        setSelectedSpotNumber(firstInTrack.spotNumber);
+                      }
+                    }}
                     className={`w-full text-left rounded-xl px-3.5 py-2.5 border transition ${
                       active
                         ? "bg-[#0F1B33] border-[#3B82F6] text-white"
@@ -411,10 +418,10 @@ export function CurriculumView({ onLaunchDrill }: CurriculumViewProps) {
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-bold">{mod.title}</span>
                       <div className="flex items-center gap-1">
-                        <span className="text-[0.625rem] font-mono px-1.5 py-0.5 rounded bg-[#0F1B33] text-sky-200 border border-[#2563EB]/40">
-                          {modLessons.length} aulas
+                        <span className="text-[0.6875rem] font-mono px-1.5 py-0.5 rounded bg-[#0F1B33] text-sky-200 border border-[#2563EB]/40">
+                          {pluralizePtBr(modLessons.length, "aula", "aulas")}
                         </span>
-                        <span className="text-[0.625rem] font-mono px-1.5 py-0.5 rounded bg-[#141D2F] text-slate-300">
+                        <span className="text-[0.6875rem] font-mono px-1.5 py-0.5 rounded bg-[#141D2F] text-slate-300">
                           {mod.streetFocus}
                         </span>
                       </div>
@@ -459,7 +466,7 @@ export function CurriculumView({ onLaunchDrill }: CurriculumViewProps) {
                 <h4 className="text-sm font-bold text-[#60A5FA]">
                   {activeModule.theoryShort.heading}
                 </h4>
-                <ul className="space-y-2 text-xs sm:text-sm text-slate-200 leading-relaxed">
+                <ul className="space-y-2 text-xs sm:text-sm text-slate-200 leading-relaxed max-w-[68ch]">
                   {activeModule.theoryShort.bullets.map((b, i) => (
                     <li
                       key={i}
@@ -643,8 +650,8 @@ export function CurriculumView({ onLaunchDrill }: CurriculumViewProps) {
           <details open className="lg:col-span-4 rounded-2xl bg-[#090D16] border border-[#1E293B] p-3 group">
             <summary className="cursor-pointer list-none flex items-center justify-between text-xs font-bold text-slate-200 pb-2">
               <span>Aulas ({filteredSeriesLessons.length}) · Spot {String(activeLesson.spotNumber).padStart(2, "0")}</span>
-              <span className="text-[0.65rem] text-[#60A5FA] group-open:hidden">Abrir</span>
-              <span className="text-[0.65rem] text-slate-400 hidden group-open:inline">Recolher</span>
+              <span className="text-[0.6875rem] text-[#60A5FA] group-open:hidden">Abrir</span>
+              <span className="text-[0.6875rem] text-slate-400 hidden group-open:inline">Recolher</span>
             </summary>
             <div className="space-y-2.5">
               <div className="flex items-center justify-between gap-1 bg-[#05070B] border border-[#1E293B] rounded-xl p-1">
@@ -702,11 +709,11 @@ export function CurriculumView({ onLaunchDrill }: CurriculumViewProps) {
                           Spot {String(lesson.spotNumber).padStart(2, "0")} — {lesson.moduleLabel}
                         </span>
                         {lesson.hasVerifiedTranscript ? (
-                          <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-[#0F1B33] text-sky-200 border border-[#2563EB]/50">
+                          <span className="text-[0.6875rem] px-1.5 py-0.5 rounded bg-[#0F1B33] text-sky-200 border border-[#2563EB]/50">
                             Analisada
                           </span>
                         ) : (
-                          <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-[#2B0B11] text-red-200 border border-[#DC2626]/50">
+                          <span className="text-[0.6875rem] px-1.5 py-0.5 rounded bg-[#2B0B11] text-red-200 border border-[#DC2626]/50">
                             Metadados
                           </span>
                         )}
@@ -775,8 +782,8 @@ export function CurriculumView({ onLaunchDrill }: CurriculumViewProps) {
               <details className="pt-2 border-t border-[#1E293B] text-xs group">
                 <summary className="cursor-pointer list-none font-bold text-[#60A5FA] flex items-center justify-between">
                   <span>Aplicação no TreinerLM &amp; Ressalva</span>
-                  <span className="text-[0.625rem] text-slate-400 group-open:hidden">Abrir</span>
-                  <span className="text-[0.625rem] text-slate-400 hidden group-open:inline">Recolher</span>
+                  <span className="text-[0.6875rem] text-slate-400 group-open:hidden">Abrir</span>
+                  <span className="text-[0.6875rem] text-slate-400 hidden group-open:inline">Recolher</span>
                 </summary>
                 <div className="space-y-2 mt-2">
                   <div className="rounded-lg bg-[#05070B] border border-[#1E293B] p-2.5">

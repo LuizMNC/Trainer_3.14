@@ -56,8 +56,10 @@ function binary(value: string) {
 
 export function HandLibraryView({
   onOpenReplay,
+  refreshVersion = 0,
 }: {
   onOpenReplay: (recordId: string) => void;
+  refreshVersion?: number;
 }) {
   const [filters, setFilters] = useState(emptyFilters);
   const [query, setQuery] = useState<Record<string, string>>({
@@ -95,7 +97,7 @@ export function HandLibraryView({
     return () => {
       controller.version++;
     };
-  }, [refresh]);
+  }, [refresh, refreshVersion]);
   async function importFiles(files: File[]) {
     setBusy(true);
     setError(null);
@@ -207,7 +209,7 @@ export function HandLibraryView({
   }
   function field(key: keyof typeof emptyFilters, label: string, type = "text") {
     return (
-      <label className="text-xs text-[#A1A6AA]" key={key}>
+      <label className="text-xs text-[#94A3B8]" key={key}>
         {label}
         <input
           className={input}
@@ -226,7 +228,7 @@ export function HandLibraryView({
     options: [string, string][],
   ) {
     return (
-      <label className="text-xs text-[#A1A6AA]" key={key}>
+      <label className="text-xs text-[#94A3B8]" key={key}>
         {label}
         <select
           aria-label={label}
@@ -251,14 +253,14 @@ export function HandLibraryView({
       {/* Cabeçalho Enxuto + Ações Principais */}
       <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#1E293B] bg-[#090D16] p-4">
         <div>
-          <p className="text-[0.65rem] font-extrabold tracking-widest text-[#60A5FA]">
+          <p className="text-[0.6875rem] font-extrabold tracking-widest text-[#60A5FA]">
             ACERVO LOCAL · REVISÃO PÓS-SESSÃO
           </p>
           <h2 className="mt-0.5 flex items-center gap-2 text-lg sm:text-xl font-extrabold text-[#F8FAFC]">
             <BookOpen size={20} className="text-[#60A5FA]" />
             Biblioteca de Mãos
           </h2>
-          <p className="mt-0.5 text-xs text-[#A1A6AA]">
+          <p className="mt-0.5 text-xs text-[#94A3B8]">
             Importe históricos PHH/JSON, filtre, favorite, marque para revisão ou abra direto no Replayer.
           </p>
         </div>
@@ -306,10 +308,10 @@ export function HandLibraryView({
       )}
       {results.length > 0 && (
         <section
-          className="rounded-xl border border-[#292C2F] bg-[#191B1D] p-3.5"
+          className="rounded-xl border border-[#1E293B] bg-[#090D16] p-3.5"
           aria-label="Resultado do lote"
         >
-          <p className="text-xs font-bold text-[#F4F5F5]">
+          <p className="text-xs font-bold text-[#F8FAFC]">
             {Object.entries(statusLabels)
               .map(
                 ([key, label]) =>
@@ -319,7 +321,7 @@ export function HandLibraryView({
           </p>
           <ul className="mt-2 max-h-48 space-y-1.5 overflow-auto text-xs">
             {results.map((result, i) => (
-              <li key={i} className="rounded-lg bg-[#090B0C] p-2 break-words">
+              <li key={i} className="rounded-lg bg-[#05070B] border border-[#1E293B] p-2 break-words">
                 <strong
                   className={
                     result.status === "IMPORTED"
@@ -329,7 +331,7 @@ export function HandLibraryView({
                 >
                   {result.name} · {statusLabels[result.status]}
                 </strong>
-                <p className="text-[#A1A6AA]">{result.message}</p>
+                <p className="text-[#94A3B8]">{result.message}</p>
               </li>
             ))}
           </ul>
@@ -339,7 +341,7 @@ export function HandLibraryView({
       {error && (
         <div
           role="alert"
-          className="rounded-xl border border-[#EF6666]/60 bg-[#EF6666]/10 p-3.5 text-xs text-[#EF6666] break-words"
+          className="rounded-xl border border-[#EF4444]/60 bg-[#EF4444]/10 p-3.5 text-xs text-[#FCA5A5] break-words"
         >
           {error}
         </div>
@@ -358,17 +360,17 @@ export function HandLibraryView({
             ].map(([label, count]) => (
               <div
                 key={label}
-                className="rounded-xl border border-[#292C2F] bg-[#191B1D] px-3.5 py-2.5 flex items-center justify-between"
+                className="rounded-xl border border-[#1E293B] bg-[#090D16] px-3.5 py-2.5 flex items-center justify-between"
               >
-                <span className="text-xs text-[#A1A6AA]">{label}</span>
-                <strong className="text-lg font-extrabold font-mono text-[#F4F5F5]">
+                <span className="text-xs text-[#94A3B8]">{label}</span>
+                <strong className="text-lg font-extrabold font-mono tabular-nums text-[#F8FAFC]">
                   {count}
                 </strong>
               </div>
             ))}
           </div>
-          <details className="rounded-xl border border-[#292C2F] bg-[#191B1D] p-3 text-xs text-[#A1A6AA]">
-            <summary className="cursor-pointer font-bold text-[#F4F5F5]">
+          <details className="rounded-xl border border-[#1E293B] bg-[#090D16] p-3 text-xs text-[#94A3B8]">
+            <summary className="cursor-pointer font-bold text-[#F8FAFC]">
               Ver distribuições do acervo e notas técnicas (PHH_NT_SUBSET_1)
             </summary>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -381,7 +383,7 @@ export function HandLibraryView({
                 rows={data.stats.byImportMonth}
               />
             </div>
-            <p className="mt-2 text-[0.6875rem] text-[#A1A6AA]">
+            <p className="mt-2 text-[0.6875rem] text-[#94A3B8]">
               Até 20 arquivos / 20 MiB por lote · PHH 1 MiB · JSON 6 MiB · Sem envio a serviços externos. Uma mão válida não é uma solução GTO.
             </p>
           </details>
@@ -390,7 +392,7 @@ export function HandLibraryView({
 
       {/* Barra de Pesquisa Principal + Filtros Avançados Recolhíveis */}
       <form
-        className="rounded-2xl border border-[#292C2F] bg-[#191B1D] p-4 space-y-3"
+        className="rounded-2xl border border-[#1E293B] bg-[#090D16] p-4 space-y-3"
         onSubmit={(e) => {
           e.preventDefault();
           setQuery({ ...filters, page: "1" });
@@ -477,14 +479,14 @@ export function HandLibraryView({
       </form>
 
       {loading && (
-        <p role="status" className="text-xs text-[#A1A6AA]">
+        <p role="status" className="text-xs text-[#94A3B8]">
           Consultando o índice local…
         </p>
       )}
 
       {data && !loading && (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[#A1A6AA]">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[#94A3B8]">
             <p>
               {data.total} mãos encontradas · página {data.page} de{" "}
               {Math.max(1, Math.ceil(data.total / data.pageSize))}
@@ -512,7 +514,7 @@ export function HandLibraryView({
           </div>
 
           {data.items.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-[#292C2F] bg-[#191B1D] p-8 text-center text-xs text-[#A1A6AA]">
+            <p className="rounded-xl border border-dashed border-[#1E293B] bg-[#090D16] p-8 text-center text-xs text-[#94A3B8]">
               Nenhuma mão encontrada. Importe históricos ou ajuste os filtros.
             </p>
           ) : (
@@ -525,15 +527,15 @@ export function HandLibraryView({
                   key={item.recordId}
                   data-testid="library-hand"
                   data-record-id={item.recordId}
-                  className="min-w-0 rounded-2xl border border-[#292C2F] bg-[#191B1D] p-4 flex flex-col justify-between gap-3"
+                  className="min-w-0 rounded-2xl border border-[#1E293B] bg-[#090D16] p-4 flex flex-col justify-between gap-3"
                 >
                   <div>
                     <header className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <h3 className="break-all text-sm font-bold text-[#F4F5F5]">
+                        <h3 className="break-all text-sm font-bold text-[#F8FAFC]">
                           {item.handId ?? item.recordId}
                         </h3>
-                        <p className="break-all text-xs text-[#A1A6AA]">
+                        <p className="break-all text-xs text-[#94A3B8]">
                           {item.fileName ?? "Arquivo não informado"} ·{" "}
                           {item.status === "VALIDATED_COMPLETE"
                             ? "Completa"
@@ -550,10 +552,10 @@ export function HandLibraryView({
                               favorite: !item.study.favorite,
                             })
                           }
-                          className={`px-2 py-1 rounded-lg border text-[0.65rem] font-bold flex items-center gap-1 ${
+                          className={`px-2 py-1 rounded-lg border text-[0.6875rem] font-bold flex items-center gap-1 ${
                             item.study.favorite
-                              ? "bg-[#F1BE60]/20 border-[#F1BE60] text-[#F1BE60]"
-                              : "bg-[#090B0C] border-[#292C2F] text-[#A1A6AA] hover:text-white"
+                              ? "bg-[#F59E0B]/20 border-[#F59E0B] text-[#FCD34D]"
+                              : "bg-[#05070B] border-[#1E293B] text-[#94A3B8] hover:text-white"
                           }`}
                           title="Alternar favorito"
                         >
@@ -564,7 +566,7 @@ export function HandLibraryView({
                                 : "Favoritar mão"
                             }
                             className={
-                              item.study.favorite ? "fill-[#F1BE60]" : ""
+                              item.study.favorite ? "fill-[#F59E0B]" : ""
                             }
                             size={13}
                           />
@@ -578,10 +580,10 @@ export function HandLibraryView({
                               pending: !item.study.pending,
                             })
                           }
-                          className={`px-2 py-1 rounded-lg border text-[0.65rem] font-bold ${
+                          className={`px-2 py-1 rounded-lg border text-[0.6875rem] font-bold ${
                             item.study.pending
-                              ? "bg-[#EF6666]/20 border-[#EF6666] text-[#EF6666]"
-                              : "bg-[#090B0C] border-[#292C2F] text-[#A1A6AA] hover:text-white"
+                              ? "bg-[#EF4444]/20 border-[#EF4444] text-[#FCA5A5]"
+                              : "bg-[#05070B] border-[#1E293B] text-[#94A3B8] hover:text-white"
                           }`}
                         >
                           {item.study.pending ? "Revisar!" : "Revisar"}
@@ -590,8 +592,8 @@ export function HandLibraryView({
                     </header>
 
                     {/* Resumo visual de Blinds, Board e Jogadores */}
-                    <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-[#A1A6AA]">
-                      <span className="rounded bg-[#090B0C] border border-[#292C2F] px-2 py-0.5 font-mono text-[#F4F5F5]">
+                    <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-[#94A3B8]">
+                      <span className="rounded bg-[#05070B] border border-[#1E293B] px-2 py-0.5 font-mono text-[#F8FAFC]">
                         Blinds:{" "}
                         {item.blindsAtoms
                           .map((v) => formatAtoms(v, item.decimalPlaces))
@@ -614,7 +616,7 @@ export function HandLibraryView({
                       {item.players.map((p, i) => (
                         <span
                           key={i}
-                          className="rounded bg-[#090B0C] border border-[#292C2F] px-2 py-0.5 text-[0.6875rem] text-[#F4F5F5] break-all"
+                          className="rounded bg-[#05070B] border border-[#1E293B] px-2 py-0.5 text-[0.6875rem] text-[#F8FAFC] break-all"
                         >
                           {p.name ?? p.label} ·{" "}
                           {p.position && p.position !== "OTHER"
@@ -626,32 +628,32 @@ export function HandLibraryView({
                       ))}
                     </div>
 
-                    <details className="mt-2 text-[0.6875rem] text-[#A1A6AA]">
+                    <details className="mt-2 text-[0.6875rem] text-[#94A3B8]">
                       <summary className="cursor-pointer hover:text-white">
                         Detalhes de proveniência, datas e exportação
                       </summary>
-                      <dl className="mt-1.5 space-y-1 pl-2 border-l border-[#292C2F]">
+                      <dl className="mt-1.5 space-y-1 pl-2 border-l border-[#1E293B]">
                         <div>
-                          <dt className="inline text-[#6A7075]">Proveniência: </dt>
-                          <dd className="inline text-[#F1BE60]">
+                          <dt className="inline text-[#94A3B8]">Proveniência: </dt>
+                          <dd className="inline text-[#FCD34D]">
                             {item.provenance === "PHH_RECONSTRUCTED"
                               ? "PHH conferido pelo motor · autoria não autenticada"
                               : "JSON · conferência estrutural; origem não autenticada"}
                           </dd>
                         </div>
                         <div>
-                          <dt className="inline text-[#6A7075]">Data reportada: </dt>
+                          <dt className="inline text-[#94A3B8]">Data reportada: </dt>
                           <dd className="inline">
                             {item.playedDate ?? "Não informada"}
                             {item.playedTime ? ` · ${item.playedTime}` : ""}
                           </dd>
                         </div>
                         <div>
-                          <dt className="inline text-[#6A7075]">Importado: </dt>
+                          <dt className="inline text-[#94A3B8]">Importado: </dt>
                           <dd className="inline">{stamp(item.importedAtUtc)}</dd>
                         </div>
                         <div>
-                          <dt className="inline text-[#6A7075]">Última revisão: </dt>
+                          <dt className="inline text-[#94A3B8]">Última revisão: </dt>
                           <dd className="inline">
                             {stamp(item.study.lastReviewedAtUtc)}
                           </dd>
@@ -661,7 +663,7 @@ export function HandLibraryView({
                   </div>
 
                   {/* Ações Rápidas */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#292C2F]">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#1E293B]">
                     <div className="flex flex-wrap gap-1.5">
                       <button
                         className={primary}
@@ -695,7 +697,7 @@ export function HandLibraryView({
                         Canônico JSON
                       </button>
                       <button
-                        className={button + " text-[#EF6666]"}
+                        className={button + " text-[#FCA5A5] hover:border-[#EF4444]"}
                         disabled={busy}
                         onClick={() =>
                           setConfirmation({ item, kind: "delete" })
@@ -729,14 +731,14 @@ export function HandLibraryView({
         <section
           role="alertdialog"
           aria-labelledby="library-confirm-title"
-          className="rounded-2xl border border-[#EF6666] bg-[#191B1D] p-5"
+          className="rounded-2xl border border-[#EF4444] bg-[#090D16] p-5"
         >
           <h3 id="library-confirm-title" className="font-bold text-white">
             {confirmation.kind === "delete"
               ? "Excluir esta mão e seus metadados?"
               : "Remover todos os metadados de estudo desta mão?"}
           </h3>
-          <p className="my-3 break-all text-sm text-[#EF6666]">
+          <p className="my-3 break-all text-sm text-[#FCA5A5]">
             {confirmation.item.fileName ?? confirmation.item.recordId} · Esta
             operação não pode ser desfeita pela interface.
             {confirmation.kind === "clearStudy"
@@ -753,7 +755,7 @@ export function HandLibraryView({
               Cancelar exclusão
             </button>
             <button
-              className={button + " bg-[#EF6666] text-[#090B0C] font-extrabold"}
+              className={button + " bg-[#DC2626] border-[#EF4444] text-white font-extrabold hover:bg-[#B91C1C]"}
               disabled={busy}
               onClick={() => void removeConfirmed()}
             >
@@ -775,12 +777,12 @@ function Distribution({
 }) {
   const max = Math.max(1, ...rows.map((r) => r.count));
   return (
-    <div className="rounded-xl border border-[#292C2F] bg-[#090B0C] p-3">
-      <h3 className="mb-2 text-xs text-[#A1A6AA]">{title}</h3>
+    <div className="rounded-xl border border-[#1E293B] bg-[#05070B] p-3">
+      <h3 className="mb-2 text-xs text-[#94A3B8]">{title}</h3>
       {rows.length ? (
         rows.map((row) => (
           <div
-            className="mb-1 flex items-center gap-2 text-xs text-[#F4F5F5]"
+            className="mb-1 flex items-center gap-2 text-xs text-[#F8FAFC]"
             key={row.label}
           >
             <span className="w-16 shrink-0">{row.label}</span>
@@ -792,7 +794,7 @@ function Distribution({
           </div>
         ))
       ) : (
-        <p className="text-xs text-[#6A7075]">Sem registros.</p>
+        <p className="text-xs text-[#94A3B8]">Sem registros.</p>
       )}
     </div>
   );
@@ -837,7 +839,7 @@ function StudyEditor({
         }}
         className="space-y-3"
       >
-        <label className="block text-xs text-[#A1A6AA]">
+        <label className="block text-xs text-[#94A3B8]">
           Nota de estudo
           <textarea
             aria-label="Nota de estudo"
@@ -849,7 +851,7 @@ function StudyEditor({
             onChange={(e) => setValue({ ...value, note: e.target.value })}
           />
         </label>
-        <label className="block text-xs text-[#A1A6AA]">
+        <label className="block text-xs text-[#94A3B8]">
           Tags separadas por vírgula
           <input
             aria-label="Tags separadas por vírgula"
@@ -858,7 +860,7 @@ function StudyEditor({
             onChange={(e) => setTags(e.target.value)}
           />
         </label>
-        <div className="flex flex-wrap gap-5 text-xs text-[#F4F5F5]">
+        <div className="flex flex-wrap gap-5 text-xs text-[#F8FAFC]">
           <label className="flex items-center gap-1.5 cursor-pointer">
             <input
               type="checkbox"

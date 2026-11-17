@@ -1,7 +1,8 @@
-import type {
-  CanonicalSpot,
-  StrategyStatus,
-  StrategyUnit,
+import {
+  classifyCellDistributionIntegrity,
+  type CanonicalSpot,
+  type StrategyStatus,
+  type StrategyUnit,
 } from "./strategySchema.ts";
 
 export type DecisionClassification =
@@ -10,6 +11,14 @@ export type DecisionClassification =
   | "low_freq_acceptable"
   | "ev_error"
   | "unsolved";
+
+export type CellIntegrityStatus =
+  | "COMPLETE"
+  | "ROUNDING_ONLY"
+  | "INCOMPLETE_MINOR"
+  | "INCOMPLETE_SEVERE"
+  | "INVALID"
+  | "UNSOLVED";
 
 export interface DrillEvaluationResult {
   gtoScored: boolean;
@@ -27,6 +36,9 @@ export interface DrillEvaluationResult {
   evUnit: StrategyUnit | null;
   rngMatch: boolean | null;
   rngTargetAction: string | null;
+  integrityStatus: CellIntegrityStatus;
+  integrityBlocked: boolean;
+  integrityWarning: string | null;
   headline: string;
   detail: string;
 }
@@ -42,6 +54,11 @@ export interface MixedAttemptRecord {
 
 export interface MixedAdherenceSummary {
   attempts: number;
+  groupsCount: number;
+  reliableAttempts: number;
+  reliableGroupsCount: number;
+  incompleteExcludedAttempts: number;
+  hasIncompleteData: boolean;
   observedDistribution: Record<string, number>;
   targetDistribution: Record<string, number>;
   adherencePct: number;
@@ -78,18 +95,31 @@ export function pickRngTargetAction(
   orderedActions: readonly string[],
   dist: Record<string, number>,
   rngValue: number,
-): string {
+): string | null {
+  if (!Number.isFinite(rngValue) || rngValue < 0 || rngValue > 100) {
+    return null;
+  }
   let acc = 0;
+  let lastPositiveAction: string | null = null;
   for (const name of orderedActions) {
-    const pct = (dist[name] ?? 0) * 100;
+    const rawFreq = dist[name] ?? 0;
+    if (!Number.isFinite(rawFreq) || rawFreq < 0) continue;
+    const pct = rawFreq * 100;
     if (pct > 0) {
       acc += pct;
+      lastPositiveAction = name;
       if (rngValue <= acc || Math.abs(rngValue - acc) < 0.01) {
         return name;
       }
     }
   }
-  return getDominantActionFromDist(dist).action;
+  const sum = acc / 100;
+  // Somente tolera resíduo numérico trivial de arredondamento (<= 0,002) no limite superior.
+  // Nunca converte massa de probabilidade ausente em frequência da ação dominante.
+  if (sum >= 0.998 && sum <= 1.002 && rngValue <= 100 && lastPositiveAction) {
+    return lastPositiveAction;
+  }
+  return null;
 }
 
 export function assertSpotAllowedInTechnicalGtoMode(spot: CanonicalSpot): {
@@ -129,6 +159,7 @@ export function evaluateDrillDecision(params: {
   rngValue?: number | null;
   useRng?: boolean;
   mode?: "LEARNING" | "GTO_TECHNICAL";
+  enforceIntegrityGuard?: boolean;
 }): DrillEvaluationResult {
   const {
     spot,
@@ -137,6 +168,7 @@ export function evaluateDrillDecision(params: {
     rngValue = null,
     useRng = false,
     mode = "LEARNING",
+    enforceIntegrityGuard = false,
   } = params;
   const ref = spot.referenceStrategy;
 
@@ -160,6 +192,9 @@ export function evaluateDrillDecision(params: {
         evUnit: null,
         rngMatch: null,
         rngTargetAction: null,
+        integrityStatus: "UNSOLVED",
+        integrityBlocked: false,
+        integrityWarning: null,
         headline: mode === "GTO_TECHNICAL"
           ? `BLOQUEADO NO MODO GTO TÉCNICO (${ref.status})`
           : "REFERÊNCIA SEM PROVENIÊNCIA — pontuação e EV desativados",
@@ -186,6 +221,9 @@ export function evaluateDrillDecision(params: {
       evUnit: null,
       rngMatch: null,
       rngTargetAction: null,
+      integrityStatus: "UNSOLVED",
+      integrityBlocked: false,
+      integrityWarning: null,
       headline: "UNSOLVED — Modo Conceitual (sem pontuação GTO)",
       detail: `Não há política de solver verificada para ${spot.name}. Leia a orientação conceitual abaixo; nenhuma frequência ou EV foi inventado.`,
     };
@@ -212,13 +250,62 @@ export function evaluateDrillDecision(params: {
       evUnit: null,
       rngMatch: null,
       rngTargetAction: null,
+      integrityStatus: "UNSOLVED",
+      integrityBlocked: false,
+      integrityWarning: null,
       headline: "UNSOLVED — Mão sem solução neste spot",
       detail: `Nenhuma distribuição encontrada para ${handClass} em ${spot.name}.`,
     };
   }
 
+  const orderedNames = spot.legalActions.map((a) => a.name);
+  const integrityCheck = classifyCellDistributionIntegrity(dist, orderedNames, handClass);
+  const integrityStatus: CellIntegrityStatus = integrityCheck.status;
+  const pctSumLabel = (integrityCheck.sum * 100).toFixed(1);
+  const missingPctLabel = (integrityCheck.deltaFromOne * 100).toFixed(1);
   const chosenFreq = dist[chosenAction] ?? 0;
   const { action: domAction, freq: domFreq } = getDominantActionFromDist(dist);
+
+  const baseIntegrityWarning =
+    integrityStatus === "INVALID"
+      ? `Distribuição inválida para ${handClass} (soma ${pctSumLabel}%). Correção automática bloqueada para estudo seguro.`
+      : integrityStatus === "INCOMPLETE_SEVERE"
+        ? `Distribuição incompleta na extração (${handClass} soma ${pctSumLabel}%; faltam ${missingPctLabel}%). Estude o gráfico; correção automática bloqueada.`
+        : integrityStatus === "INCOMPLETE_MINOR"
+          ? `Distribuição com perda menor na extração (${handClass} soma ${pctSumLabel}%; diferença de ${missingPctLabel}%). Ações com 0% não são punidas automaticamente.`
+          : null;
+
+  const shouldBlockForIntegrity =
+    enforceIntegrityGuard &&
+    (integrityStatus === "INVALID" ||
+      integrityStatus === "INCOMPLETE_SEVERE" ||
+      (integrityStatus === "INCOMPLETE_MINOR" && chosenFreq === 0));
+
+  if (shouldBlockForIntegrity) {
+    return {
+      gtoScored: false,
+      evScored: false,
+      evUnavailableReason:
+        "Correção automática bloqueada devido à integridade insuficiente da distribuição nesta célula.",
+      strategyStatus: ref.status,
+      classification: "unsolved",
+      chosenAction,
+      chosenFreq,
+      bestAction: domAction,
+      bestFreq: domFreq,
+      chosenEv: null,
+      bestEv: null,
+      evLoss: null,
+      evUnit: null,
+      rngMatch: null,
+      rngTargetAction: null,
+      integrityStatus,
+      integrityBlocked: true,
+      integrityWarning: baseIntegrityWarning,
+      headline: "Correção bloqueada — dados incompletos",
+      detail: `${handClass} neste spot soma ${pctSumLabel}% (esperado 100%). Os dados originais foram preservados sem normalização; consulte a frequência visível apenas como referência de estudo.`,
+    };
+  }
 
   // REGRA DE AUDITORIA DE INTEGRIDADE:
   // Apenas soluções matematicamente comprovadas (status === "VERIFIED") podem gerar
@@ -260,7 +347,6 @@ export function evaluateDrillDecision(params: {
           "Solução verificada sem tabela de EV por ação (EV loss desabilitado; nenhum EV estimado).")
       : undefined;
 
-  const orderedNames = spot.legalActions.map((a) => a.name);
   const rngTargetAction =
     useRng && rngValue !== null ? pickRngTargetAction(orderedNames, dist, rngValue) : null;
   const rngMatch = useRng && rngTargetAction !== null ? rngTargetAction === chosenAction : null;
@@ -298,6 +384,9 @@ export function evaluateDrillDecision(params: {
       evUnit: effectiveEvUnit,
       rngMatch,
       rngTargetAction,
+      integrityStatus,
+      integrityBlocked: false,
+      integrityWarning: baseIntegrityWarning,
       headline: `Ação Principal (${Math.round(chosenFreq * 100)}%)${sourceTag}`,
       detail: `${handClass} escolhe ${chosenAction} com ${Math.round(chosenFreq * 100)}% de frequência.${evSuffix}`,
     };
@@ -313,7 +402,9 @@ export function evaluateDrillDecision(params: {
     const rngNote =
       useRng && rngTargetAction && rngTargetAction !== chosenAction
         ? ` Nota de calibração RNG (${rngValue}): a rolagem apontou ${rngTargetAction}, mas sua ação ainda faz parte do mix válido.`
-        : "";
+        : useRng && rngValue !== null && rngTargetAction === null
+          ? ` Nota de calibração RNG (${rngValue}): o valor caiu na faixa sem massa de probabilidade completa; nenhuma ação foi inventada.`
+          : "";
 
     return {
       gtoScored: isVerifiedSolver,
@@ -331,6 +422,9 @@ export function evaluateDrillDecision(params: {
       evUnit: effectiveEvUnit,
       rngMatch,
       rngTargetAction,
+      integrityStatus,
+      integrityBlocked: false,
+      integrityWarning: baseIntegrityWarning,
       headline: isLowFreq
         ? `Mix de Menor Frequência Aceitável (${Math.round(chosenFreq * 100)}%)${sourceTag}`
         : `Estratégia Mista Válida (${Math.round(chosenFreq * 100)}%)${sourceTag}`,
@@ -358,51 +452,162 @@ export function evaluateDrillDecision(params: {
     evUnit: effectiveEvUnit,
     rngMatch,
     rngTargetAction,
+    integrityStatus,
+    integrityBlocked: false,
+    integrityWarning: baseIntegrityWarning,
     headline: `Desvio da Política de Referência${sourceTag}`,
     detail: `${chosenAction} tem ${Math.round(chosenFreq * 100)}% para ${handClass}. Ação principal: ${bestAction} (${Math.round(domFreq * 100)}%).${evSuffix}`,
   };
 }
 
+function canonicalTargetSignature(dist: Record<string, number>): string {
+  return Object.entries(dist)
+    .filter(([, v]) => Number.isFinite(v) && v > 0)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([a, v]) => `${a}:${v.toFixed(4)}`)
+    .join("|");
+}
+
 /**
- * Mede aderência às frequências mistas ao longo de N tentativas usando distância L1 (1 - TVD).
+ * Mede aderência às frequências mistas agrupando tentativas por contexto homogêneo `(spotId, hand, distribuição-alvo)`:
+ * - Dentro de cada grupo g com n_g tentativas, calcula TVD_g = 0.5 * sum_a |obs_g(a) - target_g(a)| e aderência A_g = max(0, 1 - TVD_g).
+ * - Agrega entre grupos pela média ponderada por número de tentativas: A_total = sum_g(n_g * A_g) / N.
+ * Essa métrica é invariante à ordem das tentativas e evita comparar mãos/spots distintos contra apenas a última tentativa.
  */
 export function computeMixedAdherenceStats(
   attempts: readonly MixedAttemptRecord[],
 ): MixedAdherenceSummary {
-  if (attempts.length === 0) {
+  if (!Array.isArray(attempts) || attempts.length === 0) {
     return {
       attempts: 0,
+      groupsCount: 0,
+      reliableAttempts: 0,
+      reliableGroupsCount: 0,
+      incompleteExcludedAttempts: 0,
+      hasIncompleteData: false,
       observedDistribution: {},
       targetDistribution: {},
       adherencePct: 100,
     };
   }
 
-  const targetDistribution = attempts[attempts.length - 1].targetDistribution;
-  const counts: Record<string, number> = {};
+  const grouped = new Map<
+    string,
+    {
+      count: number;
+      countsByAction: Record<string, number>;
+      targetDistribution: Record<string, number>;
+    }
+  >();
+
+  const globalCounts: Record<string, number> = {};
+  const globalWeightedTarget: Record<string, number> = {};
+  let reliableAttempts = 0;
+  let incompleteExcludedAttempts = 0;
+
   for (const a of attempts) {
-    counts[a.chosenAction] = (counts[a.chosenAction] ?? 0) + 1;
+    if (
+      !a ||
+      typeof a !== "object" ||
+      typeof a.spotId !== "string" ||
+      typeof a.hand !== "string" ||
+      typeof a.chosenAction !== "string" ||
+      !a.targetDistribution ||
+      typeof a.targetDistribution !== "object" ||
+      Array.isArray(a.targetDistribution)
+    ) {
+      incompleteExcludedAttempts += 1;
+      continue;
+    }
+
+    const entries = Object.entries(a.targetDistribution);
+    let targetSum = 0;
+    let validDist = entries.length > 0;
+    const cleanTarget: Record<string, number> = {};
+    for (const [act, tgt] of entries) {
+      if (typeof tgt !== "number" || !Number.isFinite(tgt) || tgt < -1e-6 || tgt > 1 + 1e-6) {
+        validDist = false;
+        break;
+      }
+      const clamped = Math.max(0, Math.min(1, tgt));
+      cleanTarget[act] = clamped;
+      targetSum += clamped;
+    }
+
+    if (!validDist || Math.abs(targetSum - 1) > 0.002) {
+      incompleteExcludedAttempts += 1;
+      continue;
+    }
+
+    reliableAttempts += 1;
+    globalCounts[a.chosenAction] = (globalCounts[a.chosenAction] ?? 0) + 1;
+    for (const [act, tgt] of Object.entries(cleanTarget)) {
+      globalWeightedTarget[act] = (globalWeightedTarget[act] ?? 0) + tgt;
+    }
+
+    const groupKey = `${a.spotId}::${a.hand}::${canonicalTargetSignature(cleanTarget)}`;
+    const group = grouped.get(groupKey) ?? {
+      count: 0,
+      countsByAction: {},
+      targetDistribution: cleanTarget,
+    };
+    group.count += 1;
+    group.countsByAction[a.chosenAction] = (group.countsByAction[a.chosenAction] ?? 0) + 1;
+    grouped.set(groupKey, group);
   }
 
-  const allActions = new Set([
-    ...Object.keys(targetDistribution),
-    ...Object.keys(counts),
-  ]);
+  if (reliableAttempts === 0) {
+    return {
+      attempts: attempts.length,
+      groupsCount: 0,
+      reliableAttempts: 0,
+      reliableGroupsCount: 0,
+      incompleteExcludedAttempts,
+      hasIncompleteData: incompleteExcludedAttempts > 0,
+      observedDistribution: {},
+      targetDistribution: {},
+      adherencePct: incompleteExcludedAttempts > 0 ? 0 : 100,
+    };
+  }
+
+  let weightedAdherenceSum = 0;
+  for (const g of grouped.values()) {
+    const actions = new Set([
+      ...Object.keys(g.targetDistribution),
+      ...Object.keys(g.countsByAction),
+    ]);
+    let l1 = 0;
+    for (const act of actions) {
+      const obs = (g.countsByAction[act] ?? 0) / g.count;
+      const tgt = g.targetDistribution[act] ?? 0;
+      l1 += Math.abs(obs - tgt);
+    }
+    const tvd = l1 / 2;
+    const groupAdherence = Math.max(0, 1 - tvd);
+    weightedAdherenceSum += g.count * groupAdherence;
+  }
 
   const observedDistribution: Record<string, number> = {};
-  let l1 = 0;
-  for (const act of allActions) {
-    const obs = (counts[act] ?? 0) / attempts.length;
-    const tgt = targetDistribution[act] ?? 0;
-    observedDistribution[act] = round4(obs);
-    l1 += Math.abs(obs - tgt);
+  for (const [act, cnt] of Object.entries(globalCounts)) {
+    observedDistribution[act] = round4(cnt / reliableAttempts);
+  }
+  const targetDistribution: Record<string, number> = {};
+  for (const [act, wSum] of Object.entries(globalWeightedTarget)) {
+    targetDistribution[act] = round4(wSum / reliableAttempts);
   }
 
-  const tvd = l1 / 2;
-  const adherencePct = Math.max(0, Math.round((1 - tvd) * 1000) / 10);
+  const adherencePct = Math.max(
+    0,
+    Math.round((weightedAdherenceSum / reliableAttempts) * 1000) / 10,
+  );
 
   return {
     attempts: attempts.length,
+    groupsCount: grouped.size,
+    reliableAttempts,
+    reliableGroupsCount: grouped.size,
+    incompleteExcludedAttempts,
+    hasIncompleteData: incompleteExcludedAttempts > 0,
     observedDistribution,
     targetDistribution,
     adherencePct,

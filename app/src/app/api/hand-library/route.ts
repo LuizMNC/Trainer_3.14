@@ -1,11 +1,14 @@
-import {assertLibraryAccess,limitedBody} from "../../../lib/server/libraryAccess.ts";
+import {assertLibraryAccess,limitedBody,PayloadTooLargeError} from "../../../lib/server/libraryAccess.ts";
 import {libraryCommand} from "../../../lib/server/libraryBridge.ts";
 
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 const headers={"Cache-Control":"no-store","X-Content-Type-Options":"nosniff"};
 function reply(value:unknown,status=200) {return Response.json(value,{status,headers});}
-function error(error:unknown,status=400) {return reply({ok:false,error:error instanceof Error?error.message:"Operação recusada."},status);}
+function error(error:unknown,status?:number) {
+  const code = status ?? (error instanceof PayloadTooLargeError ? 413 : 400);
+  return reply({ok:false,error:error instanceof Error?error.message:"Operação recusada."},code);
+}
 function gate(request:Request): Response|null {
   try {assertLibraryAccess(request);return null;} catch(e){return error(e,process.env.POKER_LIBRARY_ENABLED==="1"?403:503);}
 }

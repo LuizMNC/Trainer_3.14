@@ -33,6 +33,9 @@ import {
   adaptLegacyRangeSpotToCanonical,
   type CanonicalSpot,
   computeSpacedRepetitionSchedule,
+  filterConfirmedMttCanonicalSpots,
+  filterConfirmedMttLegacySpots,
+  isSpotIdExcludedFromMtt,
   isValidSha256Hex,
   type LegacyRangeSpot,
   type RangeSpot,
@@ -90,7 +93,30 @@ export function PokerStudioApp({
   totalChunks,
   videos,
 }: PokerStudioAppProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("trainer");
+  const [activeTab, setActiveTabState] = useState<TabId>("trainer");
+  const [lastDomainSubTab, setLastDomainSubTab] = useState<{
+    treinar: "trainer" | "clean-trainer";
+    laboratorio: "math" | "math-lab";
+    estudos: "curriculum" | "fatal-errors" | "coach";
+  }>({
+    treinar: "trainer",
+    laboratorio: "math",
+    estudos: "curriculum",
+  });
+  const setActiveTab = useCallback((nextTab: TabId) => {
+    setActiveTabState(nextTab);
+    if (nextTab === "trainer" || nextTab === "clean-trainer") {
+      setLastDomainSubTab((prev) => ({ ...prev, treinar: nextTab }));
+    } else if (nextTab === "math" || nextTab === "math-lab") {
+      setLastDomainSubTab((prev) => ({ ...prev, laboratorio: nextTab }));
+    } else if (
+      nextTab === "curriculum" ||
+      nextTab === "fatal-errors" ||
+      nextTab === "coach"
+    ) {
+      setLastDomainSubTab((prev) => ({ ...prev, estudos: nextTab }));
+    }
+  }, []);
   const [showQuickHub, setShowQuickHub] = useState<boolean>(false);
   const [showOfflineNotice, setShowOfflineNotice] = useState<boolean>(true);
   const [labScenario, setLabScenario] = useState<LabScenario | null>(null);
@@ -117,6 +143,8 @@ export function PokerStudioApp({
     street?: "PREFLOP" | "POSTFLOP" | "ALL";
     sessionTargetHands?: number;
   } | null>(null);
+  const [trainerRequestNonce, setTrainerRequestNonce] = useState<number>(0);
+  const [libraryStudyVersion, setLibraryStudyVersion] = useState<number>(0);
 
   const [apiKey, setApiKey] = useState<string>("");
   const [model, setModel] = useState<string>("gemini-3.8-flash");
@@ -169,7 +197,9 @@ export function PokerStudioApp({
       }
     });
 
-    fetch("/api/coach")
+    fetch("/api/coach", {
+      headers: { "X-Poker-Coach": "local-v1" },
+    })
       .then((r) => r.json())
       .then((d) => {
         if (typeof d?.hasEnvKey === "boolean") setHasEnvKey(d.hasEnvKey);
@@ -177,9 +207,11 @@ export function PokerStudioApp({
       .catch(() => {});
   }, []);
 
+  const mttSpots = useMemo(() => filterConfirmedMttLegacySpots(spots), [spots]);
+
   const canonicalSpots = useMemo(() => {
     const curriculumSpots = getDidacticAndUnsolvedSpots();
-    const adaptedLegacy = spots.map((s) =>
+    const adaptedLegacy = mttSpots.map((s) =>
       adaptLegacyRangeSpotToCanonical(s as LegacyRangeSpot),
     );
     const merged = [
@@ -189,12 +221,13 @@ export function PokerStudioApp({
       ...adaptedLegacy,
     ];
     const seen = new Set<string>();
-    return merged.filter((sp) => {
+    const deduped = merged.filter((sp) => {
       if (seen.has(sp.spotId)) return false;
       seen.add(sp.spotId);
       return true;
     });
-  }, [spots, verifiedSpots, realSolvedSpots]);
+    return filterConfirmedMttCanonicalSpots(deduped);
+  }, [mttSpots, verifiedSpots, realSolvedSpots]);
 
   const handleRecordHistory = (item: HandHistoryItem) => {
     setHistory((prev) => {
@@ -268,23 +301,34 @@ export function PokerStudioApp({
     setRequestedPresetFilter(null);
     setRequestedSpotId(next.requestedSpotId);
     setRequestedMode(next.requestedMode);
+    setTrainerRequestNonce((n) => n + 1);
     setActiveTab(next.activeTab);
   };
 
   const dueSummary = useMemo(() => {
+    const activeSpotIds = new Set(canonicalSpots.map((s) => s.spotId));
+    const mttAdaptive = adaptiveRecords.filter(
+      (r) =>
+        r.tournamentFormat !== "SNG_SPIN" &&
+        r.tournamentFormat !== "CASH" &&
+        !isSpotIdExcludedFromMtt(r.spotId, r.spotName),
+    );
+    const mttHistory = history.filter(
+      (h) => !isSpotIdExcludedFromMtt(h.spotId, h.spotName),
+    );
     const refTs =
       nowMs ??
-      adaptiveRecords[0]?.timestamp ??
-      history[0]?.timestamp ??
+      mttAdaptive[0]?.timestamp ??
+      mttHistory[0]?.timestamp ??
       1794500000000;
     const trainerDue = computeSpacedRepetitionSchedule(
-      adaptiveRecords,
+      mttAdaptive,
       refTs,
-    ).filter((s) => s.isDueNow);
+    ).filter((s) => s.isDueNow && activeSpotIds.has(s.spotId));
     const fatalDue = getFatalErrorSchedule(fatalAttempts, refTs).filter(
       (s) => s.isDueNow,
     );
-    const scored = history.filter((h) => h.status !== "unsolved");
+    const scored = mttHistory.filter((h) => h.status !== "unsolved");
     const bestCount = scored.filter((h) => h.status === "correct").length;
     const mixCount = scored.filter((h) => h.status === "mixed").length;
     const errorCount = scored.filter((h) => h.status === "error").length;
@@ -297,110 +341,131 @@ export function PokerStudioApp({
       fatalDueCount: fatalDue.length,
       totalDueCount: trainerDue.length + fatalDue.length,
       firstDueSpotId: trainerDue[0]?.spotId ?? null,
-      totalHands: history.length,
+      totalHands: mttHistory.length,
       bestCount,
       mixCount,
       errorCount,
       accuracyPct,
     };
-  }, [adaptiveRecords, fatalAttempts, history, nowMs]);
+  }, [adaptiveRecords, canonicalSpots, fatalAttempts, history, nowMs]);
 
   const hasAnyKey = Boolean(apiKey.trim()) || hasEnvKey;
 
-  const tabs: {
-    id: TabId;
+  const activeDomain =
+    activeTab === "trainer" || activeTab === "clean-trainer"
+      ? "treinar"
+      : activeTab === "explorer"
+        ? "ranges"
+        : activeTab === "hand-library"
+          ? "biblioteca"
+          : activeTab === "replayer"
+            ? "replayer"
+            : activeTab === "math" || activeTab === "math-lab"
+              ? "laboratorio"
+              : activeTab === "curriculum" ||
+                  activeTab === "fatal-errors" ||
+                  activeTab === "coach"
+                ? "estudos"
+                : "estatisticas";
+
+  const statsBadge =
+    adaptiveRecords.length > 0
+      ? adaptiveRecords.length
+      : history.length > 0
+        ? history.length
+        : undefined;
+
+  const domainNavItems: {
+    id: string;
+    domain: typeof activeDomain;
     label: string;
+    targetTab: TabId;
+    dataTour: string;
     icon: React.ReactNode;
     badge?: number;
   }[] = [
     {
-      id: "hand-library",
-      label: "Biblioteca de Mãos",
-      icon: <BookOpen className="w-3.5 h-3.5" />,
-    },
-    {
-      id: "clean-trainer",
-      label: "Treiner Limpo",
-      icon: <Layers className="w-4 h-4" />,
-    },
-    {
-      id: "trainer",
-      label: "Modo Trainer",
+      id: "treinar",
+      domain: "treinar",
+      label: "Treinar",
+      targetTab: lastDomainSubTab.treinar,
+      dataTour: "domain-treinar",
       icon: <Target className="w-4 h-4" />,
     },
     {
-      id: "curriculum",
-      label: "Currículo & 18 Aulas",
-      icon: <BookOpen className="w-4 h-4" />,
-      badge: 18,
+      id: "ranges",
+      domain: "ranges",
+      label: "Ranges MTT",
+      targetTab: "explorer",
+      dataTour: "explorer",
+      icon: <Grid3X3 className="w-4 h-4" />,
+      badge: mttSpots.length,
     },
     {
-      id: "fatal-errors",
-      label: "Erros Fatais",
-      icon: <AlertTriangle className="w-4 h-4" />,
-      badge: 20,
+      id: "biblioteca",
+      domain: "biblioteca",
+      label: "Biblioteca",
+      targetTab: "hand-library",
+      dataTour: "hand-library",
+      icon: <BookOpen className="w-4 h-4" />,
     },
     {
       id: "replayer",
+      domain: "replayer",
       label: "Replayer",
+      targetTab: "replayer",
+      dataTour: "replayer",
       icon: <Clapperboard className="w-4 h-4" />,
     },
     {
-      id: "explorer",
-      label: "Explorador de Ranges",
-      icon: <Grid3X3 className="w-4 h-4" />,
-      badge: spots.length,
-    },
-    {
-      id: "math",
-      label: "Lab EV & ICM",
+      id: "laboratorio",
+      domain: "laboratorio",
+      label: "Laboratório",
+      targetTab: lastDomainSubTab.laboratorio,
+      dataTour: "domain-laboratorio",
       icon: <Calculator className="w-4 h-4" />,
     },
     {
-      id: "math-lab",
-      label: "Laboratório Matemático",
-      icon: <Calculator className="w-4 h-4" />,
-    },
-    {
-      id: "coach",
-      label: "AI Poker Coach",
+      id: "estudos",
+      domain: "estudos",
+      label: "Estudos",
+      targetTab: lastDomainSubTab.estudos,
+      dataTour: "domain-estudos",
       icon: <Sparkles className="w-4 h-4" />,
+      badge: 18,
     },
     {
-      id: "stats",
-      label: "Diagnóstico & Leaks",
+      id: "estatisticas",
+      domain: "estatisticas",
+      label: "Estatísticas",
+      targetTab: "stats",
+      dataTour: "stats",
       icon: <BarChart3 className="w-4 h-4" />,
-      badge:
-        adaptiveRecords.length > 0
-          ? adaptiveRecords.length
-          : history.length > 0
-            ? history.length
-            : undefined,
+      badge: statsBadge,
     },
   ];
 
   return (
     <div className="min-h-screen flex flex-col bg-[#05070B] text-[#F8FAFC]">
       <div className="h-[3px] w-full bg-gradient-to-r from-[#DC2626] via-[#2563EB] to-[#DC2626]" />
-      {/* Aviso fixo de Estudo Offline (recolhível para evitar poluição visual) */}
+      {/* Aviso de Estudo Offline (compacto e recolhível) */}
       {showOfflineNotice ? (
-        <div className="bg-[#090D16] border-b border-[#1E293B] px-3 sm:px-5 py-1 text-[0.6875rem] text-[#93C5FD] flex items-center justify-between gap-2">
+        <div className="bg-[#090D16] border-b border-[#1E293B] px-3 sm:px-5 py-1 text-xs text-[#93C5FD] flex items-center justify-between gap-2">
           <div className="flex items-center justify-center gap-2 mx-auto text-center">
             <ShieldCheck className="w-3.5 h-3.5 text-[#EF4444] shrink-0" />
             <span>
               <strong>
-                Uso exclusivo para estudo offline e revisão pós-sessão.
+                Uso exclusivo para estudo offline de MTT.
               </strong>{" "}
               <span className="hidden sm:inline">
-                Não oferece HUD, captura de tela de mesas ou assistência em
-                tempo real durante jogos ativos.
+                Sem HUD, captura de mesas ou assistência em tempo real durante jogos ativos.
               </span>
             </span>
           </div>
           <button
             type="button"
             onClick={() => setShowOfflineNotice(false)}
-            className="text-[0.625rem] font-semibold text-[#94A3B8] hover:text-white px-1.5 py-0.5 rounded border border-[#1E293B] shrink-0"
+            className="text-[0.6875rem] font-semibold text-[#CBD5E1] hover:text-white px-2 py-0.5 rounded border border-[#26334A] shrink-0"
             title="Recolher aviso"
           >
             Ocultar
@@ -411,23 +476,17 @@ export function PokerStudioApp({
           <button
             type="button"
             onClick={() => setShowOfflineNotice(true)}
-            className="text-[0.6rem] text-[#60A5FA] hover:underline flex items-center gap-1"
+            className="text-[0.6875rem] text-[#60A5FA] hover:underline flex items-center gap-1"
           >
             <ShieldCheck className="w-3 h-3 text-[#EF4444]" />
-            Aviso de estudo offline
+            Estudo offline
           </button>
         </div>
       )}
 
-      {/* Header / Navbar Preto, Azul e Vermelho (responsivo p/ celular, iPad e desktop) */}
-      <header
-        className={`${
-          activeTab === "replayer" || activeTab === "hand-library"
-            ? "relative lg:sticky"
-            : "sticky"
-        } top-0 z-30 border-b border-[#1E293B] bg-[#06080E]/95 backdrop-blur-md shadow-[0_6px_28px_rgba(0,0,0,0.65)]`}
-      >
-        <div className="w-full px-3 sm:px-5 lg:px-7 py-2 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-2">
+      {/* Header / Navbar Preto, Azul e Vermelho */}
+      <header className="relative lg:sticky top-0 z-30 border-b border-[#1E293B] bg-[#06080E]/95 backdrop-blur-md shadow-[0_6px_28px_rgba(0,0,0,0.65)]">
+        <div className="w-full px-3 sm:px-5 lg:px-7 py-2 flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between gap-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             {/* Logo */}
             <div className="flex items-center gap-2.5 min-w-0">
@@ -443,25 +502,25 @@ export function PokerStudioApp({
               </div>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  <h1 className="text-sm font-extrabold tracking-tight text-[#F8FAFC]">
+                  <h1 className="text-base sm:text-lg font-extrabold tracking-tight text-[#F8FAFC]">
                     TreinerLM
                   </h1>
-                  <span className="text-[0.6rem] px-1.5 py-0.5 rounded bg-[#2563EB]/20 border border-[#3B82F6]/50 text-[#93C5FD] font-bold">
-                    Study Lab V2
+                  <span className="text-[0.6875rem] px-1.5 py-0.5 rounded bg-[#2563EB]/20 border border-[#3B82F6]/50 text-[#93C5FD] font-bold">
+                    Estúdio Offline MTT
                   </span>
-                  <span className="hidden sm:inline-block text-[0.6rem] px-1.5 py-0.5 rounded bg-[#DC2626]/15 border border-[#DC2626]/45 text-[#FCA5A5] font-semibold">
+                  <span className="hidden md:inline-block 2xl:hidden text-[0.6875rem] px-1.5 py-0.5 rounded bg-[#DC2626]/15 border border-[#DC2626]/45 text-[#FCA5A5] font-semibold">
                     Desenvolvido por Luiz Miguel N. C.
                   </span>
                 </div>
-                <p className="text-[0.62rem] text-[#94A3B8] truncate">
-                  {canonicalSpots.length} spots · 18 aulas · {totalChunks} trechos
+                <p className="hidden sm:block text-[0.6875rem] text-[#94A3B8] truncate font-mono tabular-nums">
+                  {canonicalSpots.length} spots MTT · 18 aulas · {totalChunks} trechos
                   · {videos.length} vídeos locais
                 </p>
               </div>
             </div>
 
-            {/* Botões de utilidade (visíveis e compactos em desktop/iPad/mobile) */}
-            <div className="flex flex-wrap items-center gap-1.5 xl:order-3">
+            {/* Botões de utilidade */}
+            <div className="flex flex-wrap items-center gap-1.5 2xl:order-3">
               <AccessibilityControls />
               <button
                 type="button"
@@ -491,7 +550,6 @@ export function PokerStudioApp({
                 <span className="hidden md:inline">Fazer um tour</span>
                 <span className="md:hidden">Tour</span>
               </button>
-              {/* Status API + Engrenagem */}
               <button
                 data-tour="settings"
                 type="button"
@@ -508,51 +566,207 @@ export function PokerStudioApp({
                   }`}
                 />
                 <span className="hidden sm:inline">
-                  {hasAnyKey ? model : "Configurar AI Studio"}
+                  {hasAnyKey ? model : "Configurar IA"}
                 </span>
                 <Settings className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
-          {/* Navegação por Abas: deslize horizontal limpo no celular/iPad e quebra no desktop */}
+          {/* Navegação Principal Simplificada em 7 Domínios */}
           <nav
             data-tour="navigation"
-            aria-label="Áreas de estudo"
-            className="flex flex-nowrap overflow-x-auto no-scrollbar xl:flex-wrap items-center gap-1 bg-[#0A0E17] border border-[#1E293B] rounded-xl p-1 xl:order-2"
+            aria-label="Áreas principais de estudo"
+            className="flex flex-wrap lg:flex-nowrap overflow-x-auto no-scrollbar items-center gap-1 bg-[#0A0E17] border border-[#1E293B] rounded-xl p-1 2xl:order-2"
           >
-            {tabs.map((tab) => {
-              const active = activeTab === tab.id;
+            {domainNavItems.map((item) => {
+              const active = activeDomain === item.domain;
               return (
                 <button
-                  key={tab.id}
-                  data-tour={tab.id}
+                  key={item.id}
+                  data-tour={item.dataTour}
                   aria-current={active ? "page" : undefined}
                   type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 min-h-[36px] rounded-lg text-xs font-bold transition ${
+                  onClick={() => setActiveTab(item.targetTab)}
+                  className={`shrink-0 flex items-center gap-1.5 px-2 lg:px-3 py-1.5 min-h-[36px] rounded-lg text-xs font-bold transition ${
                     active
                       ? "bg-gradient-to-r from-[#DC2626] to-[#2563EB] text-white shadow-[0_2px_12px_rgba(37,99,235,0.35)]"
-                      : "text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#131B2C]"
+                      : "text-[#CBD5E1] hover:text-[#F8FAFC] hover:bg-[#131B2C]"
                   }`}
                 >
-                  {tab.icon}
-                  <span className="whitespace-nowrap">{tab.label}</span>
-                  {tab.badge !== undefined && (
+                  {item.icon}
+                  <span className="whitespace-nowrap">{item.label}</span>
+                  {item.badge !== undefined && (
                     <span
-                      className={`text-[0.6rem] px-1.5 py-0.2 rounded-full font-mono ${
+                      className={`text-[0.6875rem] px-1.5 py-0.2 rounded-full font-mono tabular-nums ${
                         active
                           ? "bg-black/30 text-white font-extrabold"
                           : "bg-[#05070B] text-[#94A3B8]"
                       }`}
                     >
-                      {tab.badge}
+                      {item.badge}
                     </span>
                   )}
                 </button>
               );
             })}
           </nav>
+        </div>
+
+        {/* Sub-barra Contextual de Submódulos por Domínio */}
+        <div className="border-t border-[#141D2F] bg-[#070A12] px-3 sm:px-5 lg:px-7 py-1.5">
+          <div
+            className={`${
+              activeDomain === "treinar" ? "flex" : "hidden"
+            } flex-wrap items-center gap-1.5`}
+          >
+            <button
+              type="button"
+              data-tour="trainer"
+              onClick={() => setActiveTab("trainer")}
+              className={`min-h-[34px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border transition ${
+                activeTab === "trainer"
+                  ? "bg-[#2563EB]/25 border-[#3B82F6] text-white"
+                  : "bg-[#05070B] border-[#1E293B] text-[#CBD5E1] hover:text-white"
+              }`}
+            >
+              <Target className="w-3.5 h-3.5 text-[#60A5FA]" />
+              Modo Trainer
+            </button>
+            <button
+              type="button"
+              data-tour="clean-trainer"
+              onClick={() => setActiveTab("clean-trainer")}
+              className={`min-h-[34px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border transition ${
+                activeTab === "clean-trainer"
+                  ? "bg-[#2563EB]/25 border-[#3B82F6] text-white"
+                  : "bg-[#05070B] border-[#1E293B] text-[#CBD5E1] hover:text-white"
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5 text-[#F87171]" />
+              Treiner Limpo
+            </button>
+          </div>
+
+          <div
+            className={`${
+              activeDomain === "laboratorio" ? "flex" : "hidden"
+            } flex-wrap items-center gap-1.5`}
+          >
+            <button
+              type="button"
+              data-tour="math"
+              onClick={() => setActiveTab("math")}
+              className={`min-h-[34px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border transition ${
+                activeTab === "math"
+                  ? "bg-[#2563EB]/25 border-[#3B82F6] text-white"
+                  : "bg-[#05070B] border-[#1E293B] text-[#CBD5E1] hover:text-white"
+              }`}
+            >
+              <Calculator className="w-3.5 h-3.5 text-[#60A5FA]" />
+              Lab EV &amp; ICM
+            </button>
+            <button
+              type="button"
+              data-tour="math-lab"
+              onClick={() => setActiveTab("math-lab")}
+              className={`min-h-[34px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border transition ${
+                activeTab === "math-lab"
+                  ? "bg-[#2563EB]/25 border-[#3B82F6] text-white"
+                  : "bg-[#05070B] border-[#1E293B] text-[#CBD5E1] hover:text-white"
+              }`}
+            >
+              <Calculator className="w-3.5 h-3.5 text-[#F87171]" />
+              Laboratório Matemático
+            </button>
+          </div>
+
+          <div
+            className={`${
+              activeDomain === "estudos" ? "flex" : "hidden"
+            } flex-wrap items-center gap-1.5`}
+          >
+            <button
+              type="button"
+              data-tour="curriculum"
+              onClick={() => setActiveTab("curriculum")}
+              className={`min-h-[34px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border transition ${
+                activeTab === "curriculum"
+                  ? "bg-[#2563EB]/25 border-[#3B82F6] text-white"
+                  : "bg-[#05070B] border-[#1E293B] text-[#CBD5E1] hover:text-white"
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5 text-[#60A5FA]" />
+              Currículo &amp; 18 Aulas
+            </button>
+            <button
+              type="button"
+              data-tour="fatal-errors"
+              onClick={() => setActiveTab("fatal-errors")}
+              className={`min-h-[34px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border transition ${
+                activeTab === "fatal-errors"
+                  ? "bg-[#DC2626]/25 border-[#EF4444] text-white"
+                  : "bg-[#05070B] border-[#1E293B] text-[#CBD5E1] hover:text-white"
+              }`}
+            >
+              <AlertTriangle className="w-3.5 h-3.5 text-[#F87171]" />
+              Erros Fatais
+              <span className="text-[0.6875rem] font-mono text-[#FCA5A5]">20</span>
+            </button>
+            <button
+              type="button"
+              data-tour="coach"
+              onClick={() => setActiveTab("coach")}
+              className={`min-h-[34px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border transition ${
+                activeTab === "coach"
+                  ? "bg-[#2563EB]/25 border-[#3B82F6] text-white"
+                  : "bg-[#05070B] border-[#1E293B] text-[#CBD5E1] hover:text-white"
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#60A5FA]" />
+              AI Poker Coach
+            </button>
+          </div>
+
+          <div
+            className={`${
+              activeDomain === "ranges" ? "flex" : "hidden"
+            } items-center justify-between text-xs text-[#94A3B8]`}
+          >
+            <span className="font-semibold text-[#CBD5E1]">
+              Explorador de Ranges · {mttSpots.length} matrizes MTT 8-Max confirmadas
+            </span>
+          </div>
+
+          <div
+            className={`${
+              activeDomain === "biblioteca" ? "flex" : "hidden"
+            } items-center justify-between text-xs text-[#94A3B8]`}
+          >
+            <span className="font-semibold text-[#CBD5E1]">
+              Biblioteca de Mãos · Acervo local SQLite e tags de revisão
+            </span>
+          </div>
+
+          <div
+            className={`${
+              activeDomain === "replayer" ? "flex" : "hidden"
+            } items-center justify-between text-xs text-[#94A3B8]`}
+          >
+            <span className="font-semibold text-[#CBD5E1]">
+              Replayer Ação por Ação · Sincronizado com a Biblioteca e o Laboratório
+            </span>
+          </div>
+
+          <div
+            className={`${
+              activeDomain === "estatisticas" ? "flex" : "hidden"
+            } items-center justify-between text-xs text-[#94A3B8]`}
+          >
+            <span className="font-semibold text-[#CBD5E1]">
+              Diagnóstico &amp; Leaks · Repetição espaçada e análise por posição
+            </span>
+          </div>
         </div>
       </header>
 
@@ -577,12 +791,15 @@ export function PokerStudioApp({
                 <button
                   type="button"
                   onClick={() => {
+                    setRequestedSpotId(null);
+                    setRequestedMode(null);
                     setRequestedSubView("table");
                     setRequestedInteractiveMode(null);
                     setRequestedPresetFilter({
                       street: "ALL",
                       sessionTargetHands: 10,
                     });
+                    setTrainerRequestNonce((n) => n + 1);
                     setActiveTab("trainer");
                   }}
                   className="inline-flex items-center gap-2 rounded-xl bg-[#2563EB] hover:bg-[#3B82F6] px-4 py-2 text-xs font-extrabold text-white shadow-lg transition"
@@ -596,12 +813,15 @@ export function PokerStudioApp({
                   <button
                     type="button"
                     onClick={() => {
+                      setRequestedSpotId(null);
+                      setRequestedMode(null);
                       setRequestedSubView("table");
                       setRequestedInteractiveMode(null);
                       setRequestedPresetFilter({
                         street: "PREFLOP",
                         sessionTargetHands: 10,
                       });
+                      setTrainerRequestNonce((n) => n + 1);
                       setActiveTab("trainer");
                     }}
                     className="rounded-lg bg-[#0F1522] hover:bg-[#162033] border border-[#1E293B] px-2.5 py-1.5 text-xs font-bold text-[#F8FAFC] transition"
@@ -611,12 +831,15 @@ export function PokerStudioApp({
                   <button
                     type="button"
                     onClick={() => {
+                      setRequestedSpotId(null);
+                      setRequestedMode(null);
                       setRequestedSubView("table");
                       setRequestedInteractiveMode(null);
                       setRequestedPresetFilter({
                         street: "POSTFLOP",
                         sessionTargetHands: 10,
                       });
+                      setTrainerRequestNonce((n) => n + 1);
                       setActiveTab("trainer");
                     }}
                     className="rounded-lg bg-[#0F1522] hover:bg-[#162033] border border-[#1E293B] px-2.5 py-1.5 text-xs font-bold text-[#F8FAFC] transition"
@@ -628,6 +851,8 @@ export function PokerStudioApp({
                     onClick={() => {
                       setRequestedSubView("interactive");
                       setRequestedInteractiveMode("range-builder");
+                      setRequestedPresetFilter(null);
+                      setTrainerRequestNonce((n) => n + 1);
                       setActiveTab("trainer");
                     }}
                     className="rounded-lg bg-[#0F1522] hover:bg-[#162033] border border-[#2563EB]/45 px-2.5 py-1.5 text-xs font-bold text-[#93C5FD] transition flex items-center gap-1"
@@ -640,6 +865,8 @@ export function PokerStudioApp({
                     onClick={() => {
                       setRequestedSubView("interactive");
                       setRequestedInteractiveMode("pot-odds");
+                      setRequestedPresetFilter(null);
+                      setTrainerRequestNonce((n) => n + 1);
                       setActiveTab("trainer");
                     }}
                     className="rounded-lg bg-[#0F1522] hover:bg-[#162033] border border-[#1E293B] px-2.5 py-1.5 text-xs font-bold text-[#F59E0B] transition"
@@ -651,6 +878,8 @@ export function PokerStudioApp({
                     onClick={() => {
                       setRequestedSubView("interactive");
                       setRequestedInteractiveMode("microlessons");
+                      setRequestedPresetFilter(null);
+                      setTrainerRequestNonce((n) => n + 1);
                       setActiveTab("trainer");
                     }}
                     className="rounded-lg bg-[#0F1522] hover:bg-[#162033] border border-[#1E293B] px-2.5 py-1.5 text-xs font-bold text-[#F8FAFC] transition"
@@ -671,7 +900,7 @@ export function PokerStudioApp({
                     <RotateCcw className="w-3.5 h-3.5 text-[#EF4444]" />
                     Revisar erros
                     {dueSummary.totalDueCount > 0 && (
-                      <span className="ml-0.5 rounded-full bg-[#DC2626]/25 px-1.5 py-0.2 font-mono text-[0.625rem] text-[#FCA5A5]">
+                      <span className="ml-0.5 rounded-full bg-[#DC2626]/25 px-1.5 py-0.2 font-mono text-[0.6875rem] text-[#FCA5A5]">
                         {dueSummary.totalDueCount}
                       </span>
                     )}
@@ -690,7 +919,7 @@ export function PokerStudioApp({
               <div className="flex flex-wrap items-center gap-2 text-xs">
                 <div className="flex items-center gap-3 rounded-xl bg-[#0F1522] border border-[#1E293B] px-3 py-1.5">
                   <div>
-                    <span className="text-[0.6rem] uppercase text-[#94A3B8] block">
+                    <span className="text-[0.6875rem] uppercase text-[#94A3B8] block">
                       Mãos
                     </span>
                     <strong className="font-mono text-sm text-white">
@@ -699,7 +928,7 @@ export function PokerStudioApp({
                   </div>
                   <div className="h-5 w-px bg-[#1E293B]" />
                   <div>
-                    <span className="text-[0.6rem] uppercase text-[#94A3B8] block">
+                    <span className="text-[0.6875rem] uppercase text-[#94A3B8] block">
                       Precisão
                     </span>
                     <strong className="font-mono text-sm text-[#60A5FA]">
@@ -739,7 +968,7 @@ export function PokerStudioApp({
       {/* Conteúdo Principal */}
       <main className="flex-1 w-full px-3 sm:px-5 lg:px-7 py-3 sm:py-4">
         {activeTab === "clean-trainer" && (
-          <CleanRangeTrainerView spots={spots} />
+          <CleanRangeTrainerView spots={mttSpots} />
         )}
 
         {activeTab === "trainer" && (
@@ -752,6 +981,7 @@ export function PokerStudioApp({
             requestedSubView={requestedSubView}
             requestedInteractiveMode={requestedInteractiveMode}
             requestedPresetFilter={requestedPresetFilter}
+            requestNonce={trainerRequestNonce}
             onClearRequestedSpot={handleClearRequestedSpot}
             onRecordHistory={handleRecordHistory}
             onRecordAdaptiveAttempt={handleRecordAdaptiveAttempt}
@@ -780,6 +1010,7 @@ export function PokerStudioApp({
             }
           >
             <HandLibraryView
+              refreshVersion={libraryStudyVersion}
               onOpenReplay={(recordId) => {
                 setLibrarySelection((old) => ({
                   recordId,
@@ -800,6 +1031,9 @@ export function PokerStudioApp({
           >
             <ReplayerView
               librarySelection={librarySelection}
+              onLibraryStudyChanged={() =>
+                setLibraryStudyVersion((v) => v + 1)
+              }
               onSendToLab={(scenario) => {
                 setLabScenario(scenario);
                 setLabRequest((n) => n + 1);
@@ -809,7 +1043,12 @@ export function PokerStudioApp({
           </Suspense>
         )}
 
-        {activeTab === "explorer" && <RangeExplorerView spots={spots} />}
+        {activeTab === "explorer" && (
+          <RangeExplorerView
+            spots={mttSpots}
+            verifiedCanonicalSpots={canonicalSpots}
+          />
+        )}
 
         {activeTab === "math" && <MathIcmLab />}
         {activeTab === "math-lab" && (

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Eye, EyeOff, KeyRound, Loader2, X } from "lucide-react";
 
 interface SettingsModalProps {
@@ -51,6 +51,29 @@ export function SettingsModal({
     ok: boolean;
     message: string;
   } | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (isOpen) {
+      previousFocusRef.current =
+        (document.activeElement as HTMLElement | null) ?? null;
+      if (!dialog.open) dialog.showModal();
+      queueMicrotask(() => closeButtonRef.current?.focus());
+    } else if (dialog.open) {
+      dialog.close();
+      const prev = previousFocusRef.current;
+      requestAnimationFrame(() => prev?.focus());
+    }
+    return () => {
+      if (dialog.open) dialog.close();
+      const prev = previousFocusRef.current;
+      requestAnimationFrame(() => prev?.focus());
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -60,7 +83,10 @@ export function SettingsModal({
     try {
       const res = await fetch("/api/coach", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Poker-Coach": "local-v1",
+        },
         body: JSON.stringify({
           prompt:
             "Responda apenas com: Conexão com AI Poker Coach OK! (1 linha).",
@@ -91,25 +117,35 @@ export function SettingsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-[#090D16] border border-[#26334A] shadow-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#1E293B] flex items-center justify-between">
+    <dialog
+      ref={dialogRef}
+      aria-labelledby="settings-modal-title"
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
+      className="m-auto w-[min(100%-2rem,32rem)] max-h-[88dvh] rounded-2xl bg-[#090D16] border border-[#26334A] p-0 text-[#F8FAFC] shadow-2xl backdrop:bg-black/75 backdrop:backdrop-blur-sm overflow-hidden"
+    >
+      <div className="flex flex-col max-h-[88dvh]">
+        <div className="px-5 py-4 border-b border-[#1E293B] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <KeyRound className="w-4 h-4 text-[#60A5FA]" />
-            <h2 className="text-sm font-bold text-[#F8FAFC]">
+            <h2 id="settings-modal-title" className="text-sm font-bold text-[#F8FAFC]">
               Configurações — Google AI Studio (Gemini API)
             </h2>
           </div>
           <button
+            ref={closeButtonRef}
             type="button"
+            aria-label="Fechar configurações"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#141D2F]"
+            className="p-2 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#141D2F]"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
+        <div className="p-5 space-y-4 overflow-y-auto">
           {hasEnvKey && (
             <div className="rounded-xl bg-[#0F1B33] border border-[#2563EB]/50 p-3 text-xs text-sky-200 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 shrink-0 text-[#60A5FA]" />
@@ -122,21 +158,23 @@ export function SettingsModal({
           )}
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300 block">
+            <label htmlFor="settings-gemini-key" className="text-xs font-semibold text-slate-200 block">
               API Key do Google AI Studio
             </label>
             <div className="flex items-center gap-2">
               <input
+                id="settings-gemini-key"
                 type={showKey ? "text" : "password"}
                 value={draftKey}
                 onChange={(e) => setDraftKey(e.target.value)}
                 placeholder="AIzaSy..."
-                className="flex-1 bg-[#05070B] border border-[#26334A] rounded-xl px-3 py-2 text-xs font-mono text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-[#3B82F6]"
+                className="flex-1 bg-[#05070B] border border-[#26334A] rounded-xl px-3 py-2 text-xs font-mono text-slate-100 placeholder:text-[#7E8EA4] focus:outline-none focus:border-[#3B82F6]"
               />
               <button
                 type="button"
+                aria-label={showKey ? "Ocultar chave API" : "Mostrar chave API"}
                 onClick={() => setShowKey((s) => !s)}
-                className="p-2 rounded-xl bg-[#141D2F] hover:bg-[#1E293B] text-slate-300"
+                className="p-2 rounded-xl bg-[#141D2F] hover:bg-[#1E293B] text-slate-200"
                 title={showKey ? "Ocultar" : "Mostrar"}
               >
                 {showKey ? (
@@ -146,7 +184,7 @@ export function SettingsModal({
                 )}
               </button>
             </div>
-            <p className="text-[0.6875rem] text-slate-400">
+            <p className="text-[0.6875rem] text-[#94A3B8]">
               Salva apenas no seu navegador (<code>localStorage</code>) ou no
               arquivo local{" "}
               <code className="text-slate-300">app/.env.local</code>. Obtenha em{" "}
@@ -163,9 +201,9 @@ export function SettingsModal({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300 block">
+            <span className="text-xs font-semibold text-slate-200 block">
               Modelo Gemini
-            </label>
+            </span>
             <div className="space-y-2">
               {MODEL_OPTIONS.map((opt) => (
                 <button
@@ -179,7 +217,7 @@ export function SettingsModal({
                   }`}
                 >
                   <div className="text-xs font-bold">{opt.label}</div>
-                  <div className="text-[0.6875rem] text-slate-400">{opt.desc}</div>
+                  <div className="text-[0.6875rem] text-[#94A3B8]">{opt.desc}</div>
                 </button>
               ))}
             </div>
@@ -198,7 +236,7 @@ export function SettingsModal({
           )}
         </div>
 
-        <div className="px-5 py-3.5 border-t border-[#1E293B] bg-[#05070B]/80 flex items-center justify-between gap-2">
+        <div className="px-5 py-3.5 border-t border-[#1E293B] bg-[#05070B]/90 flex items-center justify-between gap-2 shrink-0">
           <button
             type="button"
             onClick={handleTest}
@@ -213,7 +251,7 @@ export function SettingsModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-2 rounded-xl text-slate-400 hover:text-white text-xs font-semibold"
+              className="px-3 py-2 rounded-xl text-[#CBD5E1] hover:text-white text-xs font-semibold"
             >
               Cancelar
             </button>
@@ -230,6 +268,6 @@ export function SettingsModal({
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

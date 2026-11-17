@@ -107,7 +107,7 @@ export const DAILY_DOSE_MICROLESSONS: readonly DailyDoseMicrolesson[] = [
       "Pot Odds responde se a SUA mão específica tem equidade suficiente contra o range real do vilão. Já o MDF indica a fração teórica do seu range que precisaria continuar para impedir lucro automático com quaisquer duas cartas sem equidade.",
     mathBreakdown:
       "Eq_min = B / (P + 2B) = 5 / (10 + 10) = 25,00%. MDF = P / (P + B) = 10 / (10 + 5) = 66,67%. A razão de blefes equilibrada do agressor no river é 25% blefe : 75% valor (1:3).",
-    linkedSpotId: "didactic_mtt_8max_30bb_bb_vs_btn_cbet_v1",
+    linkedSpotId: "unsolved_bb_vs_cbet_flop_v1",
     linkedInteractiveMode: "pot-odds",
     linkedFatalErrorId: "EF05",
   },
@@ -379,7 +379,7 @@ export const DAILY_DOSE_MICROLESSONS: readonly DailyDoseMicrolesson[] = [
       "Enquanto a vantagem de range global favorece apostas frequentes e pequenas (como no flop), a vantagem de nuts e a polarização no turn/river favorecem sizings grandes (75% a overbet) contra um oponente cujo topo de range está limitado.",
     mathBreakdown:
       "Para B = 33% Pote: FE_min = 25% e razão Blefe/Valor river = 20% blefe. Para B = 100% Pote: FE_min = 50% e razão Blefe/Valor river = 33,3% blefe.",
-    linkedSpotId: "didactic_mtt_8max_30bb_btn_turn_barrel_v1",
+    linkedSpotId: "unsolved_turn_barrel_btn_vs_bb_v1",
     linkedInteractiveMode: "sizings",
     linkedFatalErrorId: "EF11",
   },
@@ -418,7 +418,7 @@ export const DAILY_DOSE_MICROLESSONS: readonly DailyDoseMicrolesson[] = [
       "Dar raise/fold com 22–55 ou A7o desperdiça muita equidade quando o BB aplica 3-bet shove. O open-shove direto garante 100% da realização da sua equidade, enquanto o min-raise fica reservado para o topo (que paga o shove) e mãos com blockers (que dão raise/fold barato).",
     mathBreakdown:
       "Com 15 BB, um min-raise de 2 BB compromete 13,3% do stack. Se o vilão aplica 3-bet all-in, você precisa de ~42% de equidade para pagar os 13 BB restantes.",
-    linkedSpotId: "15bb_rfi_btn",
+    linkedSpotId: "verified_mtt_8max_15bb_btn_rfi_short_v1",
     linkedInteractiveMode: "range-builder",
     linkedFatalErrorId: "EF01",
   },
@@ -457,7 +457,7 @@ export const DAILY_DOSE_MICROLESSONS: readonly DailyDoseMicrolesson[] = [
       "Com um microstack de 6 BB prestes a ser eliminado, confrontar outro stack médio de 20 BB transfere $EV gratuitamente para o short stack toda vez que você é eliminado. Por isso seu range de call encolhe drasticamente.",
     mathBreakdown:
       "BF = Δ$EV_perda / Δ$EV_ganho = 1,50. Eq_min($EV) = BF / (BF + 1) = 1,50 / 2,50 = 60,00%. Risk Premium vs flip = 60% - 50% = +10,00%.",
-    linkedSpotId: "didactic_mtt_8max_20bb_btn_vs_co_icm_v1",
+    linkedSpotId: "verified_icm_ft_6max_20bb_sb_vs_btn_v1",
     linkedInteractiveMode: "pot-odds",
     linkedFatalErrorId: "EF17",
   },
@@ -496,7 +496,7 @@ export const DAILY_DOSE_MICROLESSONS: readonly DailyDoseMicrolesson[] = [
       "Cobertura de board (board coverage) exige que sua linha de check também contenha flushes quando a 3ª carta do naipe vier no turn, impedindo que o vilão possa aplicar overbet impunemente toda vez que o flush completar.",
     mathBreakdown:
       "Um flush draw no flop tem 9 outs (~19,1% do flop para o turn; ~35% até o river). Ao dar check-back em posição, você realiza gratuitamente a carta do turn sem risco de enfrentar check-raise.",
-    linkedSpotId: "didactic_mtt_8max_30bb_btn_turn_barrel_v1",
+    linkedSpotId: "didactic_flop_cbet_btn_vs_bb_v1",
     linkedInteractiveMode: "streets",
     linkedFatalErrorId: "EF10",
   },
@@ -535,7 +535,7 @@ export const DAILY_DOSE_MICROLESSONS: readonly DailyDoseMicrolesson[] = [
       "Diante de uma aposta de 1/3 do pote, o agressor só precisa de 25% de folds para empatar um blefe sem equidade. O BB precisa defender segundos/terceiros pares e mãos com backdoors para não ser explorado por range-bets.",
     mathBreakdown:
       "Aposta B = 0,33 P → FE_breakeven = 0,33 / 1,33 = 25,0%. MDF estático = 1 / 1,33 = 75,0%. Pot Odds direto = 0,33 / 1,66 = 20,0%.",
-    linkedSpotId: "didactic_mtt_8max_30bb_bb_vs_btn_cbet_v1",
+    linkedSpotId: "verified_postflop_bb_vs_btn_cbet_8s7s5d_v1",
     linkedInteractiveMode: "streets",
     linkedFatalErrorId: "EF09",
   },
@@ -627,7 +627,7 @@ export function evaluateRangeConstruction(
     totalAvailableDeckCombos += avail;
     userWeightedCombos += u * avail;
     targetWeightedCombos += t * avail;
-    totalError += Math.abs(delta);
+    totalError += Math.abs(delta) * avail;
 
     let status: RangeConstructionDiffCell["status"] = "match";
     if (u <= 0.02 && t <= 0.02) {
@@ -659,7 +659,11 @@ export function evaluateRangeConstruction(
   underIncluded.sort((a, b) => a.delta - b.delta);
 
   const accuracyPct = Number(
-    Math.max(0, (1 - totalError / ALL_169_HANDS.length) * 100).toFixed(1),
+    (
+      totalAvailableDeckCombos > 0
+        ? Math.max(0, (1 - totalError / totalAvailableDeckCombos) * 100)
+        : 100
+    ).toFixed(1),
   );
 
   return {

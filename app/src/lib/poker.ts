@@ -1,6 +1,7 @@
 export * from "./poker/cards.ts";
 export * from "./poker/stateEngine.ts";
 export * from "./poker/strategySchema.ts";
+export * from "./poker/mttCatalog.ts";
 export * from "./poker/mathEngine.ts";
 export * from "./poker/drillEvaluator.ts";
 export * from "./poker/reglifeCatalog.ts";
@@ -8,6 +9,8 @@ export * from "./poker/spotReasoning.ts";
 export * from "./poker/solverAdapter.ts";
 export * from "./poker/solverFormats.ts";
 export * from "./poker/adaptiveDiagnostics.ts";
+export * from "./poker/uiPresentation.ts";
+export * from "./poker/trainerStorage.ts";
 
 import {
   cellToHand,
@@ -110,7 +113,11 @@ export function isBorderlineHand(hand: string, spot: RangeSpot): boolean {
   return false;
 }
 
-export function pickDrillHand(spot: RangeSpot, difficulty: DrillDifficulty): string {
+export function pickDrillHand(
+  spot: RangeSpot,
+  difficulty: DrillDifficulty,
+  rng: () => number = Math.random,
+): string {
   const matrixKeys = Object.keys(spot.matrix ?? {});
   const hands = matrixKeys.length > 0 ? getAll169Hands().filter((h) => spot.matrix[h] !== undefined) : getAll169Hands();
   let pool: string[] = [];
@@ -133,7 +140,7 @@ export function pickDrillHand(spot: RangeSpot, difficulty: DrillDifficulty): str
     return w;
   });
 
-  let roll = Math.random() * totalWeight;
+  let roll = rng() * totalWeight;
   for (let i = 0; i < pool.length; i++) {
     roll -= weights[i];
     if (roll <= 0) return pool[i];
@@ -152,6 +159,7 @@ export interface DecisionEvaluation {
   detail: string;
 }
 
+/** @deprecated Use `evaluateDrillDecision` de `./poker/drillEvaluator.ts`. Mantido apenas por compatibilidade histórica; não pune ações positivas < 5% no mix. */
 export function evaluateDecision(
   spot: RangeSpot,
   hand: string,
@@ -196,7 +204,7 @@ export function evaluateDecision(
     };
   }
 
-  if (chosenFreq >= 0.05) {
+  if (chosenFreq > 0) {
     if (useRng && rngTargetAction && rngTargetAction !== chosenAction) {
       return {
         status: "mixed",
@@ -218,7 +226,7 @@ export function evaluateDecision(
       rngTargetAction,
       headline: useRng ? "Jogada Mista alinhada ao RNG!" : "Jogada Mista válida!",
       detail: `${hand} divide estratégia: ${Object.entries(dist)
-        .filter(([, v]) => v >= 0.02)
+        .filter(([, v]) => v > 0)
         .sort((a, b) => b[1] - a[1])
         .map(([k, v]) => `${k} ${Math.round(v * 100)}%`)
         .join(" / ")}.`,
@@ -323,7 +331,7 @@ export function buildTableContext(spot: RangeSpot): {
   if (spot.spotType === "rfi") {
     scenarioText = `Rodada em fold até você no ${spot.heroPosition} (${spot.stackBb} BB efetivos).`;
   } else if (spot.spotType === "push_fold") {
-    scenarioText = `Spin & Go (${spot.stackBb} BB): rodada em fold até você no ${spot.heroPosition}.`;
+    scenarioText = `MTT Push/Fold (${spot.stackBb} BB): rodada em fold até você no ${spot.heroPosition}.`;
   } else if (spot.spotType === "vs_rfi") {
     scenarioText = `${spot.villainPosition} abre Raise e todos foldam até você no ${spot.heroPosition} (${spot.stackBb} BB).`;
   } else if (spot.spotType === "vs_limp") {

@@ -53,6 +53,27 @@ export interface SolutionSource {
   evAvailable?: boolean;
 }
 
+export interface MatrixCellDeviation {
+  hand: string;
+  sum: number;
+  deltaFromOne: number;
+  category: "ROUNDING_RESIDUAL" | "EXTRACTION_LOSS_MINOR" | "EXTRACTION_LOSS_SEVERE" | "INVALID_DISTRIBUTION";
+  detail: string;
+}
+
+export interface MatrixIntegrityAudit {
+  totalCells: number;
+  exactCellsCount: number;
+  roundingResidualsCount: number;
+  minorExtractionLossCount: number;
+  severeExtractionLossCount: number;
+  unreliableCellsCount: number;
+  hasUnreliableCells: boolean;
+  flaggedCells: MatrixCellDeviation[];
+  sourceReference: string;
+  neverAutoNormalized: true;
+}
+
 export interface ReferenceStrategy {
   status: StrategyStatus;
   evUnit: StrategyUnit | null;
@@ -66,6 +87,7 @@ export interface ReferenceStrategy {
   assumptions: SolutionAssumptions | null;
   assumptionsHash: string | null;
   validationWarnings?: string[];
+  integrityAudit?: MatrixIntegrityAudit;
 }
 
 export interface LessonMetadata {
@@ -381,6 +403,194 @@ export function mapLegacySpotTypeToTrack(spot: LegacyRangeSpot): CurriculumTrack
   return "PREFLOP_VS_RFI";
 }
 
+export function classifyCellDistributionIntegrity(
+  dist: Record<string, number> | null | undefined,
+  legalActionNames: readonly string[],
+  handClass: string,
+): {
+  status: "COMPLETE" | "ROUNDING_ONLY" | "INCOMPLETE_MINOR" | "INCOMPLETE_SEVERE" | "INVALID";
+  sum: number;
+  deltaFromOne: number;
+  deviation: MatrixCellDeviation | null;
+} {
+  if (!dist || typeof dist !== "object") {
+    const deviation: MatrixCellDeviation = {
+      hand: handClass,
+      sum: 0,
+      deltaFromOne: 1,
+      category: "INVALID_DISTRIBUTION",
+      detail: `Mão ausente na matriz (${handClass})`,
+    };
+    return { status: "INVALID", sum: 0, deltaFromOne: 1, deviation };
+  }
+
+  const check = validateHandDistribution(dist, legalActionNames, 0.002);
+  const sum = check.sum;
+  const diff = Math.round(Math.abs(sum - 1) * 10000) / 10000;
+  const hasActionErrors = check.errors.some((e) => !e.includes("Soma das frequências"));
+
+  if (hasActionErrors) {
+    const deviation: MatrixCellDeviation = {
+      hand: handClass,
+      sum,
+      deltaFromOne: diff,
+      category: "INVALID_DISTRIBUTION",
+      detail: check.errors.join(" "),
+    };
+    return { status: "INVALID", sum, deltaFromOne: diff, deviation };
+  }
+  if (diff <= 1e-6) {
+    return { status: "COMPLETE", sum, deltaFromOne: diff, deviation: null };
+  }
+  if (diff <= 0.002) {
+    return {
+      status: "ROUNDING_ONLY",
+      sum,
+      deltaFromOne: diff,
+      deviation: {
+        hand: handClass,
+        sum,
+        deltaFromOne: diff,
+        category: "ROUNDING_RESIDUAL",
+        detail: `${handClass}: soma=${sum} (resíduo trivial de arredondamento)`,
+      },
+    };
+  }
+  if (diff <= 0.03) {
+    return {
+      status: "INCOMPLETE_MINOR",
+      sum,
+      deltaFromOne: diff,
+      deviation: {
+        hand: handClass,
+        sum,
+        deltaFromOne: diff,
+        category: "EXTRACTION_LOSS_MINOR",
+        detail: `${handClass}: soma=${sum} (perda menor na extração > 0,002)`,
+      },
+    };
+  }
+  return {
+    status: "INCOMPLETE_SEVERE",
+    sum,
+    deltaFromOne: diff,
+    deviation: {
+      hand: handClass,
+      sum,
+      deltaFromOne: diff,
+      category: "EXTRACTION_LOSS_SEVERE",
+      detail: `${handClass}: soma=${sum} (perda relevante na extração)`,
+    },
+  };
+}
+
+export function getSpotHandIntegrityIssue(
+  spot: CanonicalSpot | null | undefined,
+  handClass: string,
+): MatrixCellDeviation | null {
+  if (!spot || !spot.referenceStrategy?.matrixFrequencies) return null;
+  if (spot.referenceStrategy.status === "UNSOLVED") return null;
+  const audited = spot.referenceStrategy.integrityAudit?.flaggedCells.find(
+    (c) => c.hand === handClass,
+  );
+  if (audited) return audited;
+
+  const dist = spot.referenceStrategy.matrixFrequencies[handClass];
+  if (!dist) return null;
+  const checked = classifyCellDistributionIntegrity(
+    dist,
+    spot.legalActions.map((a) => a.name),
+    handClass,
+  );
+  if (
+    checked.deviation &&
+    checked.deviation.category !== "ROUNDING_RESIDUAL"
+  ) {
+    return checked.deviation;
+  }
+  return null;
+}
+
+export function auditMatrixDistributionIntegrity(
+  matrix: Record<string, Record<string, number>>,
+  legalActionNames: readonly string[],
+  sourceReference: string,
+): MatrixIntegrityAudit {
+  const hands = getAll169Hands();
+  let exactCellsCount = 0;
+  let roundingResidualsCount = 0;
+  let minorExtractionLossCount = 0;
+  let severeExtractionLossCount = 0;
+  const flaggedCells: MatrixCellDeviation[] = [];
+
+  for (const hand of hands) {
+    const dist = matrix[hand];
+    if (!dist) {
+      severeExtractionLossCount++;
+      flaggedCells.push({
+        hand,
+        sum: 0,
+        deltaFromOne: 1,
+        category: "INVALID_DISTRIBUTION",
+        detail: `Mão ausente na matriz (${hand})`,
+      });
+      continue;
+    }
+
+    const check = validateHandDistribution(dist, legalActionNames, 0.002);
+    const sum = check.sum;
+    const diff = Math.round(Math.abs(sum - 1) * 10000) / 10000;
+    const hasActionErrors = check.errors.some((e) => !e.includes("Soma das frequências"));
+
+    if (hasActionErrors) {
+      severeExtractionLossCount++;
+      flaggedCells.push({
+        hand,
+        sum,
+        deltaFromOne: diff,
+        category: "INVALID_DISTRIBUTION",
+        detail: check.errors.join(" "),
+      });
+    } else if (diff <= 1e-6) {
+      exactCellsCount++;
+    } else if (diff <= 0.002) {
+      roundingResidualsCount++;
+    } else if (diff <= 0.03) {
+      minorExtractionLossCount++;
+      flaggedCells.push({
+        hand,
+        sum,
+        deltaFromOne: diff,
+        category: "EXTRACTION_LOSS_MINOR",
+        detail: `${hand}: soma=${sum} (perda menor na extração > 0,002)`,
+      });
+    } else {
+      severeExtractionLossCount++;
+      flaggedCells.push({
+        hand,
+        sum,
+        deltaFromOne: diff,
+        category: "EXTRACTION_LOSS_SEVERE",
+        detail: `${hand}: soma=${sum} (perda relevante na extração)`,
+      });
+    }
+  }
+
+  const unreliableCellsCount = minorExtractionLossCount + severeExtractionLossCount;
+  return {
+    totalCells: hands.length,
+    exactCellsCount,
+    roundingResidualsCount,
+    minorExtractionLossCount,
+    severeExtractionLossCount,
+    unreliableCellsCount,
+    hasUnreliableCells: unreliableCellsCount > 0,
+    flaggedCells,
+    sourceReference,
+    neverAutoNormalized: true,
+  };
+}
+
 export function adaptLegacyRangeSpotToCanonical(spot: LegacyRangeSpot): CanonicalSpot {
   const isSpin = spot.id.startsWith("spin_");
   const playersInitial = isSpin ? 3 : 8;
@@ -395,6 +605,11 @@ export function adaptLegacyRangeSpotToCanonical(spot: LegacyRangeSpot): Canonica
           : null;
 
   const legalActionNames = spot.actions.map((a) => a.name);
+  const integrityAudit = auditMatrixDistributionIntegrity(
+    spot.matrix,
+    legalActionNames,
+    spot.source,
+  );
   const warnings: string[] = [];
   for (const hand of getAll169Hands()) {
     const dist = spot.matrix[hand];
@@ -459,6 +674,7 @@ export function adaptLegacyRangeSpotToCanonical(spot: LegacyRangeSpot): Canonica
       assumptions,
       assumptionsHash: computeAssumptionsHash(assumptions),
       validationWarnings: warnings.length > 0 ? warnings : undefined,
+      integrityAudit,
     },
     lesson: {
       trackId,

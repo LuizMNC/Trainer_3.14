@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   BookOpen,
   Calculator,
@@ -11,6 +11,7 @@ import {
   Layers,
   Play,
   Scale,
+  ShieldAlert,
   Target,
   XCircle,
 } from "lucide-react";
@@ -18,7 +19,13 @@ import {
   cellToHand as getHandClass,
   RANKS as RANK_LABELS,
 } from "@/lib/poker/cards";
-import type { CanonicalSpot, TrainerModeId } from "@/lib/poker";
+import {
+  filterConfirmedMttCanonicalSpots,
+  formatActionLabelPtBr,
+  formatStrategySourceBadgePtBr,
+  type CanonicalSpot,
+  type TrainerModeId,
+} from "@/lib/poker";
 import {
   BLOCKER_DRILL_SCENARIOS,
   DAILY_DOSE_MICROLESSONS,
@@ -37,6 +44,7 @@ interface InteractiveDrillsLabProps {
   canonicalSpots: CanonicalSpot[];
   initialMode?: InteractiveModeId;
   initialTab?: InteractiveModeId;
+  requestNonce?: number;
   onLaunchSpotInTrainer?: (spotId: string, mode?: TrainerModeId) => void;
   onLaunchSpotInTable?: (spotId: string, mode?: TrainerModeId) => void;
 }
@@ -53,12 +61,29 @@ export function InteractiveDrillsLab({
   canonicalSpots,
   initialMode,
   initialTab,
+  requestNonce = 0,
   onLaunchSpotInTrainer,
   onLaunchSpotInTable,
 }: InteractiveDrillsLabProps) {
   const [activeMode, setActiveMode] = useState<InteractiveModeId>(
     initialTab ?? initialMode ?? "range-builder",
   );
+  const paintedByPointerRef = useRef<boolean>(false);
+  const [builderSearch, setBuilderSearch] = useState<string>("");
+  const [streetSearch, setStreetSearch] = useState<string>("");
+  const [showAllStreetSpots, setShowAllStreetSpots] = useState<boolean>(false);
+
+  useEffect(() => {
+    const next = initialTab ?? initialMode;
+    if (!next) return;
+    queueMicrotask(() => setActiveMode(next));
+  }, [initialTab, initialMode, requestNonce]);
+
+  const mttSpots = useMemo(
+    () => filterConfirmedMttCanonicalSpots(canonicalSpots),
+    [canonicalSpots],
+  );
+
   const launchSpot = (spotId: string, mode?: TrainerModeId) => {
     if (onLaunchSpotInTable) onLaunchSpotInTable(spotId, mode);
     else if (onLaunchSpotInTrainer) onLaunchSpotInTrainer(spotId, mode);
@@ -69,13 +94,15 @@ export function InteractiveDrillsLab({
   // ==========================================================================
   const builderSpots = useMemo(
     () =>
-      canonicalSpots.filter(
+      mttSpots.filter(
         (s) =>
           s.referenceStrategy.status !== "UNSOLVED" &&
           s.referenceStrategy.matrixFrequencies &&
-          Object.keys(s.referenceStrategy.matrixFrequencies).length > 0,
+          Object.keys(s.referenceStrategy.matrixFrequencies).length > 0 &&
+          (!builderSearch.trim() ||
+            s.name.toLowerCase().includes(builderSearch.trim().toLowerCase())),
       ),
-    [canonicalSpots],
+    [mttSpots, builderSearch],
   );
 
   const [builderSpotId, setBuilderSpotId] = useState<string>(() => {
@@ -238,7 +265,8 @@ export function InteractiveDrillsLab({
   const [matchupFilter, setMatchupFilter] = useState<"ALL" | "BTN_BB" | "SB_BB">("ALL");
 
   const streetSpots = useMemo(() => {
-    return canonicalSpots.filter((s) => {
+    const q = streetSearch.trim().toLowerCase();
+    return mttSpots.filter((s) => {
       if (streetFilter !== "ALL" && s.street !== streetFilter) return false;
       if (matchupFilter === "BTN_BB") {
         const pair = `${s.heroPosition}_${s.villainPosition}`;
@@ -248,9 +276,12 @@ export function InteractiveDrillsLab({
         const pair = `${s.heroPosition}_${s.villainPosition}`;
         if (pair !== "SB_BB" && pair !== "BB_SB") return false;
       }
+      if (q && !s.name.toLowerCase().includes(q) && !s.heroPosition.toLowerCase().includes(q)) {
+        return false;
+      }
       return true;
     });
-  }, [canonicalSpots, streetFilter, matchupFilter]);
+  }, [mttSpots, streetFilter, matchupFilter, streetSearch]);
 
   const [activeLessonId, setActiveLessonId] = useState<string>(
     DAILY_DOSE_MICROLESSONS[0].id,
@@ -273,11 +304,12 @@ export function InteractiveDrillsLab({
   return (
     <div
       className="flex flex-col gap-4"
-      onMouseUp={() => setIsPainting(false)}
+      onPointerUp={() => setIsPainting(false)}
+      onPointerCancel={() => setIsPainting(false)}
       onMouseLeave={() => setIsPainting(false)}
     >
       {/* Barra Compacta de Seleção do Treino Interativo */}
-      <div className="rounded-xl bg-[#191B1D] border border-[#363A3D] p-2.5 flex flex-wrap items-center justify-between gap-2">
+      <div className="rounded-xl bg-[#090D16] border border-[#1E293B] p-2.5 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Modos de treino interativo">
           {(
             [
@@ -334,13 +366,13 @@ export function InteractiveDrillsLab({
           })}
         </div>
 
-        <span className="text-[0.6875rem] font-mono text-[#A1A6AA] px-2">
+        <span className="text-[0.6875rem] font-mono text-[#94A3B8] px-2">
           Prática ativa · Explicações sob demanda
         </span>
       </div>
 
       {/* =====================================================================
-          MODO A: CONSTRUTOR DE RANGES 13×13 (ESTILO GTO WIZARD IMAGE 03)
+          MODO A: CONSTRUTOR DE RANGES 13×13 (EXCLUSIVO MTT)
       ===================================================================== */}
       {activeMode === "range-builder" && activeBuilderSpot && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
@@ -348,19 +380,30 @@ export function InteractiveDrillsLab({
           <div className="lg:col-span-5 rounded-xl bg-[#090D16] border border-[#1E293B] p-4 space-y-4">
             <div className="flex items-center justify-between gap-2 border-b border-[#1E293B] pb-3">
               <div>
-                <span className="text-[0.625rem] uppercase tracking-wider font-bold text-[#60A5FA]">
-                  Treino Prático A · Range Builder
+                <span className="text-[0.6875rem] uppercase tracking-wider font-bold text-[#60A5FA]">
+                  Treino Prático A · Construtor de Ranges MTT
                 </span>
                 <h3 className="text-base font-bold text-[#F8FAFC]">
                   Construa o Range na Grade 13×13
                 </h3>
               </div>
-              <span className="text-[0.625rem] font-mono px-2 py-0.5 rounded bg-[#0F1B33] border border-[#2563EB]/40 text-sky-200">
-                {activeBuilderSpot.referenceStrategy.status}
+              <span className="text-[0.6875rem] font-mono px-2 py-0.5 rounded bg-[#0F1B33] border border-[#2563EB]/40 text-sky-200">
+                {formatStrategySourceBadgePtBr(activeBuilderSpot.referenceStrategy.status)}
               </span>
             </div>
 
             <div className="space-y-2.5 text-xs">
+              <label className="block space-y-1">
+                <span className="text-[#94A3B8] font-semibold">Filtrar spots MTT ({builderSpots.length}):</span>
+                <input
+                  type="text"
+                  value={builderSearch}
+                  onChange={(e) => setBuilderSearch(e.target.value)}
+                  placeholder="Ex: 30BB, BTN, RFI, CO..."
+                  className="w-full rounded-lg bg-[#05070B] border border-[#26334A] px-3 py-1.5 text-xs text-[#F8FAFC] placeholder:text-[#7E8EA4] outline-none focus:border-[#3B82F6]"
+                />
+              </label>
+
               <label className="block space-y-1">
                 <span className="text-[#94A3B8] font-semibold">1. Cenário de Referência:</span>
                 <select
@@ -371,11 +414,11 @@ export function InteractiveDrillsLab({
                     setRangeCompared(false);
                     setShowReferenceOverlay(false);
                   }}
-                  className="w-full rounded-lg bg-[#05070B] border border-[#1E293B] px-3 py-2 text-xs text-[#F8FAFC] outline-none focus:border-[#3B82F6]"
+                  className="w-full rounded-lg bg-[#05070B] border border-[#26334A] px-3 py-2 text-xs text-[#F8FAFC] outline-none focus:border-[#3B82F6]"
                 >
-                  {builderSpots.slice(0, 60).map((s) => (
+                  {builderSpots.map((s) => (
                     <option key={s.spotId} value={s.spotId}>
-                      [{s.referenceStrategy.status === "VERIFIED" ? "VERIFIED" : s.street}]{" "}
+                      [{s.referenceStrategy.status === "VERIFIED" ? "Solver Verificado" : s.street}]{" "}
                       {s.name}
                     </option>
                   ))}
@@ -390,14 +433,14 @@ export function InteractiveDrillsLab({
                     setTargetActionName(e.target.value);
                     setRangeCompared(false);
                   }}
-                  className="w-full rounded-lg bg-[#05070B] border border-[#1E293B] px-3 py-2 text-xs text-[#F8FAFC] outline-none focus:border-[#3B82F6]"
+                  className="w-full rounded-lg bg-[#05070B] border border-[#26334A] px-3 py-2 text-xs text-[#F8FAFC] outline-none focus:border-[#3B82F6]"
                 >
                   <option value="ACTIVE_NON_FOLD">
                     Range de Continuidade / Abertura (Todas exceto Fold)
                   </option>
                   {activeBuilderSpot.legalActions.map((act) => (
                     <option key={act.name} value={act.name}>
-                      Ação específica: {act.name}
+                      Ação específica: {formatActionLabelPtBr(act.name)}
                     </option>
                   ))}
                 </select>
@@ -469,7 +512,7 @@ export function InteractiveDrillsLab({
                 <strong className="text-base font-mono text-[#F8FAFC]">
                   {rangeEval.userWeightedCombos} combos
                 </strong>
-                <span className="block text-[0.625rem] font-mono text-[#94A3B8]">
+                <span className="block text-[0.6875rem] font-mono text-[#94A3B8]">
                   {(
                     (rangeEval.userWeightedCombos /
                       Math.max(1, rangeEval.totalAvailableDeckCombos)) *
@@ -487,13 +530,33 @@ export function InteractiveDrillsLab({
                     ? `${rangeEval.targetWeightedCombos} combos`
                     : "Confirme para ver"}
                 </strong>
-                <span className="block text-[0.625rem] font-mono text-[#94A3B8]">
+                <span className="block text-[0.6875rem] font-mono text-[#94A3B8]">
                   {activeBuilderSpot.board.length > 0
                     ? `Board: ${activeBuilderSpot.board.join(" ")}`
                     : `Pré-flop (1326 combos)`}
                 </span>
               </div>
             </div>
+
+            {activeBuilderSpot.referenceStrategy.integrityAudit?.hasUnreliableCells && (
+              <div
+                role="status"
+                className="rounded-lg bg-[#1B1406] border border-[#F59E0B]/55 px-3 py-2 text-[0.6875rem] text-[#FDE68A] flex items-start gap-2"
+              >
+                <ShieldAlert className="w-4 h-4 text-[#FBBF24] shrink-0 mt-0.5" />
+                <span>
+                  Atenção na comparação: este range possui{" "}
+                  {activeBuilderSpot.referenceStrategy.integrityAudit.unreliableCellsCount}{" "}
+                  célula(s) com perda na extração original ({" "}
+                  {activeBuilderSpot.referenceStrategy.integrityAudit.flaggedCells
+                    .filter((c) => c.category !== "ROUNDING_RESIDUAL")
+                    .slice(0, 4)
+                    .map((c) => `${c.hand}: ${(c.sum * 100).toFixed(1)}%`)
+                    .join(", ")}
+                  ). Use para estudo sem assumir completude de 100% nessas células.
+                </span>
+              </div>
+            )}
 
             <div className="flex flex-wrap items-center gap-2">
               <button
@@ -592,7 +655,7 @@ export function InteractiveDrillsLab({
                       <i className="inline-block w-2.5 h-2.5 rounded-sm bg-[#DC2626]" /> Excesso
                     </span>
                     <span className="flex items-center gap-1 text-amber-300">
-                      <i className="inline-block w-2.5 h-2.5 rounded-sm bg-[#F1BE60]" /> Omissão
+                      <i className="inline-block w-2.5 h-2.5 rounded-sm bg-[#F59E0B]" /> Omissão
                     </span>
                   </>
                 )}
@@ -615,7 +678,7 @@ export function InteractiveDrillsLab({
                   let borderClass = "border-[#1E293B]";
                   if (rangeCompared && !showReferenceOverlay) {
                     if (cellEval?.status === "over") borderClass = "border-[#EF4444] ring-1 ring-[#EF4444]";
-                    else if (cellEval?.status === "under") borderClass = "border-[#F1BE60] ring-1 ring-[#F1BE60]";
+                    else if (cellEval?.status === "under") borderClass = "border-[#F59E0B] ring-1 ring-[#F59E0B]";
                     else if (cellEval?.status === "match" && tWeight > 0)
                       borderClass = "border-[#60A5FA]";
                   }
@@ -624,12 +687,21 @@ export function InteractiveDrillsLab({
                     <button
                       key={hand}
                       type="button"
-                      onMouseDown={() => {
+                      onPointerDown={(e) => {
+                        e.preventDefault();
+                        paintedByPointerRef.current = true;
                         setIsPainting(true);
                         applyCellPaint(hand);
                       }}
-                      onMouseEnter={() => {
+                      onPointerEnter={() => {
                         if (isPainting) applyCellPaint(hand);
+                      }}
+                      onClick={() => {
+                        if (paintedByPointerRef.current) {
+                          paintedByPointerRef.current = false;
+                          return;
+                        }
+                        applyCellPaint(hand);
                       }}
                       style={{
                         background:
@@ -640,7 +712,7 @@ export function InteractiveDrillsLab({
                       title={`${hand}: Seu peso ${Math.round(uWeight * 100)}%${
                         rangeCompared ? ` | Ref: ${Math.round(tWeight * 100)}%` : ""
                       }`}
-                      className={`aspect-square rounded-[3px] border ${borderClass} flex flex-col items-center justify-center text-[0.5rem] sm:text-[0.6875rem] font-mono font-bold text-[#F8FAFC] transition-colors`}
+                      className={`aspect-square rounded-[3px] border ${borderClass} flex flex-col items-center justify-center text-[0.6875rem] font-mono tabular-nums font-bold text-[#F8FAFC] transition-colors touch-manipulation`}
                     >
                       <span>{hand}</span>
                     </button>
@@ -660,14 +732,14 @@ export function InteractiveDrillsLab({
           <div className="lg:col-span-6 rounded-xl bg-[#090D16] border border-[#1E293B] p-5 space-y-4">
             <div className="flex items-center justify-between border-b border-[#1E293B] pb-3">
               <div>
-                <span className="text-[0.625rem] uppercase tracking-wider font-bold text-[#60A5FA]">
+                <span className="text-[0.6875rem] uppercase tracking-wider font-bold text-[#60A5FA]">
                   Treino Prático B · Pot Odds &amp; MDF
                 </span>
                 <h3 className="text-base font-bold text-[#F8FAFC]">
                   Qual a Equidade Mínima para Pagar?
                 </h3>
               </div>
-              <span className="text-[0.625rem] font-mono px-2 py-0.5 rounded bg-[#0F1B33] border border-[#2563EB]/40 text-sky-200">
+              <span className="text-[0.6875rem] font-mono px-2 py-0.5 rounded bg-[#0F1B33] border border-[#2563EB]/40 text-sky-200">
                 Fórmula Analítica Exata
               </span>
             </div>
@@ -794,7 +866,7 @@ export function InteractiveDrillsLab({
                       potOddsEval.grade === "EXATO"
                         ? "bg-[#0F1B33] text-sky-200 border border-[#2563EB]/50"
                         : potOddsEval.grade === "APROXIMADO"
-                          ? "bg-amber-950 text-[#F1BE60] border border-amber-600/50"
+                          ? "bg-amber-950 text-[#FCD34D] border border-amber-600/50"
                           : "bg-[#2B0B11] text-red-200 border border-[#DC2626]/50"
                     }`}
                   >
@@ -850,14 +922,14 @@ export function InteractiveDrillsLab({
           <div className="lg:col-span-6 rounded-xl bg-[#090D16] border border-[#1E293B] p-5 space-y-4">
             <div className="flex items-center justify-between border-b border-[#1E293B] pb-3">
               <div>
-                <span className="text-[0.625rem] uppercase tracking-wider font-bold text-[#60A5FA]">
+                <span className="text-[0.6875rem] uppercase tracking-wider font-bold text-[#60A5FA]">
                   Treino Prático C · Remoção de Cartas
                 </span>
                 <h3 className="text-base font-bold text-[#F8FAFC]">
                   Qual Mão Bloqueia Mais o Range-Alvo?
                 </h3>
               </div>
-              <span className="text-[0.625rem] font-mono px-2 py-0.5 rounded bg-[#0F1B33] border border-[#2563EB]/40 text-sky-200">
+              <span className="text-[0.6875rem] font-mono px-2 py-0.5 rounded bg-[#0F1B33] border border-[#2563EB]/40 text-sky-200">
                 EXACT_ENUMERATION
               </span>
             </div>
@@ -914,7 +986,7 @@ export function InteractiveDrillsLab({
                         : "bg-[#05070B] border-[#1E293B] text-[#94A3B8] hover:border-[#60A5FA]"
                     }`}
                   >
-                    <span className="text-[0.625rem] font-mono uppercase text-[#60A5FA] block">
+                    <span className="text-[0.6875rem] font-mono uppercase text-[#60A5FA] block">
                       Candidata {side}
                     </span>
                     <strong className="text-base font-bold text-[#F8FAFC] block mt-0.5">
@@ -1017,14 +1089,14 @@ export function InteractiveDrillsLab({
           <div className="lg:col-span-6 rounded-xl bg-[#090D16] border border-[#1E293B] p-5 space-y-4">
             <div className="flex items-center justify-between border-b border-[#1E293B] pb-3">
               <div>
-                <span className="text-[0.625rem] uppercase tracking-wider font-bold text-[#60A5FA]">
+                <span className="text-[0.6875rem] uppercase tracking-wider font-bold text-[#60A5FA]">
                   Treino Prático D · Comparação de Sizings
                 </span>
                 <h3 className="text-base font-bold text-[#F8FAFC]">
                   Sizing Pequeno vs Sizing Grande (EV Modelado)
                 </h3>
               </div>
-              <span className="text-[0.625rem] font-mono px-2 py-0.5 rounded bg-amber-950/60 border border-amber-600/40 text-[#F1BE60]">
+              <span className="text-[0.6875rem] font-mono px-2 py-0.5 rounded bg-amber-950/60 border border-amber-600/40 text-[#FCD34D]">
                 MODEL_BASED_EV (Não é Solver)
               </span>
             </div>
@@ -1191,7 +1263,7 @@ export function InteractiveDrillsLab({
                   {sizingModel.evABb >= 0 ? "+" : ""}
                   {sizingModel.evABb.toFixed(2)} BB
                 </strong>
-                <span className="block text-[0.625rem] font-mono text-[#94A3B8]">
+                <span className="block text-[0.6875rem] font-mono text-[#94A3B8]">
                   FE min: {sizingModel.breakevenFoldAPct}%
                 </span>
               </div>
@@ -1203,7 +1275,7 @@ export function InteractiveDrillsLab({
                   {sizingModel.evBBb >= 0 ? "+" : ""}
                   {sizingModel.evBBb.toFixed(2)} BB
                 </strong>
-                <span className="block text-[0.625rem] font-mono text-[#94A3B8]">
+                <span className="block text-[0.6875rem] font-mono text-[#94A3B8]">
                   FE min: {sizingModel.breakevenFoldBPct}%
                 </span>
               </div>
@@ -1212,7 +1284,7 @@ export function InteractiveDrillsLab({
                 <strong className="text-lg font-mono text-[#F8FAFC]">
                   +{sizingModel.evCheckBb.toFixed(2)} BB
                 </strong>
-                <span className="block text-[0.625rem] font-mono text-[#A1A6AA]">
+                <span className="block text-[0.6875rem] font-mono text-[#94A3B8]">
                   Δ A vs B: {sizingModel.deltaEvBb.toFixed(2)} BB
                 </span>
               </div>
@@ -1261,18 +1333,26 @@ export function InteractiveDrillsLab({
           MODO E: TREINO DE DECISÕES POR STREET (PRÉ, FLOP, TURN, RIVER)
       ===================================================================== */}
       {activeMode === "streets" && (
-        <div className="rounded-xl bg-[#202224] border border-[#363A3D] p-5 space-y-4">
+        <div className="rounded-xl bg-[#090D16] border border-[#1E293B] p-5 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1E293B] pb-3">
             <div>
-              <span className="text-[0.625rem] uppercase tracking-wider font-bold text-[#60A5FA]">
-                Treino Prático E · Decisões por Street
+              <span className="text-[0.6875rem] uppercase tracking-wider font-bold text-[#60A5FA]">
+                Treino Prático E · Decisões por Street (MTT)
               </span>
               <h3 className="text-base font-bold text-[#F8FAFC]">
-                Escolha a Street e o Confronto para Praticar na Mesa
+                Escolha a Street e o Confronto para Praticar na Mesa ({streetSpots.length} spots)
               </h3>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="text"
+                aria-label="Filtrar spots por street ou posição"
+                value={streetSearch}
+                onChange={(e) => setStreetSearch(e.target.value)}
+                placeholder="Filtrar nome ou posição..."
+                className="min-h-[34px] rounded-lg bg-[#05070B] border border-[#26334A] px-2.5 py-1 text-xs text-[#F8FAFC] placeholder:text-[#7E8EA4] outline-none focus:border-[#3B82F6]"
+              />
               <div className="flex flex-wrap items-center gap-1 bg-[#05070B] border border-[#1E293B] rounded-lg p-1">
                 {(
                   [
@@ -1324,7 +1404,7 @@ export function InteractiveDrillsLab({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {streetSpots.slice(0, 15).map((spot) => {
+            {(showAllStreetSpots ? streetSpots : streetSpots.slice(0, 18)).map((spot) => {
               const isVerified = spot.referenceStrategy.status === "VERIFIED";
               return (
                 <div
@@ -1334,22 +1414,22 @@ export function InteractiveDrillsLab({
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between gap-2">
                       <span
-                        className={`text-[0.625rem] font-mono font-bold px-2 py-0.5 rounded border ${
+                        className={`text-[0.6875rem] font-mono font-bold px-2 py-0.5 rounded border ${
                           isVerified
                             ? "bg-[#0F1B33] border-[#2563EB]/50 text-sky-200"
                             : "bg-[#090D16] border-[#1E293B] text-[#94A3B8]"
                         }`}
                       >
-                        {spot.referenceStrategy.status}
+                        {formatStrategySourceBadgePtBr(spot.referenceStrategy.status)}
                       </span>
-                      <span className="text-[0.6875rem] font-mono text-[#94A3B8]">
+                      <span className="text-[0.6875rem] font-mono tabular-nums text-[#94A3B8]">
                         {spot.street} · {spot.effectiveStackBb} BB
                       </span>
                     </div>
                     <h4 className="text-xs font-bold text-[#F8FAFC]">{spot.name}</h4>
                     <p className="text-[0.6875rem] text-[#94A3B8]">
-                      Herói: <strong className="text-white">{spot.heroPosition}</strong> vs{" "}
-                      {spot.villainPosition}
+                      Herói: <strong className="text-white">{spot.heroPosition}</strong>{" "}
+                      {spot.villainPosition ? `vs ${spot.villainPosition}` : "· RFI (sem vilão ativo)"}
                       {spot.board.length > 0 ? ` · Board: ${spot.board.join(" ")}` : ""}
                     </p>
                   </div>
@@ -1371,6 +1451,20 @@ export function InteractiveDrillsLab({
               );
             })}
           </div>
+
+          {streetSpots.length > 18 && (
+            <div className="flex justify-center pt-1">
+              <button
+                type="button"
+                onClick={() => setShowAllStreetSpots((v) => !v)}
+                className="px-4 py-2 rounded-xl bg-[#05070B] border border-[#26334A] hover:border-[#3B82F6] text-xs font-bold text-[#93C5FD] transition"
+              >
+                {showAllStreetSpots
+                  ? "Recolher lista (exibir 18)"
+                  : `Exibir todos os ${streetSpots.length} spots MTT filtrados`}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -1401,14 +1495,14 @@ export function InteractiveDrillsLab({
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-mono font-bold text-[#60A5FA]">{lesson.id}</span>
-                    <span className="text-[0.625rem] font-mono text-[#94A3B8]">
+                    <span className="text-[0.6875rem] font-mono text-[#94A3B8]">
                       {lesson.bookPages}
                     </span>
                   </div>
                   <div className="font-bold text-[#F8FAFC] mt-0.5 line-clamp-1">
                     {lesson.title}
                   </div>
-                  <div className="flex items-center justify-between text-[0.625rem] mt-1">
+                  <div className="flex items-center justify-between text-[0.6875rem] mt-1">
                     <span>{lesson.formatLabel}</span>
                     {answered && (
                       <span className={right ? "text-[#60A5FA]" : "text-[#F87171]"}>
@@ -1426,10 +1520,10 @@ export function InteractiveDrillsLab({
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1E293B] pb-3">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[0.625rem] font-mono font-bold px-2 py-0.5 rounded bg-[#0F1B33] border border-[#2563EB]/40 text-[#60A5FA]">
+                  <span className="text-[0.6875rem] font-mono font-bold px-2 py-0.5 rounded bg-[#0F1B33] border border-[#2563EB]/40 text-[#60A5FA]">
                     {activeLesson.formatLabel}
                   </span>
-                  <span className="text-[0.625rem] font-mono px-2 py-0.5 rounded bg-[#141D2F] text-[#F8FAFC]">
+                  <span className="text-[0.6875rem] font-mono px-2 py-0.5 rounded bg-[#141D2F] text-[#F8FAFC]">
                     {activeLesson.evidenceBadge}
                   </span>
                   <span className="text-[0.6875rem] font-mono text-[#94A3B8]">
@@ -1583,7 +1677,7 @@ export function InteractiveDrillsLab({
                 </div>
 
                 {lessonExpandWhy[activeLesson.id] && (
-                  <div className="rounded-lg bg-[#05070B] border border-[#1E293B] p-3 text-[#F4F5F5] leading-relaxed">
+                  <div className="rounded-lg bg-[#05070B] border border-[#1E293B] p-3 text-[#F8FAFC] leading-relaxed">
                     <strong className="text-blue-300 block mb-1">
                       Por que isso acontece ({activeLesson.originalTopic}):
                     </strong>

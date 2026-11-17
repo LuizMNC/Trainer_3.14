@@ -21,6 +21,7 @@ import {
   RotateCcw,
   Scale,
   Settings2,
+  ShieldAlert,
   ShieldCheck,
   Shuffle,
   SlidersHorizontal,
@@ -36,6 +37,9 @@ import {
   assertSpotAllowedInTechnicalGtoMode,
   type CanonicalSpot,
   classifyAttemptLeak,
+  classifyCanonicalSpot,
+  classifyCellDistributionIntegrity,
+  clearTrainerSession,
   computeMixedAdherenceStats,
   computeSha256Hex,
   type ConfidenceLevel,
@@ -44,19 +48,30 @@ import {
   type DrillEvaluationResult,
   evaluateDrillDecision,
   exportSpotMatrixToCsv,
+  formatActionLabelPtBr,
+  formatSampleConfidencePtBr,
+  getActionVisualStyle,
+  getSpotHandIntegrityIssue,
   importExternalSolverSolution,
   importTexasSolverBundle,
+  inferCanonicalMttModality,
   inferTournamentFormatCategory,
+  loadTrainerSession,
   type MixedAttemptRecord,
+  MTT_MODALITY_LABELS,
   parseDesktopPostflopCsvToPayload,
   pickDrillHand,
   type PlayingCard,
+  pluralizePtBr,
   POSITIONS_8MAX,
   type RangeSpot,
+  resolveActiveMttSpot,
   sampleCardsForHand,
+  saveTrainerSession,
   SOLVER_ADAPTER_VERSION,
   type TexasSolverBundleV1,
   type TrainerModeId,
+  UNAVAILABLE_MTT_EXERCISE_MESSAGE,
 } from "@/lib/poker";
 import {
   CARD_STYLE_OPTIONS,
@@ -91,6 +106,7 @@ export interface TrainerViewProps {
     street?: "PREFLOP" | "POSTFLOP" | "ALL";
     sessionTargetHands?: number;
   } | null;
+  requestNonce?: number;
   onClearRequestedSpot?: () => void;
   onRecordHistory: (item: HandHistoryItem) => void;
   onRecordAdaptiveAttempt?: (record: AdaptiveExerciseRecord) => void;
@@ -132,19 +148,19 @@ const STATUS_BADGES: Record<
   { label: string; cls: string }
 > = {
   VERIFIED: {
-    label: "SOLUÇÃO VERIFICADA (SOLVER)",
+    label: "Solução Verificada (Solver)",
     cls: "bg-[#2563EB]/20 border-[#3B82F6]/50 text-sky-200",
   },
   DIDACTIC_DEMO: {
-    label: "DEMO DIDÁTICA (NÃO É SOLVER OFICIAL)",
+    label: "Demo Didática (Sintética)",
     cls: "bg-indigo-500/15 border-indigo-400/40 text-indigo-200",
   },
   IMPORTED_CHART_NO_EV: {
-    label: "CHART LOCAL (FREQ. SEM TABELA EV)",
+    label: "Tabela pré-flop · Sem EV",
     cls: "bg-sky-500/15 border-sky-500/40 text-sky-200",
   },
   UNSOLVED: {
-    label: "SEM SOLUÇÃO — CONCEITUAL",
+    label: "Sem Solução · Conceitual",
     cls: "bg-amber-500/15 border-amber-500/40 text-amber-200",
   },
 };
@@ -153,33 +169,16 @@ function getActionWizardColors(actionName: string): {
   bg: string;
   hoverBg: string;
   border: string;
+  text: string;
+  shortGlyph: string;
 } {
-  const lower = actionName.toLowerCase();
-  if (lower.includes("fold")) {
-    return {
-      bg: "#387894",
-      hoverBg: "#4289a8",
-      border: "#539ec0",
-    };
-  }
-  if (lower.includes("check") || lower.includes("call") || lower.includes("limp")) {
-    return {
-      bg: "#3FA65B",
-      hoverBg: "#49b868",
-      border: "#62cf80",
-    };
-  }
-  if (lower.includes("all") || lower.includes("shove") || lower.includes("jam")) {
-    return {
-      bg: "#802222",
-      hoverBg: "#962929",
-      border: "#b33b3b",
-    };
-  }
+  const style = getActionVisualStyle(actionName);
   return {
-    bg: "#C84343",
-    hoverBg: "#d65050",
-    border: "#e36b6b",
+    bg: style.bg,
+    hoverBg: style.hoverBg,
+    border: style.border,
+    text: style.text,
+    shortGlyph: style.shortGlyph,
   };
 }
 
@@ -187,6 +186,12 @@ function getFriendlyVerdictPtBr(res: DrillEvaluationResult): {
   badge: string;
   shortTitle: string;
 } {
+  if (res.integrityBlocked) {
+    return {
+      badge: "Integridade insuficiente",
+      shortTitle: "Correção automática bloqueada: distribuição incompleta.",
+    };
+  }
   if (res.classification === "exact_primary") {
     return { badge: "Melhor jogada", shortTitle: "Boa decisão!" };
   }
@@ -222,6 +227,7 @@ export function TrainerView({
   requestedSubView,
   requestedInteractiveMode,
   requestedPresetFilter,
+  requestNonce = 0,
   onClearRequestedSpot,
   onRecordHistory,
   onRecordAdaptiveAttempt,
@@ -311,10 +317,9 @@ export function TrainerView({
     }
   }, []);
 
-  const handleSetSelfReview = (spotId: string, hand: string, tag: SelfReviewTag) => {
-    const key = `${spotId}::${hand}`;
+  const handleSetSelfReview = (reviewKey: string, tag: SelfReviewTag) => {
     setSelfReviewMap((prev) => {
-      const next = { ...prev, [key]: tag };
+      const next = { ...prev, [reviewKey]: tag };
       try {
         window.localStorage.setItem(SELF_REVIEW_STORAGE_KEY, JSON.stringify(next));
       } catch {
@@ -380,6 +385,8 @@ export function TrainerView({
       : "LEARNING",
   );
   const [blockedSpotWarning, setBlockedSpotWarning] = useState<string | null>(null);
+  const [unavailableExerciseNotice, setUnavailableExerciseNotice] = useState<string | null>(null);
+  const [hasHydratedTrainerSession, setHasHydratedTrainerSession] = useState<boolean>(false);
 
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [formatFilter, setFormatFilter] = useState<string>("all");
@@ -400,6 +407,9 @@ export function TrainerView({
   const [peekMatrix, setPeekMatrix] = useState<boolean>(false);
 
   const [importOpen, setImportOpen] = useState(false);
+  const importDialogRef = useRef<HTMLDialogElement>(null);
+  const importTriggerRef = useRef<HTMLButtonElement>(null);
+  const [currentAttemptId, setCurrentAttemptId] = useState<string | null>(null);
   const [importJsonText, setImportJsonText] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
   const [importResultNotice, setImportResultNotice] = useState<string | null>(null);
@@ -412,16 +422,43 @@ export function TrainerView({
   const [csvExploitPct, setCsvExploitPct] = useState("0.5");
   const [csvVersion, setCsvVersion] = useState("0.2.7");
 
+  useEffect(() => {
+    const dialog = importDialogRef.current;
+    if (!dialog) return;
+    if (importOpen) {
+      if (!dialog.open) dialog.showModal();
+    } else if (dialog.open) {
+      dialog.close();
+      importTriggerRef.current?.focus();
+    }
+  }, [importOpen]);
+
   const verifiedOnlySpots = useMemo(
     () => canonicalSpots.filter((s) => s.referenceStrategy.status === "VERIFIED"),
     [canonicalSpots],
   );
 
-  const filteredSpots = useMemo(() => {
+  const mttPreflopChartCount = useMemo(
+    () =>
+      canonicalSpots.filter(
+        (s) => s.referenceStrategy.status === "IMPORTED_CHART_NO_EV",
+      ).length,
+    [canonicalSpots],
+  );
+
+  const availableStacks = useMemo(
+    () =>
+      Array.from(
+        new Set(canonicalSpots.map((s) => Math.round(s.effectiveStackBb))),
+      ).sort((a, b) => a - b),
+    [canonicalSpots],
+  );
+
+  const { filteredSpots, modalityUnavailableNotice } = useMemo(() => {
     const basePool =
       trainerMode === "GTO_TECHNICAL" ? verifiedOnlySpots : canonicalSpots;
 
-    const res = basePool.filter((s) => {
+    const matchWithoutModality = basePool.filter((s) => {
       if (trainerMode === "LEARNING") {
         if (
           sourceFilter === "didactic" &&
@@ -442,11 +479,7 @@ export function TrainerView({
       if (streetFilter === "PREFLOP" && s.street !== "PREFLOP") return false;
       if (streetFilter === "POSTFLOP" && s.street === "PREFLOP") return false;
 
-      if (formatFilter !== "all" && s.format !== formatFilter) return false;
-
-      if (stackFilter === "spin") {
-        if (s.format !== "SNG") return false;
-      } else if (stackFilter !== "all") {
+      if (stackFilter !== "all") {
         if (Math.round(s.effectiveStackBb) !== Number(stackFilter)) return false;
       }
 
@@ -454,7 +487,32 @@ export function TrainerView({
       if (posFilter !== "all" && s.heroPosition !== posFilter) return false;
       return true;
     });
-    return res.length > 0 ? res : basePool;
+
+    const modalityFiltered =
+      formatFilter === "all"
+        ? matchWithoutModality
+        : matchWithoutModality.filter(
+            (s) => inferCanonicalMttModality(s) === formatFilter,
+          );
+
+    const unavailableNotice =
+      formatFilter !== "all" && modalityFiltered.length === 0
+        ? `Nenhuma solução ${
+            MTT_MODALITY_LABELS[formatFilter as keyof typeof MTT_MODALITY_LABELS] ?? formatFilter
+          } disponível neste filtro — exibindo spots chipEV equivalentes até importação de solver dedicado.`
+        : null;
+
+    const effective =
+      modalityFiltered.length > 0
+        ? modalityFiltered
+        : matchWithoutModality.length > 0
+          ? matchWithoutModality
+          : basePool;
+
+    return {
+      filteredSpots: effective,
+      modalityUnavailableNotice: unavailableNotice,
+    };
   }, [
     trainerMode,
     verifiedOnlySpots,
@@ -556,6 +614,7 @@ export function TrainerView({
       setRngValue(nextRng);
       setEvaluation(null);
       setChosenAction(null);
+      setCurrentAttemptId(null);
       setCoachExplanation(null);
       setCoachError(null);
       setCoachSources([]);
@@ -586,6 +645,7 @@ export function TrainerView({
     setSessionTotal(0);
     setMixedAttempts([]);
     setRecentDecisions([]);
+    clearTrainerSession();
   }, []);
 
   const dealNextHand = useCallback(
@@ -598,7 +658,18 @@ export function TrainerView({
     [filteredSpots, dealSpecificSpot],
   );
 
+  const lastHandledNonceRef = useRef<number>(-1);
   useEffect(() => {
+    const hasPending =
+      requestNonce !== lastHandledNonceRef.current ||
+      requestedSubView ||
+      requestedInteractiveMode ||
+      requestedPresetFilter;
+    if (!hasPending) return;
+    if (requestNonce === lastHandledNonceRef.current && lastHandledNonceRef.current > 0) {
+      return;
+    }
+    lastHandledNonceRef.current = requestNonce;
     queueMicrotask(() => {
       if (requestedSubView) {
         setSubView(requestedSubView);
@@ -612,20 +683,171 @@ export function TrainerView({
           setStreetFilter(requestedPresetFilter.street);
           if (requestedPresetFilter.street === "PREFLOP") {
             setTrainerMode("LEARNING");
+          } else if (requestedPresetFilter.street === "POSTFLOP") {
+            setTrainerMode("GTO_TECHNICAL");
           }
         }
         if (typeof requestedPresetFilter.sessionTargetHands === "number") {
           setSessionTargetHands(requestedPresetFilter.sessionTargetHands);
         }
+        if (
+          (requestedSubView ?? "table") === "table" &&
+          requestedPresetFilter.street
+        ) {
+          const targetMode: TrainerModeId =
+            requestedPresetFilter.street === "PREFLOP"
+              ? "LEARNING"
+              : requestedPresetFilter.street === "POSTFLOP"
+                ? "GTO_TECHNICAL"
+                : trainerMode;
+          const pool = canonicalSpots.filter((s) => {
+            if (targetMode === "GTO_TECHNICAL" && s.referenceStrategy.status !== "VERIFIED") {
+              return false;
+            }
+            if (requestedPresetFilter.street === "PREFLOP") return s.street === "PREFLOP";
+            if (requestedPresetFilter.street === "POSTFLOP") return s.street !== "PREFLOP";
+            return true;
+          });
+          const nextPool = pool.length > 0 ? pool : canonicalSpots;
+          const picked = nextPool[0];
+          if (picked) dealSpecificSpot(picked, targetMode);
+        }
       }
     });
-  }, [requestedSubView, requestedInteractiveMode, requestedPresetFilter]);
+    // Intencionalmente dispara apenas quando há nova solicitação explícita do cabeçalho/hub.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestNonce, requestedSubView, requestedInteractiveMode, requestedPresetFilter]);
+
+  useEffect(() => {
+    let active = true;
+    const validSpotIds = new Set(canonicalSpots.map((s) => s.spotId));
+    queueMicrotask(() => {
+      if (!active) return;
+      try {
+        const { session: saved } = loadTrainerSession(undefined, validSpotIds);
+        if (saved) {
+          setTrainerMode(saved.trainerMode);
+          setSourceFilter(saved.sourceFilter);
+          setStreetFilter(saved.streetFilter);
+          setFormatFilter(saved.formatFilter);
+          setStackFilter(saved.stackFilter);
+          setTypeFilter(saved.typeFilter);
+          setPosFilter(saved.posFilter);
+          setDifficulty(saved.difficulty);
+          setUseRng(saved.useRng);
+          setUseSeededRng(saved.useSeededRng);
+          setRngSeed(saved.rngSeed);
+          setConfidenceLevel(saved.confidenceLevel);
+          setSessionTotal(saved.sessionTotal);
+          setSessionRight(saved.sessionRight);
+          setStreak(saved.streak);
+          setMixedAttempts(saved.mixedAttempts);
+          setRecentDecisions(saved.recentDecisions);
+
+          if (!requestedSpotId && !requestedPresetFilter && saved.selectedSpotId) {
+            const restoredSpot = canonicalSpots.find((s) => s.spotId === saved.selectedSpotId);
+            if (restoredSpot) {
+              const savedContextKey = JSON.stringify([
+                saved.sourceFilter,
+                saved.streetFilter,
+                saved.formatFilter,
+                saved.stackFilter,
+                saved.typeFilter,
+                saved.posFilter,
+                saved.difficulty,
+                saved.useSeededRng,
+                saved.rngSeed,
+              ]);
+              launchedSelectionRef.current = {
+                mode: saved.trainerMode,
+                contextKey: savedContextKey,
+              };
+              dealSpecificSpot(restoredSpot, saved.trainerMode);
+            }
+          }
+        }
+      } catch {
+        // Ignora falha de leitura local
+      } finally {
+        setHasHydratedTrainerSession(true);
+      }
+    });
+    return () => {
+      active = false;
+    };
+    // Hidrata apenas uma vez ao montar com o catálogo MTT carregado
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydratedTrainerSession) return;
+    saveTrainerSession({
+      trainerMode,
+      sourceFilter:
+        sourceFilter === "verified" ||
+        sourceFilter === "chart" ||
+        sourceFilter === "didactic" ||
+        sourceFilter === "unsolved"
+          ? sourceFilter
+          : "all",
+      streetFilter,
+      formatFilter:
+        formatFilter === "MTT_CHEV" ||
+        formatFilter === "MTT_ICM" ||
+        formatFilter === "MTT_PKO"
+          ? formatFilter
+          : "all",
+      stackFilter,
+      typeFilter:
+        typeFilter === "rfi" ||
+        typeFilter === "vs_rfi" ||
+        typeFilter === "vs_limp" ||
+        typeFilter === "push_fold" ||
+        typeFilter === "vs_shove"
+          ? typeFilter
+          : "all",
+      posFilter,
+      difficulty,
+      useRng,
+      useSeededRng,
+      rngSeed,
+      confidenceLevel,
+      selectedSpotId: currentSpot?.spotId ?? null,
+      sessionTotal,
+      sessionRight,
+      streak,
+      mixedAttempts,
+      recentDecisions,
+    });
+  }, [
+    hasHydratedTrainerSession,
+    trainerMode,
+    sourceFilter,
+    streetFilter,
+    formatFilter,
+    stackFilter,
+    typeFilter,
+    posFilter,
+    difficulty,
+    useRng,
+    useSeededRng,
+    rngSeed,
+    confidenceLevel,
+    currentSpot?.spotId,
+    sessionTotal,
+    sessionRight,
+    streak,
+    mixedAttempts,
+    recentDecisions,
+  ]);
 
   useEffect(() => {
     if (requestedSpotId) {
-      const target = canonicalSpots.find((s) => s.spotId === requestedSpotId);
-      if (target) {
+      const resolved = resolveActiveMttSpot(requestedSpotId, canonicalSpots);
+      if (resolved.spot) {
+        const target = resolved.spot;
         queueMicrotask(() => {
+          setUnavailableExerciseNotice(null);
           const effectiveMode: TrainerModeId =
             requestedMode ??
             (target.referenceStrategy.status === "VERIFIED"
@@ -640,9 +862,22 @@ export function TrainerView({
           dealSpecificSpot(target, effectiveMode);
           onClearRequestedSpot?.();
         });
+      } else {
+        queueMicrotask(() => {
+          setSubView("table");
+          setUnavailableExerciseNotice(
+            resolved.unavailableMessage ?? UNAVAILABLE_MTT_EXERCISE_MESSAGE,
+          );
+          launchedSelectionRef.current = {
+            mode: trainerMode,
+            contextKey: autoDealContextKey,
+          };
+          onClearRequestedSpot?.();
+        });
       }
       return;
     }
+    if (!hasHydratedTrainerSession) return;
     if (
       shouldKeepLaunchedDrill(
         launchedSelectionRef.current,
@@ -656,6 +891,7 @@ export function TrainerView({
       dealNextHand(filteredSpots);
     });
   }, [
+    hasHydratedTrainerSession,
     requestedSpotId,
     requestedMode,
     canonicalSpots,
@@ -694,9 +930,15 @@ export function TrainerView({
         rngValue,
         useRng,
         mode: trainerMode,
+        enforceIntegrityGuard: true,
       });
       setChosenAction(actionName);
       setEvaluation(res);
+
+      if (res.integrityBlocked) {
+        return;
+      }
+
       setRecentDecisions((previous) =>
         [
           {
@@ -713,6 +955,8 @@ export function TrainerView({
       // CORREÇÃO DE BUG TEMPORAL: Usa Date.now() real para agendador Leitner e histórico
       const nowTs = Date.now();
       attemptSeqRef.current += 1;
+      const attemptId = `adapt-${attemptSeqRef.current}-${nowTs}`;
+      setCurrentAttemptId(attemptId);
 
       const isGood = res.classification !== "ev_error";
       setSessionTotal((t) => t + 1);
@@ -723,20 +967,34 @@ export function TrainerView({
         setStreak(0);
       }
 
-      if (res.gtoScored) {
-        const dist = currentSpot.referenceStrategy.matrixFrequencies?.[handClass];
-        if (dist && Object.values(dist).some((v) => v > 0.02 && v < 0.96)) {
-          setMixedAttempts((prev) => [
-            ...prev,
-            {
-              spotId: currentSpot.spotId,
-              hand: handClass,
-              chosenAction: actionName,
-              targetDistribution: dist,
-              evLoss: res.evLoss,
-              timestamp: nowTs,
-            },
-          ]);
+      if (res.classification !== "unsolved") {
+        const dist =
+          currentSpot.referenceStrategy.actionFrequencies ??
+          currentSpot.referenceStrategy.matrixFrequencies?.[handClass];
+        if (dist) {
+          const integrity = classifyCellDistributionIntegrity(
+            dist,
+            currentSpot.legalActions.map((a) => a.name),
+            handClass,
+          );
+          if (
+            (integrity.status === "COMPLETE" || integrity.status === "ROUNDING_ONLY") &&
+            Object.values(dist).some((v) => v > 0.02 && v < 0.96)
+          ) {
+            setMixedAttempts((prev) =>
+              [
+                ...prev,
+                {
+                  spotId: currentSpot.spotId,
+                  hand: handClass,
+                  chosenAction: actionName,
+                  targetDistribution: dist,
+                  evLoss: res.evLoss,
+                  timestamp: nowTs,
+                },
+              ].slice(-150),
+            );
+          }
         }
       }
 
@@ -783,7 +1041,7 @@ export function TrainerView({
         });
 
         onRecordAdaptiveAttempt({
-          attemptId: `adapt-${attemptSeqRef.current}`,
+          attemptId,
           timestamp: nowTs,
           trainerMode,
           spotId: currentSpot.spotId,
@@ -864,7 +1122,10 @@ export function TrainerView({
       const dist = currentSpot.referenceStrategy.matrixFrequencies?.[handClass];
       const res = await fetch("/api/coach", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Poker-Coach": "local-v1",
+        },
         body: JSON.stringify({
           apiKey: apiKey || undefined,
           model,
@@ -995,6 +1256,12 @@ export function TrainerView({
           }
 
           const adapterRes = importExternalSolverSolution(csvParsed.payload);
+          if (classifyCanonicalSpot(adapterRes.spot).classification !== "MTT_CONFIRMED") {
+            setImportError(
+              "Apenas soluções de torneios MTT podem ser adicionadas aos treinos estratégicos do TreinerLM (Spin & Go e Cash Game não são aceitos).",
+            );
+            return;
+          }
           onImportVerifiedSpot(adapterRes.spot);
           if (!adapterRes.ok) {
             setImportError(
@@ -1019,6 +1286,12 @@ export function TrainerView({
 
       if (parsed.bundleType === "TEXASSOLVER_NODE_FREQUENCIES_ONLY") {
         const tsRes = importTexasSolverBundle(parsed as Partial<TexasSolverBundleV1>);
+        if (classifyCanonicalSpot(tsRes.spot).classification !== "MTT_CONFIRMED") {
+          setImportError(
+            "Apenas soluções de torneios MTT podem ser adicionadas aos treinos estratégicos do TreinerLM (Spin & Go e Cash Game não são aceitos).",
+          );
+          return;
+        }
         onImportVerifiedSpot(tsRes.spot);
         if (!tsRes.ok) {
           setImportError(
@@ -1040,6 +1313,12 @@ export function TrainerView({
 
       if (parsed.schemaVersion || parsed.provenance || parsed.sizings) {
         const adapterRes = importExternalSolverSolution(parsed);
+        if (classifyCanonicalSpot(adapterRes.spot).classification !== "MTT_CONFIRMED") {
+          setImportError(
+            "Apenas soluções de torneios MTT podem ser adicionadas aos treinos estratégicos do TreinerLM (Spin & Go e Cash Game não são aceitos).",
+          );
+          return;
+        }
         onImportVerifiedSpot(adapterRes.spot);
         if (!adapterRes.ok) {
           setImportError(
@@ -1138,6 +1417,18 @@ export function TrainerView({
     () => analyzeSpotReasoning(currentSpot, handClass, cards),
     [currentSpot, handClass, cards],
   );
+  const handIntegrityIssue = useMemo(
+    () => getSpotHandIntegrityIssue(currentSpot, handClass),
+    [currentSpot, handClass],
+  );
+  const hasPushFoldSpots = useMemo(
+    () => canonicalSpots.some((s) => s.spotType === "push_fold"),
+    [canonicalSpots],
+  );
+  const hasVsShoveSpots = useMemo(
+    () => canonicalSpots.some((s) => s.spotType === "vs_shove"),
+    [canonicalSpots],
+  );
 
   const badge = STATUS_BADGES[currentSpot.referenceStrategy.status];
   const isUnsolved = currentSpot.referenceStrategy.status === "UNSOLVED";
@@ -1150,7 +1441,8 @@ export function TrainerView({
     currentSpot.referenceStrategy.matrixEv?.[handClass] ??
     null;
 
-  const currentSelfReviewKey = `${currentSpot.spotId}::${handClass}`;
+  const currentSelfReviewKey =
+    currentAttemptId ?? `${currentSpot.spotId}::${handClass}`;
   const currentSelfReviewTag = selfReviewMap[currentSelfReviewKey];
   const friendlyVerdict = evaluation ? getFriendlyVerdictPtBr(evaluation) : null;
 
@@ -1280,6 +1572,7 @@ export function TrainerView({
           <InteractiveDrillsLab
             canonicalSpots={canonicalSpots}
             initialTab={interactiveTab}
+            requestNonce={requestNonce}
             onLaunchSpotInTable={(spotId: string, mode?: TrainerModeId) => {
               const found = canonicalSpots.find((s) => s.spotId === spotId);
               setSubView("table");
@@ -1331,7 +1624,7 @@ export function TrainerView({
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   {/* Cores da mesa (presets + qualquer cor via seletor/hex) */}
                   <div className="space-y-2.5">
-                    <span className="text-[0.6875rem] uppercase tracking-wider font-bold text-[#A1A6AA] block">
+                    <span className="text-[0.6875rem] uppercase tracking-wider font-bold text-[#94A3B8] block">
                       Cor da Mesa &amp; Borda (qualquer cor)
                     </span>
                     <div className="flex flex-wrap gap-1.5">
@@ -1405,7 +1698,7 @@ export function TrainerView({
                             onBlur={() =>
                               setFeltHexInput(tableAppearance.feltColor)
                             }
-                            className="w-full bg-transparent text-xs font-mono text-[#F4F5F5] focus:outline-none"
+                            className="w-full bg-transparent text-xs font-mono text-[#F8FAFC] focus:outline-none"
                           />
                         </div>
                       </label>
@@ -1446,7 +1739,7 @@ export function TrainerView({
                             onBlur={() =>
                               setRailHexInput(tableAppearance.railColor)
                             }
-                            className="w-full bg-transparent text-xs font-mono text-[#F4F5F5] focus:outline-none"
+                            className="w-full bg-transparent text-xs font-mono text-[#F8FAFC] focus:outline-none"
                           />
                         </div>
                       </label>
@@ -1455,7 +1748,7 @@ export function TrainerView({
 
                   {/* Estilos de cartas */}
                   <div className="space-y-2">
-                    <span className="text-[0.6875rem] uppercase tracking-wider font-bold text-[#A1A6AA] block">
+                    <span className="text-[0.6875rem] uppercase tracking-wider font-bold text-[#94A3B8] block">
                       Estilo das Cartas
                     </span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -1479,7 +1772,7 @@ export function TrainerView({
                             <div className="text-xs font-bold">
                               {option.label}
                             </div>
-                            <div className="text-[0.625rem] text-[#9BA3AB] mt-0.5">
+                            <div className="text-[0.6875rem] text-[#94A3B8] mt-0.5">
                               {option.hint}
                             </div>
                           </button>
@@ -1490,7 +1783,7 @@ export function TrainerView({
 
                   {/* Estilos de fichas */}
                   <div className="space-y-2">
-                    <span className="text-[0.6875rem] uppercase tracking-wider font-bold text-[#A1A6AA] block">
+                    <span className="text-[0.6875rem] uppercase tracking-wider font-bold text-[#94A3B8] block">
                       Estilo das Fichas
                     </span>
                     <div className="grid grid-cols-1 gap-1.5">
@@ -1515,7 +1808,7 @@ export function TrainerView({
                               <div className="text-xs font-bold">
                                 {option.label}
                               </div>
-                              <div className="text-[0.625rem] text-[#9BA3AB]">
+                              <div className="text-[0.6875rem] text-[#94A3B8]">
                                 {option.hint}
                               </div>
                             </div>
@@ -1538,6 +1831,64 @@ export function TrainerView({
               </section>
             )}
 
+            {unavailableExerciseNotice && (
+              <div
+                role="alert"
+                className="rounded-xl bg-amber-950/60 border border-amber-500/70 p-3.5 text-xs text-amber-100 flex flex-wrap items-center justify-between gap-3"
+              >
+                <div className="flex items-start gap-2.5">
+                  <ShieldAlert className="w-4 h-4 text-amber-300 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <span className="font-bold text-amber-200 block">
+                      {unavailableExerciseNotice}
+                    </span>
+                    <span className="text-[0.6875rem] text-amber-200/90 block">
+                      O modo exclusivo de torneios MTT do TreinerLM não substitui automaticamente exercícios excluídos ou inválidos. Escolha um exercício MTT válido abaixo:
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const fallbackMtt =
+                        canonicalSpots.find((s) => s.spotId === "30bb_rfi_btn") ??
+                        canonicalSpots.find((s) => s.street === "PREFLOP") ??
+                        canonicalSpots[0];
+                      setUnavailableExerciseNotice(null);
+                      if (fallbackMtt) {
+                        setTrainerMode("LEARNING");
+                        dealSpecificSpot(fallbackMtt, "LEARNING");
+                      }
+                    }}
+                    className="px-2.5 py-1.5 rounded-lg bg-[#2563EB] hover:bg-[#3B82F6] text-white font-bold text-[0.6875rem]"
+                  >
+                    Escolher MTT Pré-Flop
+                  </button>
+                  {verifiedOnlySpots[0] && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUnavailableExerciseNotice(null);
+                        setTrainerMode("GTO_TECHNICAL");
+                        dealSpecificSpot(verifiedOnlySpots[0], "GTO_TECHNICAL");
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg bg-[#090D16] border border-[#3B82F6]/60 text-sky-200 hover:text-white font-bold text-[0.6875rem]"
+                    >
+                      Abrir Solver Verificado
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setUnavailableExerciseNotice(null)}
+                    className="px-2.5 py-1.5 rounded-lg bg-[#05070B] border border-[#1E293B] text-slate-300 hover:text-white text-[0.6875rem]"
+                  >
+                    Dispensar
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Alerta de Bloqueio caso o usuário tente abrir spot didático/não resolvido no Modo GTO Técnico */}
             {blockedSpotWarning && (
               <div className="rounded-xl bg-amber-950/50 border border-amber-500/60 p-3 text-xs text-amber-200 flex flex-wrap items-center justify-between gap-3">
@@ -1553,7 +1904,7 @@ export function TrainerView({
                 <button
                   type="button"
                   onClick={() => setBlockedSpotWarning(null)}
-                  className="px-2.5 py-1 rounded-lg bg-[#191B1D] border border-[#292C2F] text-slate-300 hover:text-white text-[0.6875rem]"
+                  className="px-2.5 py-1 rounded-lg bg-[#090D16] border border-[#1E293B] text-slate-300 hover:text-white text-[0.6875rem]"
                 >
                   Entendi
                 </button>
@@ -1614,9 +1965,10 @@ export function TrainerView({
                       Modo de Estudo
                     </span>
                     <button
+                      ref={importTriggerRef}
                       type="button"
                       onClick={() => setImportOpen(true)}
-                      className="text-[0.625rem] font-bold text-[#60A5FA] hover:underline flex items-center gap-1"
+                      className="text-[0.6875rem] font-bold text-[#60A5FA] hover:underline flex items-center gap-1"
                     >
                       <Upload className="w-3 h-3" />
                       Importar Solver
@@ -1632,11 +1984,11 @@ export function TrainerView({
                           : "text-[#94A3B8] hover:text-white"
                       }`}
                     >
-                      <span className="text-[0.6875rem] font-bold flex items-center gap-1">
+                      <span className="text-xs font-bold flex items-center gap-1">
                         <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
                         GTO Técnico
                       </span>
-                      <span className="text-[0.58rem] opacity-85">
+                      <span className="text-[0.6875rem] opacity-90">
                         Verificados ({verifiedOnlySpots.length})
                       </span>
                     </button>
@@ -1649,12 +2001,12 @@ export function TrainerView({
                           : "text-[#94A3B8] hover:text-white"
                       }`}
                     >
-                      <span className="text-[0.6875rem] font-bold flex items-center gap-1">
+                      <span className="text-xs font-bold flex items-center gap-1">
                         <BookOpen className="w-3.5 h-3.5 shrink-0" />
                         Aprendizagem
                       </span>
-                      <span className="text-[0.58rem] opacity-85">
-                        Catálogo ({canonicalSpots.length})
+                      <span className="text-[0.6875rem] opacity-90">
+                        Catálogo MTT ({canonicalSpots.length})
                       </span>
                     </button>
                   </div>
@@ -1675,7 +2027,7 @@ export function TrainerView({
                     <button
                       type="button"
                       onClick={resetSessionStats}
-                      className="text-[0.625rem] text-[#94A3B8] hover:text-white flex items-center gap-1"
+                      className="text-[0.6875rem] text-[#94A3B8] hover:text-white flex items-center gap-1"
                       title="Zerar placar da sessão atual"
                     >
                       <RotateCcw className="w-3 h-3" />
@@ -1684,7 +2036,7 @@ export function TrainerView({
                   </div>
                   {showLeftMeta && (
                     <>
-                      <div className="grid grid-cols-4 gap-1 bg-[#05070B] border border-[#1E293B] p-1 rounded-xl text-[0.65rem]">
+                      <div className="grid grid-cols-4 gap-1 bg-[#05070B] border border-[#1E293B] p-1 rounded-xl text-[0.6875rem]">
                         {[
                           { hands: 0, label: "Livre" },
                           { hands: 10, label: "5m (10)" },
@@ -1707,7 +2059,7 @@ export function TrainerView({
                       </div>
                       {sessionTargetHands > 0 && (
                         <div className="space-y-1">
-                          <div className="flex justify-between text-[0.625rem] font-mono text-[#94A3B8]">
+                          <div className="flex justify-between text-[0.6875rem] font-mono text-[#94A3B8]">
                             <span>Progresso</span>
                             <span>
                               {Math.min(sessionTotal, sessionTargetHands)}/{sessionTargetHands} mãos
@@ -1743,7 +2095,7 @@ export function TrainerView({
                       <button
                         type="button"
                         onClick={() => setShowAdvancedFilters((v) => !v)}
-                        className="text-[0.65rem] text-[#60A5FA] hover:underline flex items-center gap-1"
+                        className="text-[0.6875rem] text-[#60A5FA] hover:underline flex items-center gap-1"
                       >
                         <SlidersHorizontal className="w-3 h-3" />
                         {showAdvancedFilters ? "Menos" : "Avançados"}
@@ -1754,7 +2106,7 @@ export function TrainerView({
                   {showLeftFilters && (
                     <>
                       {/* Filtro rápido Street: Todas / Pré-Flop / Pós-Flop */}
-                      <div className="grid grid-cols-3 gap-1 bg-[#05070B] border border-[#1E293B] p-1 rounded-xl text-[0.65rem]">
+                      <div className="grid grid-cols-3 gap-1 bg-[#05070B] border border-[#1E293B] p-1 rounded-xl text-[0.6875rem]">
                         {(
                           [
                             { id: "ALL", label: "Todas" },
@@ -1823,7 +2175,9 @@ export function TrainerView({
                               <option value="verified">
                                 Soluções Verificadas ({verifiedOnlySpots.length})
                               </option>
-                              <option value="chart">Charts Locais (229 s/ EV)</option>
+                              <option value="chart">
+                                Charts Pré-Flop MTT ({mttPreflopChartCount} s/ EV)
+                              </option>
                               <option value="didactic">Demo Didática (Sintética)</option>
                               <option value="unsolved">Sem Solução (Conceitual)</option>
                             </select>
@@ -1831,14 +2185,15 @@ export function TrainerView({
 
                           <div className="grid grid-cols-2 gap-1.5">
                             <select
-                              aria-label="Filtrar por formato"
+                              aria-label="Filtrar por modalidade MTT"
                               value={formatFilter}
                               onChange={(e) => setFormatFilter(e.target.value)}
                               className="rounded-lg bg-[#05070B] border border-[#1E293B] px-2 py-1.5 text-xs text-slate-200 outline-none"
                             >
-                              <option value="all">Formato: Todos</option>
-                              <option value="MTT">MTT (6/8-Max)</option>
-                              <option value="SNG">Spin / SNG</option>
+                              <option value="all">Modalidade: Todo MTT</option>
+                              <option value="MTT_CHEV">MTT chipEV</option>
+                              <option value="MTT_ICM">MTT ICM ($EV)</option>
+                              <option value="MTT_PKO">MTT PKO (Bounty)</option>
                             </select>
 
                             <select
@@ -1848,17 +2203,19 @@ export function TrainerView({
                               className="rounded-lg bg-[#05070B] border border-[#1E293B] px-2 py-1.5 text-xs text-slate-200 outline-none"
                             >
                               <option value="all">Stack: Todos</option>
-                              <option value="14">14 BB</option>
-                              <option value="15">15 BB</option>
-                              <option value="17">17 BB</option>
-                              <option value="20">20 BB</option>
-                              <option value="28">28 BB (SRP)</option>
-                              <option value="30">30 BB</option>
-                              <option value="50">50 BB</option>
-                              <option value="100">100 BB</option>
-                              <option value="spin">Spin (3-15 BB)</option>
+                              {availableStacks.map((st) => (
+                                <option key={st} value={String(st)}>
+                                  {st} BB {st === 28 ? "(SRP ~27.9BB)" : ""}
+                                </option>
+                              ))}
                             </select>
                           </div>
+
+                          {modalityUnavailableNotice && (
+                            <div className="rounded-lg bg-amber-950/50 border border-amber-500/45 px-2.5 py-2 text-[0.6875rem] text-amber-100 leading-snug">
+                              {modalityUnavailableNotice}
+                            </div>
+                          )}
 
                           <div className="grid grid-cols-2 gap-1.5">
                             <select
@@ -1874,8 +2231,8 @@ export function TrainerView({
                               <option value="flop_cbet_ip">Flop C-Bet IP</option>
                               <option value="turn_cbet_ip">Turn / River Barrel</option>
                               <option value="bb_vs_cbet">BB vs C-Bet</option>
-                              <option value="push_fold">Push / Fold</option>
-                              <option value="vs_shove">vs Shove</option>
+                              {hasPushFoldSpots && <option value="push_fold">Push / Fold</option>}
+                              {hasVsShoveSpots && <option value="vs_shove">vs Shove</option>}
                             </select>
 
                             <select
@@ -1986,19 +2343,19 @@ export function TrainerView({
                     <>
                       <div className="grid grid-cols-3 gap-1.5 text-center">
                         <div className="rounded-xl bg-[#05070B] border border-[#1E293B] p-2">
-                          <div className="text-[0.6rem] uppercase text-[#94A3B8]">Mãos</div>
+                          <div className="text-[0.6875rem] uppercase text-[#94A3B8]">Mãos</div>
                           <div className="text-base font-extrabold font-mono text-white">
                             {sessionTotal}
                           </div>
                         </div>
                         <div className="rounded-xl bg-[#05070B] border border-[#2563EB]/45 p-2">
-                          <div className="text-[0.6rem] uppercase text-[#94A3B8]">Acertos</div>
+                          <div className="text-[0.6875rem] uppercase text-[#94A3B8]">Acertos</div>
                           <div className="text-base font-extrabold font-mono text-[#60A5FA]">
                             {sessionRight}
                           </div>
                         </div>
                         <div className="rounded-xl bg-[#05070B] border border-[#1E293B] p-2">
-                          <div className="text-[0.6rem] uppercase text-[#94A3B8]">Precisão</div>
+                          <div className="text-[0.6875rem] uppercase text-[#94A3B8]">Precisão</div>
                           <div className="text-base font-extrabold font-mono text-white">
                             {sessionTotal > 0 ? `${sessionPct}%` : "—"}
                           </div>
@@ -2006,11 +2363,27 @@ export function TrainerView({
                       </div>
 
                       {mixedAttempts.length > 0 && (
-                        <div className="flex items-center justify-between rounded-lg bg-[#05070B] border border-[#1E293B] px-2.5 py-1.5 text-[0.6875rem]">
-                          <span className="text-[#94A3B8]">Aderência ao Mix:</span>
-                          <span className="font-mono font-bold text-[#60A5FA]">
-                            {adherence.adherencePct}% ({mixedAttempts.length} mãos)
-                          </span>
+                        <div className="flex flex-col gap-1 rounded-lg bg-[#05070B] border border-[#1E293B] px-2.5 py-2 text-[0.6875rem]">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[#CBD5E1] font-semibold">
+                              Aderência ao Mix:
+                            </span>
+                            <span className="font-mono tabular-nums font-bold text-[#60A5FA]">
+                              {adherence.reliableAttempts > 0 ? `${adherence.adherencePct}%` : "—"} ({adherence.reliableGroupsCount}{" "}
+                              {adherence.reliableGroupsCount === 1 ? "cenário" : "cenários"} ·{" "}
+                              {pluralizePtBr(adherence.reliableAttempts, "mão", "mãos")})
+                            </span>
+                          </div>
+                          {adherence.incompleteExcludedAttempts > 0 && (
+                            <span className="text-[0.6875rem] text-amber-300">
+                              {adherence.incompleteExcludedAttempts} tentativa(s) de célula incompleta excluída(s) da métrica.
+                            </span>
+                          )}
+                          {adherence.reliableAttempts > 0 && adherence.reliableAttempts < 10 && (
+                            <span className="text-[0.6875rem] text-[#94A3B8]">
+                              {formatSampleConfidencePtBr(adherence.reliableAttempts)}
+                            </span>
+                          )}
                         </div>
                       )}
 
@@ -2021,7 +2394,7 @@ export function TrainerView({
                             type="button"
                             aria-expanded={showRecentList}
                             onClick={() => setShowRecentList((v) => !v)}
-                            className="w-full flex items-center justify-between text-[0.625rem] font-bold uppercase tracking-wider text-[#94A3B8] hover:text-white"
+                            className="w-full flex items-center justify-between text-[0.6875rem] font-bold uppercase tracking-wider text-[#94A3B8] hover:text-white"
                           >
                             <span>Últimas decisões ({recentDecisions.length})</span>
                             {showRecentList ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -2038,7 +2411,7 @@ export function TrainerView({
                                     <span className="text-[#93C5FD]">{d.action}</span>
                                   </span>
                                   <span
-                                    className={`text-[0.625rem] font-semibold ${
+                                    className={`text-[0.6875rem] font-semibold ${
                                       d.classification === "ev_error"
                                         ? "text-[#F87171]"
                                         : d.classification === "exact_primary"
@@ -2070,11 +2443,11 @@ export function TrainerView({
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
                       <span
-                        className={`text-[0.6rem] px-2 py-0.5 rounded border font-bold ${badge.cls}`}
+                        className={`text-[0.6875rem] px-2 py-0.5 rounded border font-bold ${badge.cls}`}
                       >
                         {badge.label}
                       </span>
-                      <span className="text-[0.65rem] font-mono text-[#94A3B8]">
+                      <span className="text-[0.6875rem] font-mono text-[#94A3B8]">
                         {currentSpot.format} · {currentSpot.effectiveStackBb}bb ·{" "}
                         {currentSpot.referenceStrategy.assumptions?.icmMode ?? "chipEV"}
                       </span>
@@ -2139,6 +2512,18 @@ export function TrainerView({
                   appearance={tableAppearance}
                 />
 
+                {handIntegrityIssue && (
+                  <div
+                    role="status"
+                    className="rounded-xl bg-[#1B1406] border border-[#F59E0B]/60 px-3 py-2 text-xs text-[#FDE68A] flex items-center gap-2"
+                  >
+                    <ShieldAlert className="w-4 h-4 text-[#FBBF24] shrink-0" />
+                    <span>
+                      Extração parcial nesta célula ({handClass}: soma {(handIntegrityIssue.sum * 100).toFixed(1)}%). A matriz continua visível para estudo, mas correções automáticas sem base são bloqueadas.
+                    </span>
+                  </div>
+                )}
+
                 {/* BOTÕES DE AÇÃO ESTILO GTO WIZARD (Fold Azul, Check/Call Verde, Bet/Raise Vermelho, All-in Vinho) */}
                 <div
                   className="trainer-actions grid grid-cols-2 sm:grid-cols-3 gap-2.5"
@@ -2165,26 +2550,33 @@ export function TrainerView({
                           backgroundColor: evaluation
                             ? isChosen || isBest
                               ? wizColors.bg
-                              : "#191B1D"
+                              : "#090D16"
                             : wizColors.bg,
                           borderColor: isChosen
                             ? "#F59E0B"
                             : evaluation && isBest
                               ? "#60A5FA"
                               : wizColors.border,
+                          color: wizColors.text,
                         }}
-                        className={`relative flex flex-col items-center justify-center rounded-xl py-3 px-4 font-extrabold text-white border-2 transition shadow-md ${
+                        className={`relative flex flex-col items-center justify-center rounded-xl py-3 px-4 font-extrabold border-2 transition shadow-md ${
                           evaluation
                             ? isChosen || isBest
-                              ? "ring-2 ring-[#F1BE60]/60 opacity-100"
-                              : "opacity-45"
+                              ? "ring-2 ring-[#F59E0B]/60 opacity-100"
+                              : "opacity-55"
                             : "hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0"
                         }`}
                       >
-                        <span className="text-sm sm:text-base tracking-wide uppercase">
-                          {act.name.replace(/_/g, " ")}
+                        <span className="flex items-center gap-1.5 text-sm sm:text-base tracking-wide">
+                          <span
+                            className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-black/30 border border-white/25 text-[0.6875rem] font-mono font-bold"
+                            aria-hidden="true"
+                          >
+                            {wizColors.shortGlyph}
+                          </span>
+                          <span>{formatActionLabelPtBr(act.name)}</span>
                         </span>
-                        <span className="text-[0.65rem] text-white/90 font-mono mt-0.5">
+                        <span className="text-[0.6875rem] text-white/95 font-mono tabular-nums mt-0.5">
                           {evaluation && !isUnsolved && freqVal !== undefined
                             ? `${Math.round(freqVal * 100)}%${
                                 evVal !== undefined &&
@@ -2216,7 +2608,9 @@ export function TrainerView({
                     {/* Linha 1: Veredito Claro + Botões Repetir Mão e Próxima Mão */}
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-start gap-3">
-                        {evaluation.classification === "ev_error" ? (
+                        {evaluation.integrityBlocked ? (
+                          <ShieldAlert className="w-7 h-7 text-[#F59E0B] shrink-0 mt-0.5" />
+                        ) : evaluation.classification === "ev_error" ? (
                           <XCircle className="w-7 h-7 text-[#EF4444] shrink-0 mt-0.5" />
                         ) : evaluation.classification === "unsolved" ? (
                           <BookOpen className="w-7 h-7 text-[#F59E0B] shrink-0 mt-0.5" />
@@ -2232,12 +2626,14 @@ export function TrainerView({
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
                             <span
-                              className={`text-[0.65rem] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded ${
-                                evaluation.classification === "exact_primary"
-                                  ? "bg-[#2563EB]/25 text-[#93C5FD]"
-                                  : evaluation.classification === "ev_error"
-                                    ? "bg-[#DC2626]/25 text-[#FCA5A5]"
-                                    : "bg-[#F59E0B]/20 text-[#FCD34D]"
+                              className={`text-[0.6875rem] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded ${
+                                evaluation.integrityBlocked
+                                  ? "bg-[#F59E0B]/20 text-[#FCD34D]"
+                                  : evaluation.classification === "exact_primary"
+                                    ? "bg-[#2563EB]/25 text-[#93C5FD]"
+                                    : evaluation.classification === "ev_error"
+                                      ? "bg-[#DC2626]/25 text-[#FCA5A5]"
+                                      : "bg-[#F59E0B]/20 text-[#FCD34D]"
                               }`}
                             >
                               {friendlyVerdict.badge}
@@ -2254,6 +2650,11 @@ export function TrainerView({
                           <p className="text-xs text-[#94A3B8] mt-0.5 leading-relaxed">
                             {evaluation.detail}
                           </p>
+                          {evaluation.integrityWarning && !evaluation.integrityBlocked && (
+                            <p className="text-[0.6875rem] text-[#FCD34D] mt-1">
+                              {evaluation.integrityWarning}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -2299,17 +2700,19 @@ export function TrainerView({
                             );
                             if (pct <= 0) return null;
                             const wizColors = getActionWizardColors(act.name);
+                            const labelPtBr = formatActionLabelPtBr(act.name);
                             return (
                               <div
                                 key={act.name}
                                 style={{
                                   width: `${pct}%`,
                                   backgroundColor: wizColors.bg,
+                                  color: wizColors.text,
                                 }}
-                                className="h-full flex items-center justify-center text-[0.625rem] font-bold text-white overflow-hidden whitespace-nowrap"
-                                title={`${act.name}: ${pct}%`}
+                                className="h-full flex items-center justify-center text-[0.6875rem] font-bold font-mono tabular-nums overflow-hidden whitespace-nowrap"
+                                title={`${labelPtBr}: ${pct}%`}
                               >
-                                {pct >= 12 ? `${act.name} ${pct}%` : ""}
+                                {pct >= 12 ? `${labelPtBr} ${pct}%` : ""}
                               </div>
                             );
                           })}
@@ -2326,9 +2729,9 @@ export function TrainerView({
                     )}
 
                     {/* Autoavaliação / Marcação Rápida de Revisão */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#292C2F] pt-2.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#1E293B] pt-2.5">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-[0.65rem] font-bold uppercase tracking-wider text-[#A1A6AA] mr-1">
+                        <span className="text-[0.6875rem] font-bold uppercase tracking-wider text-[#94A3B8] mr-1">
                           Autoavaliação:
                         </span>
                         {(
@@ -2337,13 +2740,13 @@ export function TrainerView({
                               id: "revisar_agora",
                               label: "Revisar agora",
                               activeCls:
-                                "bg-[#EF6666]/20 border-[#EF6666] text-[#EF6666]",
+                                "bg-[#EF4444]/20 border-[#EF4444] text-[#FCA5A5]",
                             },
                             {
                               id: "preciso_praticar",
                               label: "Preciso praticar",
                               activeCls:
-                                "bg-[#F1BE60]/20 border-[#F1BE60] text-[#F1BE60]",
+                                "bg-[#F59E0B]/20 border-[#F59E0B] text-[#FCD34D]",
                             },
                             {
                               id: "ja_compreendi",
@@ -2358,12 +2761,11 @@ export function TrainerView({
                             type="button"
                             onClick={() =>
                               handleSetSelfReview(
-                                currentSpot.spotId,
-                                handClass,
+                                currentSelfReviewKey,
                                 tag.id,
                               )
                             }
-                            className={`px-2.5 py-1 rounded-lg text-[0.65rem] font-bold border transition ${
+                            className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-bold border transition ${
                               currentSelfReviewTag === tag.id
                                 ? tag.activeCls
                                 : "bg-[#05070B] border-[#1E293B] text-[#94A3B8] hover:text-white"
@@ -2465,41 +2867,41 @@ export function TrainerView({
                               <span className="font-bold text-[#60A5FA]">
                                 1. Vantagem de Range
                               </span>
-                              <span className="font-mono text-[0.625rem] text-[#A1A6AA]">
+                              <span className="font-mono text-[0.6875rem] text-[#94A3B8]">
                                 Líder: {reasoning.rangeAdvantage.leader}
                               </span>
                             </div>
                             <p className="font-semibold text-white">
                               {reasoning.rangeAdvantage.headline}
                             </p>
-                            <p className="text-[#A1A6AA] text-[0.6875rem]">
+                            <p className="text-[#CBD5E1] text-[0.6875rem] leading-relaxed">
                               {reasoning.rangeAdvantage.rationale}
                             </p>
                           </div>
 
-                          <div className="rounded-lg bg-[#191B1D] border border-[#292C2F] p-2.5 space-y-1">
+                          <div className="rounded-lg bg-[#090D16] border border-[#1E293B] p-2.5 space-y-1">
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-indigo-300">
                                 2. Vantagem de Nuts
                               </span>
-                              <span className="font-mono text-[0.625rem] text-[#A1A6AA]">
+                              <span className="font-mono text-[0.6875rem] text-[#94A3B8]">
                                 Líder: {reasoning.nutAdvantage.leader}
                               </span>
                             </div>
                             <p className="font-semibold text-white">
                               {reasoning.nutAdvantage.headline}
                             </p>
-                            <p className="text-[#A1A6AA] text-[0.6875rem]">
+                            <p className="text-[#CBD5E1] text-[0.6875rem] leading-relaxed">
                               {reasoning.nutAdvantage.rationale}
                             </p>
                           </div>
 
-                          <div className="rounded-lg bg-[#191B1D] border border-[#292C2F] p-2.5 space-y-1.5">
+                          <div className="rounded-lg bg-[#090D16] border border-[#1E293B] p-2.5 space-y-1.5">
                             <div className="flex items-center justify-between">
-                              <span className="font-bold text-[#F1BE60]">
+                              <span className="font-bold text-[#FCD34D]">
                                 3. Blockers ({reasoning.blocker.combinatoricsType})
                               </span>
-                              <span className="font-mono text-[0.625rem] text-[#F1BE60]">
+                              <span className="font-mono text-[0.6875rem] text-[#FCD34D]">
                                 Score: {reasoning.blocker.riverBluffCandidateHeuristic.score100}/100
                               </span>
                             </div>
@@ -2507,7 +2909,7 @@ export function TrainerView({
                               {reasoning.blocker.blockedValueClasses.map((b) => (
                                 <span
                                   key={b.hand}
-                                  className="text-[0.6rem] font-mono px-1.5 py-0.5 rounded bg-[#090B0C] border border-[#292C2F] text-[#F4F5F5]"
+                                  className="text-[0.6875rem] font-mono px-1.5 py-0.5 rounded bg-[#05070B] border border-[#1E293B] text-[#F8FAFC]"
                                 >
                                   {b.hand}: {b.remainingCombos}/{b.baseCombos} (-{b.reductionPct}%)
                                 </span>
@@ -2515,12 +2917,12 @@ export function TrainerView({
                             </div>
                           </div>
 
-                          <div className="rounded-lg bg-[#191B1D] border border-[#292C2F] p-2.5 space-y-1">
+                          <div className="rounded-lg bg-[#090D16] border border-[#1E293B] p-2.5 space-y-1">
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-sky-300">
                                 4. Realização de Equidade (R)
                               </span>
-                              <span className="font-mono text-[0.625rem] text-sky-200">
+                              <span className="font-mono text-[0.6875rem] text-sky-200">
                                 {reasoning.equityRealization.positionalStatus} · R ≈{" "}
                                 {reasoning.equityRealization.estimatedFactor}x
                               </span>
@@ -2567,7 +2969,7 @@ export function TrainerView({
                                     {opt.ev.toFixed(3)} {reasoning.sizingComparison.evUnit} |
                                     ΔEV: -{opt.deltaEvFromBest.toFixed(3)}
                                   </div>
-                                  <p className="text-[0.625rem] text-[#94A3B8] mt-1">
+                                  <p className="text-[0.6875rem] text-[#94A3B8] mt-1">
                                     {opt.interpretation}
                                   </p>
                                 </div>
@@ -2614,7 +3016,7 @@ export function TrainerView({
                           currentSpot.referenceStrategy.assumptions?.rangesSignature ||
                           typeof currentSpot.referenceStrategy.assumptions
                             ?.achievedExploitabilityPct === "number") && (
-                          <div className="flex flex-wrap items-center justify-between gap-2 text-[0.625rem] font-mono border-t border-[#292C2F] pt-1">
+                          <div className="flex flex-wrap items-center justify-between gap-2 text-[0.6875rem] font-mono border-t border-[#1E293B] pt-1">
                             <span>
                               {currentSpot.referenceStrategy.assumptions
                                 ?.rangesSignature
@@ -2652,8 +3054,8 @@ export function TrainerView({
                     )}
 
                     {coachExplanation && (
-                      <div className="rounded-xl bg-[#090B0C] border border-indigo-500/40 p-3.5 text-sm text-slate-200 space-y-2">
-                        <div className="flex items-center justify-between text-xs text-indigo-300 font-semibold border-b border-[#292C2F] pb-2">
+                      <div className="rounded-xl bg-[#05070B] border border-indigo-500/40 p-3.5 text-sm text-slate-200 space-y-2">
+                        <div className="flex items-center justify-between text-xs text-indigo-300 font-semibold border-b border-[#1E293B] pb-2">
                           <span className="flex items-center gap-1.5">
                             <Brain className="w-4 h-4" /> Análise do AI Poker Coach (
                             {model})
@@ -2681,7 +3083,7 @@ export function TrainerView({
                       <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#F8FAFC]">
                         Matriz 13&times;13 · {currentSpot.heroPosition}
                       </h3>
-                      <p className="text-[0.65rem] text-[#94A3B8]">
+                      <p className="text-[0.6875rem] text-[#94A3B8]">
                         {evaluation || peekMatrix
                           ? `Mão ativa: ${handClass}`
                           : "Protegida contra spoiler antes da decisão"}
@@ -2700,7 +3102,7 @@ export function TrainerView({
                   </div>
 
                   {currentSpot.referenceStrategy.validationWarnings && (
-                    <details className="mb-2.5 rounded-lg bg-amber-950/35 border border-amber-600/40 px-2.5 py-1.5 text-[0.65rem] text-amber-200">
+                    <details className="mb-2.5 rounded-lg bg-amber-950/35 border border-amber-600/40 px-2.5 py-1.5 text-[0.6875rem] text-amber-200">
                       <summary className="cursor-pointer flex items-center gap-1.5 font-semibold select-none">
                         <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                         <span>Aviso de validação (clique p/ detalhes)</span>
@@ -2765,31 +3167,39 @@ export function TrainerView({
           </>
         )}
 
-        {/* Modal do SolverAdapter v1.1 */}
-        {importOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-            <div className="w-full max-w-3xl rounded-2xl bg-[#191B1D] border border-[#292C2F] shadow-2xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#292C2F] flex items-center justify-between">
+        {/* Modal Acessível do SolverAdapter v1.1 */}
+        <dialog
+          ref={importDialogRef}
+          aria-labelledby="solver-import-title"
+          onCancel={(e) => {
+            e.preventDefault();
+            setImportOpen(false);
+          }}
+          className="m-auto w-[min(100%-2rem,48rem)] max-h-[88dvh] rounded-2xl bg-[#090D16] border border-[#26334A] p-0 text-[#F8FAFC] shadow-2xl backdrop:bg-black/75 backdrop:backdrop-blur-sm overflow-hidden"
+        >
+          {importOpen && (
+            <div className="flex flex-col max-h-[88dvh]">
+              <div className="px-5 py-4 border-b border-[#1E293B] flex items-center justify-between shrink-0">
                 <div>
-                  <h3 className="text-sm font-bold text-white">
-                    Adaptador Versionado de Soluções — SolverAdapter v
+                  <h3 id="solver-import-title" className="text-sm font-bold text-[#F8FAFC]">
+                    Adaptador Versionado de Soluções MTT — SolverAdapter v
                     {SOLVER_ADAPTER_VERSION}
                   </h3>
-                  <p className="text-[0.6875rem] text-[#A1A6AA]">
-                    Valida formato, stack, blinds, antes, rake, assentos, histórico,
-                    board, pote, sizings, unidade de EV, soma de frequências e
-                    consistência de equilíbrio.
+                  <p className="text-xs text-[#94A3B8]">
+                    Valida formato MTT, stack, blinds, antes, rake, assentos, histórico,
+                    board, pote, sizings, unidade de EV e soma de frequências.
                   </p>
                 </div>
                 <button
                   type="button"
+                  aria-label="Fechar modal de importação de solver"
                   onClick={() => setImportOpen(false)}
-                  className="p-1 rounded-lg text-[#A1A6AA] hover:text-white"
+                  className="p-2 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#131B2C]"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <div className="p-5 space-y-3 text-xs">
+              <div className="p-5 space-y-3 text-xs overflow-y-auto">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-slate-300">
                     Aceita{" "}
@@ -2797,12 +3207,12 @@ export function TrainerView({
                       JSON (SolverAdapter v{SOLVER_ADAPTER_VERSION} / Bundle
                       TexasSolver)
                     </strong>{" "}
-                    ou <strong>CSV exportado do Desktop Postflop</strong>. Dados sem
+                    ou <strong>CSV exportado do Desktop Postflop</strong> para torneios MTT. Dados sem
                     evidência permanecem{" "}
                     <code className="text-amber-300">UNSOLVED</code>.
                   </span>
                   <div className="flex items-center gap-2">
-                    <label className="px-2.5 py-1 rounded-lg bg-[#0D182C] border border-[#2563EB]/60 text-[#93C5FD] font-semibold hover:bg-[#2563EB]/25 cursor-pointer flex items-center gap-1.5">
+                    <label className="px-2.5 py-1.5 rounded-lg bg-[#0D182C] border border-[#2563EB]/60 text-[#93C5FD] font-semibold hover:bg-[#2563EB]/25 cursor-pointer flex items-center gap-1.5">
                       <Upload className="w-3 h-3" />
                       Carregar Arquivo (.json/.csv)
                       <input
@@ -2815,74 +3225,79 @@ export function TrainerView({
                     <button
                       type="button"
                       onClick={loadBrokenSamplePayload}
-                      className="px-2.5 py-1 rounded-lg bg-amber-950/70 border border-amber-600/50 text-amber-300 font-semibold hover:bg-amber-900/60"
+                      className="px-2.5 py-1.5 rounded-lg bg-amber-950/70 border border-amber-600/50 text-amber-300 font-semibold hover:bg-amber-900/60"
                     >
                       Testar Payload Inconsistente (&rarr; UNSOLVED)
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 rounded-xl bg-[#090B0C] border border-[#292C2F] p-2.5 text-[0.6875rem]">
-                  <label className="col-span-2 flex flex-col gap-1 text-[#A1A6AA]">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 rounded-xl bg-[#05070B] border border-[#1E293B] p-2.5 text-xs">
+                  <label className="col-span-2 flex flex-col gap-1 text-[#CBD5E1]">
                     <span>Nome do Spot (para CSV Desktop Postflop)</span>
                     <input
                       type="text"
                       value={csvSpotName}
                       onChange={(e) => setCsvSpotName(e.target.value)}
-                      className="rounded-lg bg-[#191B1D] border border-[#292C2F] px-2 py-1 text-slate-200"
+                      className="rounded-lg bg-[#090D16] border border-[#26334A] px-2 py-1 text-[#F8FAFC]"
                     />
                   </label>
-                  <label className="flex flex-col gap-1 text-[#A1A6AA]">
+                  <label className="flex flex-col gap-1 text-[#CBD5E1]">
                     <span>Board</span>
                     <input
                       type="text"
                       value={csvBoardText}
                       onChange={(e) => setCsvBoardText(e.target.value)}
-                      className="rounded-lg bg-[#191B1D] border border-[#292C2F] px-2 py-1 font-mono text-slate-200"
+                      className="rounded-lg bg-[#090D16] border border-[#26334A] px-2 py-1 font-mono text-[#F8FAFC]"
                     />
                   </label>
-                  <label className="flex flex-col gap-1 text-[#A1A6AA]">
+                  <label className="flex flex-col gap-1 text-[#CBD5E1]">
                     <span>Pot / Stack (BB)</span>
                     <div className="flex gap-1">
                       <input
                         type="text"
+                        aria-label="Pote inicial em BB"
                         value={csvPotBb}
                         onChange={(e) => setCsvPotBb(e.target.value)}
-                        className="w-1/2 rounded-lg bg-[#191B1D] border border-[#292C2F] px-2 py-1 font-mono text-slate-200"
+                        className="w-1/2 rounded-lg bg-[#090D16] border border-[#26334A] px-2 py-1 font-mono text-[#F8FAFC]"
                       />
                       <input
                         type="text"
+                        aria-label="Stack efetivo em BB"
                         value={csvStackBb}
                         onChange={(e) => setCsvStackBb(e.target.value)}
-                        className="w-1/2 rounded-lg bg-[#191B1D] border border-[#292C2F] px-2 py-1 font-mono text-slate-200"
+                        className="w-1/2 rounded-lg bg-[#090D16] border border-[#26334A] px-2 py-1 font-mono text-[#F8FAFC]"
                       />
                     </div>
                   </label>
-                  <label className="flex flex-col gap-1 text-[#A1A6AA]">
+                  <label className="flex flex-col gap-1 text-[#CBD5E1]">
                     <span>Ver. / Exploit %</span>
                     <div className="flex gap-1">
                       <input
                         type="text"
+                        aria-label="Versão do solver"
                         value={csvVersion}
                         onChange={(e) => setCsvVersion(e.target.value)}
-                        className="w-1/2 rounded-lg bg-[#191B1D] border border-[#292C2F] px-2 py-1 font-mono text-slate-200"
+                        className="w-1/2 rounded-lg bg-[#090D16] border border-[#26334A] px-2 py-1 font-mono text-[#F8FAFC]"
                       />
                       <input
                         type="text"
+                        aria-label="Exploitabilidade percentual"
                         value={csvExploitPct}
                         onChange={(e) => setCsvExploitPct(e.target.value)}
-                        className="w-1/2 rounded-lg bg-[#191B1D] border border-[#292C2F] px-2 py-1 font-mono text-slate-200"
+                        className="w-1/2 rounded-lg bg-[#090D16] border border-[#26334A] px-2 py-1 font-mono text-[#F8FAFC]"
                       />
                     </div>
                   </label>
                 </div>
 
                 <textarea
+                  aria-label="Payload JSON ou CSV do solver"
                   value={importJsonText}
                   onChange={(e) => setImportJsonText(e.target.value)}
-                  rows={10}
+                  rows={8}
                   placeholder='Cole JSON {"schemaVersion": "1.1.0", ...} / canonical_bundle.json ou carregue CSV "Hand,Weight,Combos,Equity,EV,Check %,Check EV,..."'
-                  className="w-full rounded-xl bg-[#05070B] border border-[#1E293B] p-3 font-mono text-[0.6875rem] text-slate-200 outline-none focus:border-[#3B82F6]"
+                  className="w-full rounded-xl bg-[#05070B] border border-[#26334A] p-3 font-mono text-xs text-[#F8FAFC] placeholder:text-[#7E8EA4] outline-none focus:border-[#3B82F6]"
                 />
                 {importError && (
                   <div className="rounded-xl bg-rose-950/60 border border-rose-700 p-3 text-rose-200 leading-relaxed">
@@ -2895,11 +3310,11 @@ export function TrainerView({
                   </div>
                 )}
               </div>
-              <div className="px-5 py-3.5 border-t border-[#1E293B] bg-[#05070B] flex justify-end gap-2">
+              <div className="px-5 py-3.5 border-t border-[#1E293B] bg-[#05070B] flex justify-end gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setImportOpen(false)}
-                  className="px-3 py-2 rounded-xl text-xs font-semibold text-[#94A3B8] hover:text-white"
+                  className="px-3 py-2 rounded-xl text-xs font-semibold text-[#CBD5E1] hover:text-white"
                 >
                   Fechar
                 </button>
@@ -2912,8 +3327,8 @@ export function TrainerView({
                 </button>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </dialog>
       </div>
     </TrainingViewport>
   );

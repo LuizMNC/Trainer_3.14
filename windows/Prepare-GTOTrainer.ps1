@@ -6,10 +6,10 @@ $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $dataRoot = Join-Path $env:LOCALAPPDATA 'Projeto-Poker'
 New-Item -ItemType Directory -Path $dataRoot -Force | Out-Null
 $form = New-Object Windows.Forms.Form
-$form.Text = 'Preparar GTO Trainer'; $form.Size = New-Object Drawing.Size(560,250); $form.StartPosition = 'CenterScreen'
+$form.Text = 'Preparar TreinerLM'; $form.Size = New-Object Drawing.Size(560,250); $form.StartPosition = 'CenterScreen'
 $label = New-Object Windows.Forms.Label
 $label.Location = New-Object Drawing.Point(20,20); $label.Size = New-Object Drawing.Size(510,135)
-$label.Text = "Preparação inicial: verificar Python e Node, preparar PokerKit, compilar a aplicação e criar o atalho. A primeira instalação pode precisar de internet. O banco e seus estudos serão preservados."
+$label.Text = "Preparação inicial do TreinerLM (Estúdio Offline MTT): verificar Python e Node, preparar PokerKit, compilar a aplicação e criar o atalho. A primeira instalação pode precisar de internet. O banco e seus estudos serão preservados."
 $form.Controls.Add($label)
 $button = New-Object Windows.Forms.Button
 $button.Text = 'Preparar e criar atalho'; $button.Location = New-Object Drawing.Point(20,160); $button.Size = New-Object Drawing.Size(230,32)
@@ -38,20 +38,33 @@ function Install-GTOShortcut {
   $icon = Join-Path $PSScriptRoot 'gto-trainer.ico'
   $bitmap = New-Object Drawing.Bitmap(64,64)
   $graphics = [Drawing.Graphics]::FromImage($bitmap)
-  $graphics.Clear([Drawing.Color]::FromArgb(15,23,42))
-  $font = New-Object Drawing.Font('Segoe UI Symbol',39,[Drawing.FontStyle]::Bold)
-  $brush = New-Object Drawing.SolidBrush([Drawing.Color]::FromArgb(52,211,153))
-  $graphics.DrawString([char]0x2660,$font,$brush,0,-4)
+  $graphics.SmoothingMode = [Drawing.Drawing2D.SmoothingMode]::AntiAlias
+  $graphics.Clear([Drawing.Color]::FromArgb(5,7,11))
+  $gradBrush = New-Object Drawing.Drawing2D.LinearGradientBrush(
+    (New-Object Drawing.Point(0,0)),
+    (New-Object Drawing.Point(64,64)),
+    [Drawing.Color]::FromArgb(220,38,38),
+    [Drawing.Color]::FromArgb(37,99,235)
+  )
+  $pen = New-Object Drawing.Pen($gradBrush, 4)
+  $graphics.DrawRectangle($pen, 3, 3, 57, 57)
+  $font = New-Object Drawing.Font('Georgia',38,[Drawing.FontStyle]::Bold)
+  $brush = New-Object Drawing.SolidBrush([Drawing.Color]::FromArgb(248,250,252))
+  $graphics.DrawString([char]0x03C0,$font,$brush,11,1)
   $native = $bitmap.GetHicon()
   $drawingIcon = [Drawing.Icon]::FromHandle($native)
   $stream = [IO.File]::Create($icon); $drawingIcon.Save($stream); $stream.Dispose()
-  $drawingIcon.Dispose(); $graphics.Dispose(); $font.Dispose(); $brush.Dispose(); $bitmap.Dispose()
+  $drawingIcon.Dispose(); $pen.Dispose(); $gradBrush.Dispose(); $graphics.Dispose(); $font.Dispose(); $brush.Dispose(); $bitmap.Dispose()
   $shell = New-Object -ComObject WScript.Shell
   $desktop = [Environment]::GetFolderPath('DesktopDirectory')
-  $shortcut = $shell.CreateShortcut((Join-Path $desktop 'GTO Trainer.lnk'))
+  $legacyShortcut = Join-Path $desktop 'GTO Trainer.lnk'
+  if (Test-Path -LiteralPath $legacyShortcut) {
+    Remove-Item -LiteralPath $legacyShortcut -Force
+  }
+  $shortcut = $shell.CreateShortcut((Join-Path $desktop 'TreinerLM.lnk'))
   $shortcut.TargetPath = Join-Path $env:WINDIR 'System32\wscript.exe'
   $shortcut.Arguments = '"' + (Join-Path $PSScriptRoot 'Launch-GTOTrainer.vbs') + '"'
-  $shortcut.WorkingDirectory = $projectRoot; $shortcut.IconLocation = $icon; $shortcut.Description = 'GTO Trainer local - iniciar e abrir no navegador'; $shortcut.WindowStyle=7; $shortcut.Save()
+  $shortcut.WorkingDirectory = $projectRoot; $shortcut.IconLocation = $icon; $shortcut.Description = 'TreinerLM (Estúdio Offline MTT) - iniciar e abrir no navegador'; $shortcut.WindowStyle=7; $shortcut.Save()
 }
 if($InstallShortcutOnly) { Install-GTOShortcut; $form.Dispose(); return }
 $prepareAction = {
@@ -77,9 +90,9 @@ $prepareAction = {
     $label.Text='Compilando a aplicação de produção. Aguarde…'; [Windows.Forms.Application]::DoEvents()
     Invoke-HiddenTask $node @($npmCli,'run','build') $appRoot
     Install-GTOShortcut
-    $label.Text='Preparação concluída. Use o ícone GTO Trainer na Área de Trabalho. Feche a janela do iniciador para encerrar o servidor.'
+    $label.Text='Preparação concluída. Use o atalho do TreinerLM na Área de Trabalho. Feche a janela do iniciador para encerrar o servidor.'
     Invoke-HiddenTask $venvPython @('-c','import sys; from pathlib import Path; sys.path.insert(0,str(Path(sys.argv[1])/"windows")); from launcher_core import installation; installation(Path(sys.argv[1]))',$projectRoot) $projectRoot
-    if(-not $PrepareOnly) { [Windows.Forms.MessageBox]::Show('Atalho GTO Trainer criado na Área de Trabalho.','GTO Trainer') | Out-Null }
+    if(-not $PrepareOnly) { [Windows.Forms.MessageBox]::Show('Atalho do TreinerLM atualizado na Área de Trabalho.','TreinerLM') | Out-Null }
   } catch {
     $label.Text=$_.Exception.Message
     if($PrepareOnly) { throw }

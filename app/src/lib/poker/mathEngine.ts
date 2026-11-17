@@ -51,9 +51,12 @@ export interface BubbleFactorResult {
 
 export interface PkoBountyEvaluation {
   model: "PKO_BOUNTY_ADJUSTED";
+  immediateBountyUsd: number;
+  effectiveBountyChipFactor: number;
   bountyChipEquivalent: number;
   effectivePotWithBounty: number;
   adjustedRequiredEquity: number;
+  formula: string;
   assumptions: string[];
 }
 
@@ -62,10 +65,20 @@ export function calculatePotOdds(
   opposingBet: number,
   callAmount: number,
 ): PotOddsResult {
-  if (potBeforeBet < 0 || opposingBet < 0 || callAmount <= 0) {
-    throw new Error("Entradas inválidas para pot odds: P>=0, B>=0 e C>0 são obrigatórios.");
+  if (
+    ![potBeforeBet, opposingBet, callAmount].every(Number.isFinite) ||
+    potBeforeBet < 0 ||
+    opposingBet < 0 ||
+    callAmount <= 0
+  ) {
+    throw new Error(
+      "Entradas inválidas para pot odds: informe valores numéricos finitos com P ≥ 0, B ≥ 0 e C > 0.",
+    );
   }
   const totalPotAfterCall = potBeforeBet + opposingBet + callAmount;
+  if (!Number.isFinite(totalPotAfterCall) || totalPotAfterCall <= 0) {
+    throw new Error("O pote total após o call excedeu os limites numéricos válidos.");
+  }
   const requiredEquity = callAmount / totalPotAfterCall;
   return {
     requiredEquity,
@@ -84,10 +97,20 @@ export function calculateBluffBreakevenFoldEquity(
   potBeforeBet: number,
   betAmount: number,
 ): BluffBreakevenResult {
-  if (potBeforeBet <= 0 || betAmount <= 0) {
-    throw new Error("Entradas inválidas para fold equity de blefe: P>0 e B>0 são obrigatórios.");
+  if (
+    ![potBeforeBet, betAmount].every(Number.isFinite) ||
+    potBeforeBet <= 0 ||
+    betAmount <= 0
+  ) {
+    throw new Error(
+      "Entradas inválidas para fold equity de blefe: informe valores numéricos finitos com P > 0 e B > 0.",
+    );
   }
-  const requiredFoldEquity = betAmount / (potBeforeBet + betAmount);
+  const denominator = potBeforeBet + betAmount;
+  if (!Number.isFinite(denominator) || denominator <= 0) {
+    throw new Error("Denominador inválido para fold equity de blefe.");
+  }
+  const requiredFoldEquity = betAmount / denominator;
   return {
     requiredFoldEquity,
     requiredFoldEquityPct: Math.round(requiredFoldEquity * 10000) / 100,
@@ -104,10 +127,20 @@ export function calculateSimplifiedMdf(
   potBeforeBet: number,
   betAmount: number,
 ): SimplifiedMdfResult {
-  if (potBeforeBet <= 0 || betAmount <= 0) {
-    throw new Error("Entradas inválidas para MDF: P>0 e B>0 são obrigatórios.");
+  if (
+    ![potBeforeBet, betAmount].every(Number.isFinite) ||
+    potBeforeBet <= 0 ||
+    betAmount <= 0
+  ) {
+    throw new Error(
+      "Entradas inválidas para MDF: informe valores numéricos finitos com P > 0 e B > 0.",
+    );
   }
-  const mdf = potBeforeBet / (potBeforeBet + betAmount);
+  const denominator = potBeforeBet + betAmount;
+  if (!Number.isFinite(denominator) || denominator <= 0) {
+    throw new Error("Denominador inválido para MDF.");
+  }
+  const mdf = potBeforeBet / denominator;
   return {
     mdf,
     mdfPct: Math.round(mdf * 10000) / 100,
@@ -125,10 +158,19 @@ export function calculatePolarizedRiverBluffFraction(
   potBeforeBet: number,
   betAmount: number,
 ): PolarizedRiverBluffResult {
-  if (potBeforeBet <= 0 || betAmount <= 0) {
-    throw new Error("Entradas inválidas para fração polarizada no river: P>0 e B>0 são obrigatórios.");
+  if (
+    ![potBeforeBet, betAmount].every(Number.isFinite) ||
+    potBeforeBet <= 0 ||
+    betAmount <= 0
+  ) {
+    throw new Error(
+      "Entradas inválidas para fração polarizada no river: informe valores numéricos finitos com P > 0 e B > 0.",
+    );
   }
   const totalAfterCall = potBeforeBet + 2 * betAmount;
+  if (!Number.isFinite(totalAfterCall) || totalAfterCall <= 0) {
+    throw new Error("Pote total inválido para fração polarizada no river.");
+  }
   const bluffFraction = betAmount / totalAfterCall;
   const valueFraction = (potBeforeBet + betAmount) / totalAfterCall;
   const valueToBluffRatio = (potBeforeBet + betAmount) / betAmount;
@@ -174,6 +216,31 @@ export function createSeededRng(seedInput: string | number): {
       return Math.floor((t / 4294967296) * 100) + 1;
     },
   };
+}
+
+export function parseStrictFiniteList(raw: string, fieldLabel: string): number[] {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    throw new Error(`Informe ao menos um número finito válido em ${fieldLabel}.`);
+  }
+  const tokens = trimmed.split(",");
+  const parsed: number[] = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i].trim();
+    if (!token) {
+      throw new Error(
+        `Item ${i + 1} em ${fieldLabel} está vazio. Remova vírgulas extras ou informe um número finito.`,
+      );
+    }
+    const num = Number(token);
+    if (!Number.isFinite(num)) {
+      throw new Error(
+        `Valor inválido em ${fieldLabel}: '${token}'. Informe apenas números finitos separados por vírgula.`,
+      );
+    }
+    parsed.push(num);
+  }
+  return parsed;
 }
 
 export function assertNotPkoForStandardIcm(tournamentType: string): void {
@@ -324,6 +391,17 @@ export function calculateBubbleFactor(
   icmIfFold: number,
   chipEvRequiredEquity = 0.5,
 ): BubbleFactorResult {
+  if (
+    ![icmIfWin, icmIfLose, icmIfFold, chipEvRequiredEquity].every(
+      Number.isFinite,
+    ) ||
+    icmIfLose < 0 ||
+    icmIfFold < icmIfLose
+  ) {
+    throw new Error(
+      "Informe valores numéricos finitos válidos para ICM ($EV Win > Fold >= Lose >= 0).",
+    );
+  }
   const gain = icmIfWin - icmIfFold;
   const loss = icmIfFold - icmIfLose;
   if (gain <= 0) {
@@ -347,7 +425,11 @@ export function calculateBubbleFactor(
 }
 
 /**
- * Modelo dedicado e separado para PKO: converte bounty imediato capturável em fichas equivalentes.
+ * Modelo heurístico dedicado e separado para MTT PKO:
+ * Converte bounties iniciais na cabeça do vilão (quando coberto pelo Herói) para fichas equivalentes
+ * usando uma única aplicação de `bountyChipFactor` sobre `(villainBountyUsd / startingBountyUsd) * startingStackChips`.
+ * Referência: em PKO 50/50 clássico, 50% do bounty é capturado em dinheiro imediato e o restante soma-se à cabeça do vencedor;
+ * fatores típicos vão de 0.33 (início/meio com desconto de sobrevivência) a 0.50 (paridade direta dos 50% capturados).
  */
 export function evaluatePkoBountyModel(params: {
   potWithoutBountyChips: number;
@@ -358,25 +440,53 @@ export function evaluatePkoBountyModel(params: {
   heroCoversVillain: boolean;
   bountyChipFactor?: number;
 }): PkoBountyEvaluation {
-  const factor = params.bountyChipFactor ?? 0.5;
-  if (params.callAmountChips <= 0 || params.startingBountyUsd <= 0) {
-    throw new Error("Parâmetros inválidos para cálculo de PKO.");
+  const factor = params.bountyChipFactor ?? 0.33;
+  if (
+    ![
+      params.potWithoutBountyChips,
+      params.callAmountChips,
+      params.villainBountyUsd,
+      params.startingStackChips,
+      params.startingBountyUsd,
+      factor,
+    ].every(Number.isFinite) ||
+    params.potWithoutBountyChips < 0 ||
+    params.callAmountChips <= 0 ||
+    params.villainBountyUsd < 0 ||
+    params.startingStackChips <= 0 ||
+    params.startingBountyUsd <= 0 ||
+    factor < 0 ||
+    factor > 1
+  ) {
+    throw new Error(
+      "Parâmetros inválidos para cálculo de PKO: verifique valores finitos positivos e fator entre 0 e 1.",
+    );
   }
-  const immediateBountyUsd = params.heroCoversVillain ? params.villainBountyUsd * 0.5 : 0;
-  const chipsPerDollar = params.startingStackChips / params.startingBountyUsd;
-  const bountyChipEquivalent = immediateBountyUsd * chipsPerDollar * factor;
+  const immediateBountyUsd = params.heroCoversVillain
+    ? params.villainBountyUsd * 0.5
+    : 0;
+  const startingBountyUnits = params.villainBountyUsd / params.startingBountyUsd;
+  const bountyChipEquivalent = params.heroCoversVillain
+    ? startingBountyUnits * params.startingStackChips * factor
+    : 0;
   const effectivePotWithBounty =
     params.potWithoutBountyChips + params.callAmountChips + bountyChipEquivalent;
   const adjustedRequiredEquity = params.callAmountChips / effectivePotWithBounty;
 
   return {
     model: "PKO_BOUNTY_ADJUSTED",
+    immediateBountyUsd,
+    effectiveBountyChipFactor: factor,
     bountyChipEquivalent,
     effectivePotWithBounty,
     adjustedRequiredEquity,
+    formula: params.heroCoversVillain
+      ? `(${params.villainBountyUsd} / ${params.startingBountyUsd}) × ${params.startingStackChips} × ${factor.toFixed(2)} = ${Math.round(bountyChipEquivalent)} fichas`
+      : "Herói não cobre o vilão → 0 fichas equivalentes de bounty",
     assumptions: [
-      "Modelo heurístico de conversão bounty-para-fichas (não substitui solver PKO completo).",
-      `Apenas 50% do bounty do vilão é capturado imediatamente em cash/prêmio quando o Herói cobre (${params.heroCoversVillain ? "cobre" : "não cobre"}).`,
+      "Modelo heurístico de conversão bounty-para-fichas sob estrutura PKO 50/50 simétrica (prize pool regular inicial igual ao starting bounty; não substitui solver PKO completo multiway com ICM).",
+      `50% do bounty do vilão ($${immediateBountyUsd.toFixed(2)}) é capturado imediatamente em cash quando o Herói cobre (${params.heroCoversVillain ? "cobre" : "não cobre"}).`,
+      `Fator de conversão aplicado uma única vez por bounty inicial (${factor.toFixed(2)} × starting stack = ${(factor * 100).toFixed(0)}%). Em torneios não-50/50 (ex.: Mystery Bounty ou bounty assimétrico), ajuste o fator manualmente.`,
     ],
   };
 }

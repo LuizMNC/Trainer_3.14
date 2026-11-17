@@ -1,7 +1,7 @@
 $ErrorActionPreference='Stop'
 $projectRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-$linkPath=Join-Path ([Environment]::GetFolderPath('DesktopDirectory')) 'GTO Trainer.lnk'
-if(-not (Test-Path -LiteralPath $linkPath)){throw 'Atalho ausente.'}
+$linkPath=Join-Path ([Environment]::GetFolderPath('DesktopDirectory')) 'TreinerLM.lnk'
+if(-not (Test-Path -LiteralPath $linkPath)){throw 'Atalho TreinerLM.lnk ausente.'}
 $shell=New-Object -ComObject WScript.Shell
 $link=$shell.CreateShortcut($linkPath)
 $bootstrap=Join-Path $PSScriptRoot 'Launch-GTOTrainer.vbs'

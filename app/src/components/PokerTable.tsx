@@ -1,7 +1,12 @@
 "use client";
 
 import React from "react";
-import { POSITIONS_8MAX, type PlayingCard as Card, type LegacyRangeSpot } from "@/lib/poker";
+import {
+  formatActionLabelPtBr,
+  POSITIONS_8MAX,
+  type PlayingCard as Card,
+  type LegacyRangeSpot,
+} from "@/lib/poker";
 import {
   buildFeltGradient,
   DEFAULT_TABLE_APPEARANCE,
@@ -77,7 +82,7 @@ function getCardPalette(styleId: CardStyleId, suit: string): {
       c: "text-[#15803D]",
     };
     return {
-      container: "bg-white border-[#090B0C]",
+      container: "bg-white border-[#1E293B]",
       suitColor: suitColors[suit] ?? "text-[#111317]",
       accentRing: "shadow-[0_6px_18px_rgba(0,0,0,0.6)]",
     };
@@ -203,21 +208,23 @@ function buildTableContext(spot: LegacyRangeSpot, potBbOverride?: number | null)
   );
   const safeHeroIdx = heroIdx === -1 ? 5 : heroIdx;
 
-  let villainPos = "";
+  let villainPos = spot.villainPosition?.trim().toUpperCase() ?? "";
   const spotTypeStr = String(spot.spotType);
-  if (spotTypeStr === "vs_rfi") {
-    const m = spot.id.match(/vs_([a-z0-9]+)_rfi/i);
-    if (m) villainPos = m[1].toUpperCase();
-  } else if (spotTypeStr === "vs_limp") {
-    villainPos = "SB";
-  } else if (spotTypeStr === "vs_shove") {
-    villainPos = spot.heroPosition === "BB" ? "SB" : "BTN";
-  } else if (
-    spotTypeStr === "flop_cbet_ip" ||
-    spotTypeStr === "turn_cbet_ip" ||
-    spotTypeStr === "bb_vs_cbet"
-  ) {
-    villainPos = spot.heroPosition === "BTN" ? "BB" : "BTN";
+  if (!villainPos) {
+    if (spotTypeStr === "vs_rfi") {
+      const m = spot.id.match(/vs_([a-z0-9+]+)_rfi/i);
+      if (m) villainPos = m[1].toUpperCase();
+    } else if (spotTypeStr === "vs_limp") {
+      villainPos = "SB";
+    } else if (spotTypeStr === "vs_shove") {
+      villainPos = spot.heroPosition === "BB" ? "SB" : "BTN";
+    } else if (
+      spotTypeStr === "flop_cbet_ip" ||
+      spotTypeStr === "turn_cbet_ip" ||
+      spotTypeStr === "bb_vs_cbet"
+    ) {
+      villainPos = spot.heroPosition === "BTN" ? "BB" : "BTN";
+    }
   }
 
   const villainIdx = villainPos
@@ -238,6 +245,74 @@ function buildTableContext(spot: LegacyRangeSpot, potBbOverride?: number | null)
   return { safeHeroIdx, villainPos, villainIdx, potBb };
 }
 
+type SeatVisualState = {
+  kind: "hero" | "villain" | "awaiting" | "folded";
+  statusText: string;
+  showChips: boolean;
+};
+
+function resolveSeatVisualState(
+  idx: number,
+  safeHeroIdx: number,
+  villainIdx: number,
+  spot: LegacyRangeSpot,
+  heroAction?: string | null,
+): SeatVisualState {
+  if (idx === safeHeroIdx) {
+    if (heroAction) {
+      const formatted = formatActionLabelPtBr(heroAction);
+      return {
+        kind: heroAction.toLowerCase() === "fold" ? "folded" : "hero",
+        statusText: `${spot.stackBb}bb · ${formatted}`,
+        showChips: heroAction.toLowerCase() !== "fold",
+      };
+    }
+    return {
+      kind: "hero",
+      statusText: `${spot.stackBb}bb`,
+      showChips: true,
+    };
+  }
+
+  if (idx === villainIdx) {
+    const label =
+      spot.spotType === "vs_limp"
+        ? "Limp"
+        : spot.spotType === "vs_rfi"
+          ? "Open"
+          : spot.spotType === "vs_shove"
+            ? "All-in"
+            : "Vilão";
+    return {
+      kind: "villain",
+      statusText: `${spot.stackBb}bb · ${label}`,
+      showChips: true,
+    };
+  }
+
+  const spotTypeStr = String(spot.spotType);
+  const isPreflop =
+    spotTypeStr === "rfi" ||
+    spotTypeStr === "vs_rfi" ||
+    spotTypeStr === "vs_limp" ||
+    spotTypeStr === "push_fold" ||
+    spotTypeStr === "vs_shove";
+
+  if (isPreflop && idx > safeHeroIdx) {
+    return {
+      kind: "awaiting",
+      statusText: `${spot.stackBb}bb · Aguarda`,
+      showChips: true,
+    };
+  }
+
+  return {
+    kind: "folded",
+    statusText: "Fold",
+    showChips: false,
+  };
+}
+
 function buildActionBreadcrumbs(
   spot: LegacyRangeSpot,
   villainPos: string,
@@ -249,13 +324,13 @@ function buildActionBreadcrumbs(
   if (spot.spotType === "rfi" || spot.spotType === "push_fold") {
     steps.push({ pos: "MESA", action: "Fold até Herói" });
   } else if (spot.spotType === "vs_rfi") {
-    steps.push({ pos: villainPos || "VILÃO", action: "Raise 2.1" });
+    steps.push({ pos: villainPos || "VILÃO", action: "Open Raise" });
   } else if (spot.spotType === "vs_limp") {
-    steps.push({ pos: "SB", action: "Limp 1.0" });
+    steps.push({ pos: "SB", action: "Limp 1,0 BB" });
   } else if (spot.spotType === "vs_shove") {
-    steps.push({ pos: villainPos || "SB", action: `All-in ${spot.stackBb}` });
+    steps.push({ pos: villainPos || "SB", action: `All-in ${spot.stackBb} BB` });
   } else {
-    steps.push({ pos: "BTN", action: "Raise 2.1" });
+    steps.push({ pos: "BTN", action: "Open Raise" });
     steps.push({ pos: "BB", action: "Call" });
     if (board.length >= 3) {
       steps.push({
@@ -267,12 +342,12 @@ function buildActionBreadcrumbs(
     if (spot.heroPosition === "BTN") {
       steps.push({ pos: "BB", action: "Check" });
     } else {
-      steps.push({ pos: "BTN", action: "Bet 33%" });
+      steps.push({ pos: "BTN", action: "Bet 33% Pote" });
     }
   }
   steps.push({
     pos: spot.heroPosition,
-    action: heroAction ? heroAction : "Tomar ação",
+    action: heroAction ? formatActionLabelPtBr(heroAction) : "Sua vez",
     active: true,
   });
   return steps;
@@ -319,7 +394,7 @@ export function PokerTable({
     <div className="flex flex-col gap-2 w-full select-none">
       {/* Faixa Superior de Sequência da Mão */}
       <div
-        className="flex items-center gap-1.5 overflow-x-auto no-scrollbar rounded-xl bg-[#090D16] border border-[#26334A] px-2.5 py-2 text-xs"
+        className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:overflow-x-auto no-scrollbar rounded-xl bg-[#090D16] border border-[#26334A] px-2.5 py-2 text-xs"
         aria-label="Sequência de ações da mão"
       >
         {breadcrumbs.map((step, i) => (
@@ -377,18 +452,18 @@ export function PokerTable({
 
         {/* Centro da Mesa: Marca TreinerLM + Spot + Fichas & Pote + Board */}
         <div className="relative z-10 flex flex-col items-center gap-1 sm:gap-1.5 text-center px-2 sm:px-3 -mt-3 sm:-mt-6">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-[#05070B]/80 border border-[#2563EB]/45 px-2.5 py-0.5 text-[0.6rem] sm:text-[0.65rem] font-extrabold tracking-wider text-[#93C5FD]">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-[#05070B]/85 border border-[#2563EB]/45 px-2.5 py-0.5 text-[0.6875rem] font-extrabold tracking-wide text-[#93C5FD]">
             <span className="font-serif text-xs leading-none text-[#F87171]">π</span>
             <span>TreinerLM</span>
             <span className="text-white/40">·</span>
-            <span className="text-[#F8FAFC]/90 font-semibold">
-              {spot.heroPosition} vs {villainPos || "Mesa"} · {spot.stackBb} BB
+            <span className="text-[#F8FAFC]/95 font-semibold font-mono tabular-nums">
+              {villainPos ? `${spot.heroPosition} vs ${villainPos}` : spot.heroPosition} · {spot.stackBb} BB
             </span>
           </div>
 
           <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-[#090D16]/90 border border-[#DC2626]/50 px-2.5 sm:px-3 py-0.5 sm:py-1 shadow-md">
             <PokerChipStack chipStyle={appearance.chipStyle} count={3} />
-            <span className="text-xs sm:text-base font-extrabold font-mono text-[#F8FAFC] tracking-tight">
+            <span className="text-xs sm:text-base font-extrabold font-mono tabular-nums text-[#F8FAFC] tracking-tight">
               Pote: {potBb.toFixed(1)} BB
             </span>
           </div>
@@ -415,7 +490,13 @@ export function PokerTable({
           const coord = SEAT_COORDS[offset];
           const isHero = idx === safeHeroIdx;
           const isVillain = idx === villainIdx;
-          const isActive = isHero || isVillain;
+          const seatState = resolveSeatVisualState(
+            idx,
+            safeHeroIdx,
+            villainIdx,
+            spot,
+            heroAction,
+          );
           const isBtn = pos === "BTN";
           const scientistName = getOpponentScientistName(pos, idx);
 
@@ -431,50 +512,55 @@ export function PokerTable({
               {isBtn && (
                 <span
                   title="Botão (Dealer)"
-                  className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br from-[#DC2626] to-[#2563EB] border border-white/80 text-white font-extrabold text-[0.55rem] sm:text-[0.625rem] flex items-center justify-center shadow shrink-0"
+                  className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br from-[#DC2626] to-[#2563EB] border border-white/80 text-white font-extrabold text-[0.6875rem] flex items-center justify-center shadow shrink-0"
                 >
                   D
                 </span>
               )}
 
-              {/* Pílula do Jogador: Nome (Cientista / Você) + Posição + Stack */}
+              {/* Pílula do Jogador: Nome + Posição + Stack/Status */}
               <div
                 data-awaiting={isHero && !heroAction}
-                className={`poker-seat-label rounded-xl sm:rounded-2xl px-1.5 sm:px-2.5 py-0.5 sm:py-1 border text-center transition-all ${
+                data-seat-state={seatState.kind}
+                className={`poker-seat-label rounded-xl sm:rounded-2xl px-2 sm:px-2.5 py-0.5 sm:py-1 border text-center transition-all ${
                   isHero
-                    ? "bg-[#090D16] border-2 border-[#3B82F6] text-[#F8FAFC] shadow-[0_0_18px_rgba(37,99,235,0.45)] sm:min-w-[5.2rem]"
+                    ? "bg-[#090D16] border-2 border-[#3B82F6] text-[#F8FAFC] shadow-[0_0_18px_rgba(37,99,235,0.45)] sm:min-w-[5.4rem]"
                     : isVillain
-                      ? "bg-[#090D16] border-2 border-[#DC2626] text-[#F8FAFC] shadow-[0_0_16px_rgba(220,38,38,0.4)] sm:min-w-[5.4rem]"
-                      : "bg-[#0B0F17]/90 border border-[#1E293B] text-[#94A3B8] opacity-85 sm:min-w-[4.7rem]"
+                      ? "bg-[#090D16] border-2 border-[#DC2626] text-[#F8FAFC] shadow-[0_0_16px_rgba(220,38,38,0.4)] sm:min-w-[5.6rem]"
+                      : seatState.kind === "awaiting"
+                        ? "bg-[#0B111E]/95 border border-[#26334A] text-[#CBD5E1] opacity-90 sm:min-w-[5rem]"
+                        : "bg-[#080B12]/90 border border-[#1E293B] border-dashed text-[#94A3B8] opacity-75 sm:min-w-[4.7rem]"
                 }`}
               >
-                <div className="flex items-center justify-center gap-0.5 sm:gap-1 text-[0.58rem] sm:text-[0.6875rem] font-extrabold tracking-tight leading-tight">
+                <div className="flex items-center justify-center gap-1 text-[0.6875rem] font-extrabold tracking-tight leading-tight">
                   <span className="truncate max-w-[3.4rem] sm:max-w-none">{isHero ? "Você" : scientistName}</span>
                   <span
-                    className={`text-[0.52rem] sm:text-[0.58rem] px-1 py-0.2 rounded font-mono ${
+                    className={`text-[0.6875rem] px-1 py-0.2 rounded font-mono ${
                       isHero
                         ? "bg-[#2563EB]/25 text-[#93C5FD]"
                         : isVillain
                           ? "bg-[#DC2626]/25 text-[#FCA5A5]"
-                          : "bg-white/5 text-[#94A3B8]"
+                          : "bg-white/5 text-[#CBD5E1]"
                     }`}
                   >
                     {pos}
                   </span>
                 </div>
                 <div
-                  className={`flex items-center justify-center gap-0.5 sm:gap-1 text-[0.55rem] sm:text-[0.65rem] font-mono leading-tight mt-0.5 ${
+                  className={`flex items-center justify-center gap-1 text-[0.6875rem] font-mono tabular-nums leading-tight mt-0.5 ${
                     isHero
                       ? "text-[#93C5FD] font-bold"
                       : isVillain
                         ? "text-[#FCA5A5] font-bold"
-                        : "text-[#94A3B8]"
+                        : seatState.kind === "awaiting"
+                          ? "text-[#CBD5E1]"
+                          : "text-[#94A3B8]"
                   }`}
                 >
-                  {isActive && (
+                  {seatState.showChips && (
                     <PokerChipStack chipStyle={appearance.chipStyle} count={2} compact />
                   )}
-                  <span>{isActive ? `${spot.stackBb}bb` : "fold"}</span>
+                  <span>{seatState.statusText}</span>
                 </div>
               </div>
 
@@ -506,7 +592,7 @@ export function PokerTable({
 
         {heroAction && (
           <div className="poker-action-toast" role="status">
-            Sua ação: <strong>{heroAction}</strong>
+            Sua ação: <strong>{formatActionLabelPtBr(heroAction)}</strong>
           </div>
         )}
       </div>

@@ -27,6 +27,10 @@ import {
   computeDimensionalProgress,
   computeSpacedRepetitionSchedule,
   type DimensionProgressItem,
+  formatActionLabelPtBr,
+  formatSampleConfidencePtBr,
+  isSpotIdExcludedFromMtt,
+  pluralizePtBr,
   POSITIONS_8MAX,
   rankLeakSpots,
   type StrategyStatus,
@@ -79,7 +83,7 @@ const STORAGE_KEY_HAND_REVIEW_TAGS = "poker_stats_hand_review_tags_v1";
 const STORAGE_KEY_CUSTOM_HANDS = "poker_stats_custom_hands_v1";
 const STORAGE_KEY_TRAINER_SELF_REVIEW = "poker_trainer_self_review_tags_v1";
 
-const HEATMAP_STACKS = [14, 17, 20, 30, 50, 100];
+const HEATMAP_STACKS = [14, 17, 20, 25, 28, 30, 40, 50, 75, 100];
 
 const SPOT_TYPE_LABELS: { key: string; label: string }[] = [
   { key: "rfi", label: "RFI (Open Raise)" },
@@ -88,16 +92,23 @@ const SPOT_TYPE_LABELS: { key: string; label: string }[] = [
   { key: "flop_cbet_ip", label: "Flop C-Bet IP vs BB" },
   { key: "bb_vs_cbet", label: "BB vs C-Bet" },
   { key: "river_polarized_bet", label: "River Polarizado" },
-  { key: "push_fold", label: "Spin Push/Fold" },
-  { key: "vs_shove", label: "Spin vs Shove" },
 ];
+
+function formatTournamentFormatLabelPtBr(fmt: string): string {
+  if (fmt === "MTT_CHEV") return "MTT chipEV";
+  if (fmt === "MTT_ICM") return "MTT ICM ($EV)";
+  if (fmt === "PKO" || fmt === "MTT_PKO") return "MTT PKO (Bounty)";
+  if (fmt === "SNG_SPIN") return "Spin & Go (Arquivo legado)";
+  if (fmt === "CASH") return "Cash Game (Arquivo legado)";
+  return fmt;
+}
 
 type DimensionTab = "position" | "stack" | "format" | "street";
 
 function renderDimensionTable(items: DimensionProgressItem[], emptyLabel: string) {
   if (items.length === 0) {
     return (
-      <div className="text-xs text-[#A1A6AA] py-4 text-center">
+      <div className="text-xs text-[#94A3B8] py-4 text-center">
         {emptyLabel}
       </div>
     );
@@ -106,7 +117,7 @@ function renderDimensionTable(items: DimensionProgressItem[], emptyLabel: string
     <div className="overflow-x-auto">
       <table className="w-full text-xs text-left border-collapse">
         <thead>
-          <tr className="text-[#A1A6AA] border-b border-[#292C2F]">
+          <tr className="text-[#94A3B8] border-b border-[#1E293B]">
             <th className="py-2 px-2">Dimensão</th>
             <th className="py-2 px-2 text-right">Exercícios</th>
             <th className="py-2 px-2 text-right">Precisão Aceitável</th>
@@ -119,13 +130,13 @@ function renderDimensionTable(items: DimensionProgressItem[], emptyLabel: string
           {items.map((item) => (
             <tr
               key={item.key}
-              className="border-b border-[#292C2F]/60 hover:bg-[#202224]"
+              className="border-b border-[#1E293B]/70 hover:bg-[#0D1322]"
             >
-              <td className="py-2 px-2 font-bold text-[#F4F5F5]">{item.label}</td>
-              <td className="py-2 px-2 text-right font-mono text-slate-300">
+              <td className="py-2 px-2 font-bold text-[#F8FAFC]">{item.label}</td>
+              <td className="py-2 px-2 text-right font-mono tabular-nums text-slate-300">
                 {item.attempts}
               </td>
-              <td className="py-2 px-2 text-right font-mono">
+              <td className="py-2 px-2 text-right font-mono tabular-nums">
                 <span
                   className={`font-bold ${
                     item.accuracyPct >= 80
@@ -138,25 +149,25 @@ function renderDimensionTable(items: DimensionProgressItem[], emptyLabel: string
                   {item.accuracyPct.toFixed(1)}%
                 </span>
               </td>
-              <td className="py-2 px-2 text-right font-mono text-[#F1BE60]">
+              <td className="py-2 px-2 text-right font-mono tabular-nums text-[#FCD34D]">
                 {item.avgEvLoss !== null
                   ? `${item.avgEvLoss.toFixed(3)} (${item.evLossCount})`
                   : "—"}
               </td>
-              <td className="py-2 px-2 text-right font-mono text-indigo-300">
+              <td className="py-2 px-2 text-right font-mono tabular-nums text-indigo-300">
                 {item.highConfidencePct.toFixed(0)}%
               </td>
               <td className="py-2 px-2 text-right">
                 <span
-                  className={`inline-block px-2 py-0.5 rounded-full text-[0.625rem] font-semibold ${
+                  className={`inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold ${
                     item.sampleConfidence.startsWith("amostra_solida")
                       ? "bg-[#0F1B33] text-sky-200 border border-[#2563EB]/50"
                       : item.sampleConfidence.startsWith("amostra_em_formacao")
                         ? "bg-amber-950/80 text-amber-300 border border-amber-700/50"
-                        : "bg-[#05070B] text-slate-400 border border-[#1E293B]"
+                        : "bg-[#05070B] text-[#CBD5E1] border border-[#1E293B]"
                   }`}
                 >
-                  {item.sampleConfidence}
+                  {formatSampleConfidencePtBr(item.sampleConfidence)}
                 </span>
               </td>
             </tr>
@@ -251,7 +262,7 @@ export function StatsView({
       handClass: cleanHand,
       heroPosition: newHeroPos,
       stackBb: Math.max(1, Number(newStackBb) || 30),
-      spotId: "verified_texassolver_mtt_8max_30bb_btn_vs_bb_srp_ahkd7c_cbet",
+      spotId: "manual_custom_review",
       spotName: newSpotName.trim() || `${newHeroPos} · ${newStackBb}BB`,
       chosenAction: newChosenAction.trim() || "Revisar linha",
       category: newCategory,
@@ -300,76 +311,118 @@ export function StatsView({
     }
   };
 
+  const { mttHistory, excludedHistoryCount } = useMemo(() => {
+    const active: HandHistoryItem[] = [];
+    let excluded = 0;
+    for (const h of history) {
+      if (isSpotIdExcludedFromMtt(h.spotId, h.spotName)) {
+        excluded += 1;
+      } else {
+        active.push(h);
+      }
+    }
+    return { mttHistory: active, excludedHistoryCount: excluded };
+  }, [history]);
+
   const effectiveAdaptiveRecords = useMemo<AdaptiveExerciseRecord[]>(() => {
-    if (adaptiveRecords.length > 0) return adaptiveRecords;
-    return history.map((h) => ({
-      attemptId: h.id,
-      timestamp: h.timestamp,
-      trainerMode: h.strategyStatus === "VERIFIED" ? "GTO_TECHNICAL" : "LEARNING",
-      spotId: h.spotId,
-      spotName: h.spotName,
-      trackId: "PREFLOP_RFI",
-      spotType: h.spotType,
-      handClass: h.hand,
-      chosenAction: h.chosenAction,
-      referenceStrategySummary: {
-        status: h.strategyStatus ?? "IMPORTED_CHART_NO_EV",
-        dominantAction: h.bestAction,
-        dominantFreq: null,
-        chosenFreq: h.chosenFreq,
-        actionFrequencies: null,
-        actionEv: null,
-      },
-      evLoss: h.evLoss ?? null,
-      evUnit: h.evUnit ?? null,
-      confidenceLevel: "media",
-      heroPosition: h.heroPosition,
-      effectiveStackBb: h.stackBb,
-      tournamentFormat: h.spotId.startsWith("spin_")
-        ? "SNG_SPIN"
-        : h.spotId.includes("pko")
-          ? "PKO"
-          : h.spotId.includes("icm")
-            ? "MTT_ICM"
-            : "MTT_CHEV",
-      street: h.spotId.includes("river")
-        ? "RIVER"
-        : h.spotId.includes("flop") || h.spotId.includes("cbet")
-          ? "FLOP"
-          : "PREFLOP",
-      classification:
-        h.status === "correct"
-          ? "exact_primary"
-          : h.status === "mixed"
-            ? "valid_mixed"
-            : h.status === "unsolved"
-              ? "unsolved"
-              : "ev_error",
-      isAcceptable: h.status !== "error",
-      leakCategory: h.status === "error" ? "preflop_rfi_deviation" : null,
-    }));
+    const knownKeys = new Set(
+      adaptiveRecords.map(
+        (r) => `${r.timestamp}::${r.spotId}::${r.handClass}::${r.chosenAction}`,
+      ),
+    );
+    const legacyFromHistory: AdaptiveExerciseRecord[] = history
+      .filter(
+        (h) =>
+          !knownKeys.has(`${h.timestamp}::${h.spotId}::${h.hand}::${h.chosenAction}`),
+      )
+      .map((h) => ({
+        attemptId: h.id,
+        timestamp: h.timestamp,
+        trainerMode: h.strategyStatus === "VERIFIED" ? "GTO_TECHNICAL" : "LEARNING",
+        spotId: h.spotId,
+        spotName: h.spotName,
+        trackId: "PREFLOP_RFI",
+        spotType: h.spotType,
+        handClass: h.hand,
+        chosenAction: h.chosenAction,
+        referenceStrategySummary: {
+          status: h.strategyStatus ?? "IMPORTED_CHART_NO_EV",
+          dominantAction: h.bestAction,
+          dominantFreq: null,
+          chosenFreq: h.chosenFreq,
+          actionFrequencies: null,
+          actionEv: null,
+        },
+        evLoss: h.evLoss ?? null,
+        evUnit: h.evUnit ?? null,
+        confidenceLevel: "media",
+        heroPosition: h.heroPosition,
+        effectiveStackBb: h.stackBb,
+        tournamentFormat: h.spotId.startsWith("spin_")
+          ? "SNG_SPIN"
+          : h.spotId.includes("pko")
+            ? "PKO"
+            : h.spotId.includes("icm")
+              ? "MTT_ICM"
+              : "MTT_CHEV",
+        street: h.spotId.includes("river")
+          ? "RIVER"
+          : h.spotId.includes("flop") || h.spotId.includes("cbet")
+            ? "FLOP"
+            : "PREFLOP",
+        classification:
+          h.status === "correct"
+            ? "exact_primary"
+            : h.status === "mixed"
+              ? "valid_mixed"
+              : h.status === "unsolved"
+                ? "unsolved"
+                : "ev_error",
+        isAcceptable: h.status !== "error",
+        leakCategory: h.status === "error" ? "preflop_rfi_deviation" : null,
+      }));
+    return adaptiveRecords.length > 0
+      ? [...adaptiveRecords, ...legacyFromHistory]
+      : legacyFromHistory;
   }, [adaptiveRecords, history]);
+
+  const { mttAdaptiveRecords, excludedAdaptiveCount } = useMemo(() => {
+    const active: AdaptiveExerciseRecord[] = [];
+    let excluded = 0;
+    for (const r of effectiveAdaptiveRecords) {
+      if (
+        r.tournamentFormat === "SNG_SPIN" ||
+        r.tournamentFormat === "CASH" ||
+        isSpotIdExcludedFromMtt(r.spotId, r.spotName)
+      ) {
+        excluded += 1;
+      } else {
+        active.push(r);
+      }
+    }
+    return { mttAdaptiveRecords: active, excludedAdaptiveCount: excluded };
+  }, [effectiveAdaptiveRecords]);
 
   const adaptiveAnalysis = useMemo(() => {
     const refNowMs =
       nowMs ??
-      effectiveAdaptiveRecords[0]?.timestamp ??
-      history[0]?.timestamp ??
+      mttAdaptiveRecords[0]?.timestamp ??
+      mttHistory[0]?.timestamp ??
       1794500000000;
-    const classifiedLeaks = classifyAndRankLeaks(effectiveAdaptiveRecords);
+    const classifiedLeaks = classifyAndRankLeaks(mttAdaptiveRecords);
     const spacedSchedule = computeSpacedRepetitionSchedule(
-      effectiveAdaptiveRecords,
+      mttAdaptiveRecords,
       refNowMs,
     );
     const dimensionalProgress = computeDimensionalProgress(
-      effectiveAdaptiveRecords,
+      mttAdaptiveRecords,
     );
     return {
       classifiedLeaks,
       spacedSchedule,
       dimensionalProgress,
     };
-  }, [effectiveAdaptiveRecords, history, nowMs]);
+  }, [mttAdaptiveRecords, mttHistory, nowMs]);
 
   // Unifica as mãos jogadas + mãos colocadas manualmente e calcula a categoria de revisão de cada uma
   const unifiedReviewRows = useMemo(() => {
@@ -379,7 +432,9 @@ export function StatsView({
 
     const fromAttempts = effectiveAdaptiveRecords.map((rec) => {
       const explicitTag = manualTags[rec.attemptId];
-      const selfTag = trainerSelfReview[`${rec.spotId}::${rec.handClass}`];
+      const selfTag =
+        trainerSelfReview[rec.attemptId] ??
+        trainerSelfReview[`${rec.spotId}::${rec.handClass}`];
 
       let resolvedCategory: HandReviewCategory = "acertei";
       if (explicitTag) {
@@ -406,9 +461,15 @@ export function StatsView({
         resolvedCategory === "duvida" ||
         dueSpotIds.has(rec.spotId);
 
+      const isExcludedLegacy =
+        rec.tournamentFormat === "SNG_SPIN" ||
+        rec.tournamentFormat === "CASH" ||
+        isSpotIdExcludedFromMtt(rec.spotId, rec.spotName);
+
       return {
         id: rec.attemptId,
         isCustom: false,
+        isExcludedLegacy,
         timestamp: rec.timestamp,
         trainerMode: rec.trainerMode,
         spotId: rec.spotId,
@@ -435,6 +496,7 @@ export function StatsView({
     const fromCustom = customHands.map((c) => ({
       id: c.id,
       isCustom: true,
+      isExcludedLegacy: false,
       timestamp: c.timestamp,
       trainerMode: "LEARNING" as TrainerModeId,
       spotId: c.spotId,
@@ -503,12 +565,12 @@ export function StatsView({
   }, [unifiedReviewRows, reviewFilter, positionFilter, searchQuery]);
 
   const summary = useMemo(() => {
-    const scored = history.filter((h) => h.status !== "unsolved");
+    const scored = mttHistory.filter((h) => h.status !== "unsolved");
     const total = scored.length;
     const exact = scored.filter((h) => h.status === "correct").length;
     const mixed = scored.filter((h) => h.status === "mixed").length;
     const errors = scored.filter((h) => h.status === "error").length;
-    const unsolvedCount = history.length - total;
+    const unsolvedCount = mttHistory.length - total;
 
     const accuracy =
       total > 0 ? Math.round(((exact + mixed) / total) * 100) : 0;
@@ -559,8 +621,10 @@ export function StatsView({
       .sort((a, b) => b.pct - a.pct);
 
     const bestPos = posEntries[0] ?? null;
-    const worstPos =
+    const worstCandidate =
       posEntries.length > 0 ? posEntries[posEntries.length - 1] : null;
+    const worstPos =
+      worstCandidate && worstCandidate.pct < 100 ? worstCandidate : null;
 
     const adaptiveLeaks = rankLeakSpots(
       scored.map((h) => ({
@@ -570,7 +634,7 @@ export function StatsView({
       })),
     ).slice(0, 5);
 
-    const spotNames = new Map(history.map((h) => [h.spotId, h.spotName]));
+    const spotNames = new Map(mttHistory.map((h) => [h.spotId, h.spotName]));
 
     return {
       total,
@@ -591,7 +655,7 @@ export function StatsView({
       adaptiveLeaks,
       spotNames,
     };
-  }, [history]);
+  }, [mttHistory]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -658,6 +722,22 @@ export function StatsView({
         </div>
       </div>
 
+      {(excludedHistoryCount > 0 || excludedAdaptiveCount > 0) && (
+        <div
+          role="status"
+          className="rounded-xl bg-[#1B1406] border border-[#F59E0B]/55 px-3.5 py-2.5 text-xs text-[#FDE68A] flex items-center gap-2.5"
+        >
+          <AlertTriangle className="w-4 h-4 text-[#FBBF24] shrink-0" />
+          <span>
+            Exibindo indicadores exclusivos de torneios MTT.{" "}
+            <strong>
+              {Math.max(excludedHistoryCount, excludedAdaptiveCount)} registro(s) histórico(s) de outros formatos (ex.: Spin &amp; Go)
+            </strong>{" "}
+            permanece(m) preservado(s) no seu arquivo local, sem contaminar precisão, leaks ou revisão espaçada MTT.
+          </span>
+        </div>
+      )}
+
       {/* FORMULÁRIO COMPACTO PARA COLOCAR / REGISTRAR MÃO MANUALMENTE */}
       {showAddForm && (
         <form
@@ -668,29 +748,29 @@ export function StatsView({
             <span className="text-xs font-extrabold uppercase tracking-wider text-[#60A5FA]">
               Colocar Mão para Revisão (Errei · Acertei · Fiquei em dúvida · Precisa revisar)
             </span>
-            <span className="text-[0.6875rem] text-[#A1A6AA]">
+            <span className="text-[0.6875rem] text-[#94A3B8]">
               Salvo automaticamente no seu navegador
             </span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-6 gap-2.5 text-xs">
             <label className="space-y-1">
-              <span className="text-[#A1A6AA] font-semibold">Mão (ex: AKo, 97s)</span>
+              <span className="text-[#94A3B8] font-semibold">Mão (ex: AKo, 97s)</span>
               <input
                 type="text"
                 value={newHandClass}
                 onChange={(e) => setNewHandClass(e.target.value)}
                 placeholder="AKo"
-                className="w-full rounded-lg bg-[#090B0C] border border-[#292C2F] px-2.5 py-1.5 font-mono text-white"
+                className="w-full rounded-lg bg-[#05070B] border border-[#1E293B] px-2.5 py-1.5 font-mono text-white"
               />
             </label>
 
             <label className="space-y-1">
-              <span className="text-[#A1A6AA] font-semibold">Posição</span>
+              <span className="text-[#94A3B8] font-semibold">Posição</span>
               <select
                 value={newHeroPos}
                 onChange={(e) => setNewHeroPos(e.target.value)}
-                className="w-full rounded-lg bg-[#090B0C] border border-[#292C2F] px-2.5 py-1.5 text-white"
+                className="w-full rounded-lg bg-[#05070B] border border-[#1E293B] px-2.5 py-1.5 text-white"
               >
                 {POSITIONS_8MAX.map((p) => (
                   <option key={p} value={p}>
@@ -701,43 +781,43 @@ export function StatsView({
             </label>
 
             <label className="space-y-1">
-              <span className="text-[#A1A6AA] font-semibold">Stack (BB)</span>
+              <span className="text-[#94A3B8] font-semibold">Stack (BB)</span>
               <input
                 type="number"
                 min={1}
                 max={300}
                 value={newStackBb}
                 onChange={(e) => setNewStackBb(Number(e.target.value) || 30)}
-                className="w-full rounded-lg bg-[#090B0C] border border-[#292C2F] px-2.5 py-1.5 font-mono text-white"
+                className="w-full rounded-lg bg-[#05070B] border border-[#1E293B] px-2.5 py-1.5 font-mono text-white"
               />
             </label>
 
             <label className="space-y-1 sm:col-span-2">
-              <span className="text-[#A1A6AA] font-semibold">Cenário / Spot</span>
+              <span className="text-[#94A3B8] font-semibold">Cenário / Spot</span>
               <input
                 type="text"
                 value={newSpotName}
                 onChange={(e) => setNewSpotName(e.target.value)}
                 placeholder="Ex: BTN vs BB SRP Flop Ah Kd 7c"
-                className="w-full rounded-lg bg-[#090B0C] border border-[#292C2F] px-2.5 py-1.5 text-white"
+                className="w-full rounded-lg bg-[#05070B] border border-[#1E293B] px-2.5 py-1.5 text-white"
               />
             </label>
 
             <label className="space-y-1">
-              <span className="text-[#A1A6AA] font-semibold">Sua Ação</span>
+              <span className="text-[#94A3B8] font-semibold">Sua Ação</span>
               <input
                 type="text"
                 value={newChosenAction}
                 onChange={(e) => setNewChosenAction(e.target.value)}
                 placeholder="Ex: Call / Bet 33%"
-                className="w-full rounded-lg bg-[#090B0C] border border-[#292C2F] px-2.5 py-1.5 text-white"
+                className="w-full rounded-lg bg-[#05070B] border border-[#1E293B] px-2.5 py-1.5 text-white"
               />
             </label>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end text-xs">
             <div className="sm:col-span-5 space-y-1">
-              <span className="text-[#A1A6AA] font-semibold block">
+              <span className="text-[#94A3B8] font-semibold block">
                 Classificar esta mão como:
               </span>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
@@ -755,8 +835,8 @@ export function StatsView({
                     onClick={() => setNewCategory(opt.id)}
                     className={`py-1.5 px-2 rounded-lg font-bold border text-[0.6875rem] transition ${
                       newCategory === opt.id
-                        ? `${opt.cls} bg-[#292C2F]`
-                        : "bg-[#090B0C] border-[#292C2F] text-[#A1A6AA] hover:text-white"
+                        ? `${opt.cls} bg-[#1E293B]`
+                        : "bg-[#05070B] border-[#1E293B] text-[#94A3B8] hover:text-white"
                     }`}
                   >
                     {opt.label}
@@ -766,7 +846,7 @@ export function StatsView({
             </div>
 
             <label className="sm:col-span-5 space-y-1">
-              <span className="text-[#A1A6AA] font-semibold">
+              <span className="text-[#94A3B8] font-semibold">
                 Observação / Dúvida (opcional)
               </span>
               <input
@@ -774,7 +854,7 @@ export function StatsView({
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 placeholder="Ex: Fiquei em dúvida entre c-bet 33% e check back..."
-                className="w-full rounded-lg bg-[#090B0C] border border-[#292C2F] px-2.5 py-1.5 text-white"
+                className="w-full rounded-lg bg-[#05070B] border border-[#1E293B] px-2.5 py-1.5 text-white"
               />
             </label>
 
@@ -890,7 +970,7 @@ export function StatsView({
                 {pill.icon}
                 <span>{pill.label}</span>
                 <span
-                  className={`ml-1 rounded-full px-1.5 py-0.2 font-mono text-[0.65rem] ${
+                  className={`ml-1 rounded-full px-1.5 py-0.2 font-mono text-[0.6875rem] ${
                     active
                       ? "bg-black/25 text-current"
                       : "bg-[#141D2F] text-[#F8FAFC]"
@@ -932,168 +1012,314 @@ export function StatsView({
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-[#1E293B] bg-[#05070B]">
-            <table className="w-full text-xs text-left border-collapse">
-              <thead>
-                <tr className="text-[#A1A6AA] border-b border-[#292C2F] bg-[#141618]">
-                  <th className="py-2.5 px-2.5">Mão / Posição</th>
-                  <th className="py-2.5 px-2.5">Spot / Cenário</th>
-                  <th className="py-2.5 px-2.5">Sua Ação vs Ref.</th>
-                  <th className="py-2.5 px-2.5 text-center">Resultado Técnico</th>
-                  <th className="py-2.5 px-2.5">
-                    Marcar / Colocar Status (Revisar · Errei · Acertei · Dúvida)
-                  </th>
-                  <th className="py-2.5 px-2.5 text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredReviewRows.slice(0, 50).map((row) => (
-                  <tr
-                    key={row.id}
-                    className="border-b border-[#292C2F]/60 hover:bg-[#191B1D] transition-colors"
-                  >
-                    <td className="py-2.5 px-2.5 whitespace-nowrap">
-                      <span className="font-mono font-extrabold text-sm text-[#F1BE60]">
-                        {row.handClass}
-                      </span>
-                      <span className="ml-2 text-[0.6875rem] font-mono px-1.5 py-0.5 rounded bg-[#202224] border border-[#363A3D] text-[#F4F5F5]">
-                        {row.heroPosition} · {row.stackBb}bb
-                      </span>
-                    </td>
-
-                    <td className="py-2.5 px-2.5">
-                      <div className="font-bold text-[#F4F5F5]">{row.spotName}</div>
-                      <div className="text-[0.65rem] text-[#A1A6AA] font-mono">
-                        {row.street} · {row.tournamentFormat}
-                        {row.note ? ` · Nota: "${row.note}"` : ""}
+          <>
+            {/* Cartões empilhados no celular (< 640px) */}
+            <div className="sm:hidden space-y-2.5">
+              {filteredReviewRows.slice(0, 50).map((row) => (
+                <div
+                  key={`mobile-${row.id}`}
+                  className="rounded-xl border border-[#1E293B] bg-[#090D16] p-3 space-y-2.5"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-extrabold text-sm text-[#FCD34D]">
+                          {row.handClass}
+                        </span>
+                        <span className="text-[0.6875rem] font-mono tabular-nums px-1.5 py-0.5 rounded bg-[#05070B] border border-[#26334A] text-[#F8FAFC]">
+                          {row.heroPosition} · {row.stackBb}bb
+                        </span>
                       </div>
-                    </td>
-
-                    <td className="py-2.5 px-2.5">
-                      <div className="text-[#F8FAFC]">
-                        Escolheu: <strong className="text-[#60A5FA]">{row.chosenAction}</strong>
+                      <div className="text-xs font-bold text-[#F8FAFC] mt-1">
+                        {row.spotName}
                       </div>
-                      <div className="text-[0.65rem] text-[#94A3B8] font-mono">
-                        Ref: {row.dominantAction}
-                        {row.chosenFreq !== null
-                          ? ` (${Math.round(row.chosenFreq * 100)}%)`
-                          : ""}
-                        {typeof row.evLoss === "number" && row.evUnit
-                          ? ` · EV Loss: ${row.evLoss.toFixed(3)} ${row.evUnit}`
-                          : ""}
+                      <div className="text-[0.6875rem] text-[#94A3B8] font-mono">
+                        {row.street} · {formatTournamentFormatLabelPtBr(row.tournamentFormat)}
                       </div>
-                    </td>
-
-                    <td className="py-2.5 px-2.5 text-center whitespace-nowrap">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-full text-[0.625rem] font-bold ${
-                          row.classification === "exact_primary"
-                            ? "bg-[#0F1B33] text-sky-200 border border-[#2563EB]/60"
-                            : row.classification === "valid_mixed" ||
-                                row.classification === "low_freq_acceptable"
-                              ? "bg-amber-950 text-amber-300 border border-amber-700/60"
-                              : row.classification === "unsolved"
-                                ? "bg-slate-800 text-slate-300 border border-slate-700"
-                                : "bg-[#2B0B11] text-red-200 border border-[#DC2626]/60"
-                        }`}
-                      >
-                        {row.classification === "exact_primary"
-                          ? "Principal"
+                    </div>
+                    <span
+                      className={`inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-bold shrink-0 ${
+                        row.classification === "exact_primary"
+                          ? "bg-[#0F1B33] text-sky-200 border border-[#2563EB]/60"
                           : row.classification === "valid_mixed" ||
                               row.classification === "low_freq_acceptable"
-                            ? "Mix válido"
+                            ? "bg-amber-950 text-amber-300 border border-amber-700/60"
                             : row.classification === "unsolved"
-                              ? "Sem solução"
-                              : "Desvio"}
-                      </span>
-                    </td>
+                              ? "bg-slate-800 text-slate-300 border border-slate-700"
+                              : "bg-[#2B0B11] text-red-200 border border-[#DC2626]/60"
+                      }`}
+                    >
+                      {row.classification === "exact_primary"
+                        ? "Principal"
+                        : row.classification === "valid_mixed" ||
+                            row.classification === "low_freq_acceptable"
+                          ? "Mix válido"
+                          : row.classification === "unsolved"
+                            ? "Sem solução"
+                            : "Desvio"}
+                    </span>
+                  </div>
 
-                    <td className="py-2.5 px-2.5">
-                      <div className="flex flex-wrap items-center gap-1">
-                        {(
-                          [
-                            {
-                              id: "revisar",
-                              label: "Revisar",
-                              activeCls: "bg-amber-500/25 border-amber-400 text-amber-200",
-                            },
-                            {
-                              id: "errei",
-                              label: "Errei",
-                              activeCls: "bg-[#DC2626]/25 border-[#EF4444] text-red-200",
-                            },
-                            {
-                              id: "acertei",
-                              label: "Acertei",
-                              activeCls: "bg-[#2563EB]/25 border-[#3B82F6] text-sky-200",
-                            },
-                            {
-                              id: "duvida",
-                              label: "Dúvida",
-                              activeCls: "bg-slate-500/25 border-slate-300 text-slate-100",
-                            },
-                          ] as const
-                        ).map((btn) => {
-                          const isCurrent = row.category === btn.id;
-                          return (
-                            <button
-                              key={btn.id}
-                              type="button"
-                              onClick={() => handleSetManualTag(row.id, btn.id)}
-                              className={`px-2 py-1 rounded-lg text-[0.65rem] font-bold border transition ${
-                                isCurrent
-                                  ? btn.activeCls
-                                  : "bg-[#090D16] border-[#1E293B] text-[#94A3B8] hover:text-white"
-                              }`}
-                            >
-                              {btn.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </td>
+                  <div className="text-xs text-[#CBD5E1] bg-[#05070B] rounded-lg border border-[#1E293B] p-2">
+                    <span>
+                      Escolheu:{" "}
+                      <strong className="text-[#60A5FA]">
+                        {formatActionLabelPtBr(row.chosenAction)}
+                      </strong>
+                    </span>
+                    {" · "}
+                    <span className="font-mono text-[#94A3B8]">
+                      Ref: {formatActionLabelPtBr(row.dominantAction)}
+                      {row.chosenFreq !== null
+                        ? ` (${Math.round(row.chosenFreq * 100)}%)`
+                        : ""}
+                    </span>
+                  </div>
 
-                    <td className="py-2.5 px-2.5 text-right whitespace-nowrap">
-                      <div className="inline-flex items-center gap-1.5">
-                        {onPracticeSpot && (
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-1">
+                      {(
+                        [
+                          { id: "revisar", label: "Revisar" },
+                          { id: "errei", label: "Errei" },
+                          { id: "acertei", label: "Acertei" },
+                          { id: "duvida", label: "Dúvida" },
+                        ] as const
+                      ).map((btn) => (
+                        <button
+                          key={btn.id}
+                          type="button"
+                          onClick={() => handleSetManualTag(row.id, btn.id)}
+                          className={`px-2 py-1 rounded-lg text-[0.6875rem] font-bold border ${
+                            row.category === btn.id
+                              ? "bg-[#2563EB]/25 border-[#3B82F6] text-white"
+                              : "bg-[#05070B] border-[#1E293B] text-[#94A3B8]"
+                          }`}
+                        >
+                          {btn.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {onPracticeSpot &&
+                        !row.isCustom &&
+                        row.spotId !== "manual_custom_review" &&
+                        (row.isExcludedLegacy ? (
+                          <span
+                            className="px-2 py-1 rounded-lg bg-[#1B1406] border border-[#F59E0B]/50 text-[#FDE68A] font-semibold text-[0.6875rem]"
+                            title="Este exercício não está disponível no modo MTT."
+                          >
+                            Não disponível no MTT
+                          </span>
+                        ) : (
                           <button
                             type="button"
                             onClick={() => onPracticeSpot(row.spotId)}
-                            className="px-2.5 py-1 rounded-lg bg-[#2563EB] hover:bg-[#3B82F6] text-white font-extrabold text-[0.6875rem] transition"
+                            className="px-2.5 py-1 rounded-lg bg-[#2563EB] hover:bg-[#3B82F6] text-white font-extrabold text-[0.6875rem]"
                           >
                             Treinar
                           </button>
-                        )}
-                        {row.isCustom && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveCustomHand(row.id)}
-                            title="Remover mão manual"
-                            className="p-1 rounded-lg bg-[#191B1D] hover:bg-rose-950 text-[#A1A6AA] hover:text-rose-300 border border-[#292C2F]"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                        ))}
+                      {row.isCustom && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCustomHand(row.id)}
+                          aria-label="Remover mão manual"
+                          className="p-1.5 rounded-lg bg-[#05070B] hover:bg-rose-950 text-[#94A3B8] hover:text-rose-300 border border-[#1E293B]"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Tabela completa em tablets e desktop (>= 640px) */}
+            <div className="hidden sm:block overflow-x-auto rounded-xl border border-[#1E293B] bg-[#05070B]">
+              <table className="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr className="text-[#CBD5E1] border-b border-[#1E293B] bg-[#090D16]">
+                    <th className="py-2.5 px-3">Mão / Posição</th>
+                    <th className="py-2.5 px-3">Spot / Cenário</th>
+                    <th className="py-2.5 px-3">Sua Ação vs Ref.</th>
+                    <th className="py-2.5 px-3 text-center">Resultado Técnico</th>
+                    <th className="py-2.5 px-3">
+                      Status de Revisão (Revisar · Errei · Acertei · Dúvida)
+                    </th>
+                    <th className="py-2.5 px-3 text-right">Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredReviewRows.slice(0, 50).map((row) => (
+                    <tr
+                      key={row.id}
+                      className="border-b border-[#1E293B]/70 hover:bg-[#0D1322] transition-colors"
+                    >
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <span className="font-mono font-extrabold text-sm text-[#FCD34D]">
+                          {row.handClass}
+                        </span>
+                        <span className="ml-2 text-[0.6875rem] font-mono tabular-nums px-1.5 py-0.5 rounded bg-[#090D16] border border-[#26334A] text-[#F8FAFC]">
+                          {row.heroPosition} · {row.stackBb}bb
+                        </span>
+                      </td>
+
+                      <td className="py-2.5 px-3">
+                        <div className="font-bold text-[#F8FAFC]">{row.spotName}</div>
+                        <div className="text-[0.6875rem] text-[#94A3B8] font-mono">
+                          {row.street} · {formatTournamentFormatLabelPtBr(row.tournamentFormat)}
+                          {row.note ? ` · Nota: "${row.note}"` : ""}
+                        </div>
+                      </td>
+
+                      <td className="py-2.5 px-3">
+                        <div className="text-[#F8FAFC]">
+                          Escolheu:{" "}
+                          <strong className="text-[#60A5FA]">
+                            {formatActionLabelPtBr(row.chosenAction)}
+                          </strong>
+                        </div>
+                        <div className="text-[0.6875rem] text-[#94A3B8] font-mono tabular-nums">
+                          Ref: {formatActionLabelPtBr(row.dominantAction)}
+                          {row.chosenFreq !== null
+                            ? ` (${Math.round(row.chosenFreq * 100)}%)`
+                            : ""}
+                          {typeof row.evLoss === "number" && row.evUnit
+                            ? ` · EV Loss: ${row.evLoss.toFixed(3)} ${row.evUnit}`
+                            : ""}
+                        </div>
+                      </td>
+
+                      <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-bold ${
+                            row.classification === "exact_primary"
+                              ? "bg-[#0F1B33] text-sky-200 border border-[#2563EB]/60"
+                              : row.classification === "valid_mixed" ||
+                                  row.classification === "low_freq_acceptable"
+                                ? "bg-amber-950 text-amber-300 border border-amber-700/60"
+                                : row.classification === "unsolved"
+                                  ? "bg-slate-800 text-slate-300 border border-slate-700"
+                                  : "bg-[#2B0B11] text-red-200 border border-[#DC2626]/60"
+                          }`}
+                        >
+                          {row.classification === "exact_primary"
+                            ? "Principal"
+                            : row.classification === "valid_mixed" ||
+                                row.classification === "low_freq_acceptable"
+                              ? "Mix válido"
+                              : row.classification === "unsolved"
+                                ? "Sem solução"
+                                : "Desvio"}
+                        </span>
+                      </td>
+
+                      <td className="py-2.5 px-3">
+                        <div className="flex flex-wrap items-center gap-1">
+                          {(
+                            [
+                              {
+                                id: "revisar",
+                                label: "Revisar",
+                                activeCls: "bg-amber-500/25 border-amber-400 text-amber-200",
+                              },
+                              {
+                                id: "errei",
+                                label: "Errei",
+                                activeCls: "bg-[#DC2626]/25 border-[#EF4444] text-red-200",
+                              },
+                              {
+                                id: "acertei",
+                                label: "Acertei",
+                                activeCls: "bg-[#2563EB]/25 border-[#3B82F6] text-sky-200",
+                              },
+                              {
+                                id: "duvida",
+                                label: "Dúvida",
+                                activeCls: "bg-slate-500/25 border-slate-300 text-slate-100",
+                              },
+                            ] as const
+                          ).map((btn) => {
+                            const isCurrent = row.category === btn.id;
+                            return (
+                              <button
+                                key={btn.id}
+                                type="button"
+                                onClick={() => handleSetManualTag(row.id, btn.id)}
+                                className={`px-2 py-1 rounded-lg text-[0.6875rem] font-bold border transition ${
+                                  isCurrent
+                                    ? btn.activeCls
+                                    : "bg-[#090D16] border-[#1E293B] text-[#94A3B8] hover:text-white"
+                                }`}
+                              >
+                                {btn.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </td>
+
+                      <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                        <div className="inline-flex items-center gap-1.5">
+                          {onPracticeSpot &&
+                          !row.isCustom &&
+                          row.spotId !== "manual_custom_review" ? (
+                            row.isExcludedLegacy ? (
+                              <span
+                                className="inline-block px-2 py-1 rounded-lg bg-[#1B1406] border border-[#F59E0B]/50 text-[#FDE68A] font-semibold text-[0.6875rem]"
+                                title="Este exercício não está disponível no modo MTT."
+                              >
+                                Não disponível no MTT
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => onPracticeSpot(row.spotId)}
+                                className="px-2.5 py-1 rounded-lg bg-[#2563EB] hover:bg-[#3B82F6] text-white font-extrabold text-[0.6875rem] transition"
+                              >
+                                Treinar
+                              </button>
+                            )
+                          ) : row.isCustom ? (
+                            <span className="text-[0.6875rem] text-[#94A3B8]">
+                              Manual
+                            </span>
+                          ) : null}
+                          {row.isCustom && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCustomHand(row.id)}
+                              title="Remover mão manual"
+                              aria-label="Remover mão manual"
+                              className="p-1.5 rounded-lg bg-[#090D16] hover:bg-rose-950 text-[#94A3B8] hover:text-rose-300 border border-[#1E293B]"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="rounded-2xl bg-[#191B1D] border border-[#292C2F] p-4">
-          <div className="text-[0.6875rem] uppercase tracking-wider text-[#A1A6AA] font-semibold">
+        <div className="rounded-2xl bg-[#090D16] border border-[#1E293B] p-4">
+          <div className="text-[0.6875rem] uppercase tracking-wider text-[#94A3B8] font-semibold">
             Mãos Pontuadas
           </div>
-          <div className="text-2xl font-extrabold text-[#F4F5F5] mt-1">
+          <div className="text-2xl font-extrabold font-mono tabular-nums text-[#F8FAFC] mt-1">
             {summary.total}
           </div>
-          <div className="text-[0.6875rem] text-[#A1A6AA] mt-1">
+          <div className="text-[0.6875rem] text-[#94A3B8] mt-1">
             {summary.exact} princ. · {summary.mixed} mix · {summary.errors} desvios
             {summary.unsolvedCount > 0 ? ` · ${summary.unsolvedCount} unsolved` : ""}
           </div>
@@ -1104,72 +1330,90 @@ export function StatsView({
             <CheckCircle2 className="w-3.5 h-3.5 text-[#60A5FA]" />
             Aderência Válida
           </div>
-          <div className="text-2xl font-extrabold text-[#60A5FA] mt-1">
-            {summary.accuracy}%
+          <div className="text-2xl font-extrabold font-mono tabular-nums text-[#60A5FA] mt-1">
+            {summary.total > 0 ? `${summary.accuracy}%` : "—"}
           </div>
           <div className="text-[0.6875rem] text-[#94A3B8] mt-1">
-            Inclui ações presentes no mix de referência
+            {summary.total > 0 && summary.total < 10
+              ? `${formatSampleConfidencePtBr(summary.total)} · inclui ações válidas no mix`
+              : "Inclui ações presentes no mix de referência"}
           </div>
         </div>
 
-        <div className="rounded-2xl bg-[#191B1D] border border-[#292C2F] p-4">
-          <div className="text-[0.6875rem] uppercase tracking-wider text-[#A1A6AA] font-semibold flex items-center gap-1">
-            <Award className="w-3.5 h-3.5 text-[#F1BE60]" />
+        <div className="rounded-2xl bg-[#090D16] border border-[#1E293B] p-4">
+          <div className="text-[0.6875rem] uppercase tracking-wider text-[#94A3B8] font-semibold flex items-center gap-1">
+            <Award className="w-3.5 h-3.5 text-[#F59E0B]" />
             EV Loss Médio
           </div>
-          <div className="text-xl font-extrabold text-[#F1BE60] mt-1 font-mono">
+          <div className="text-xl font-extrabold text-[#FCD34D] mt-1 font-mono tabular-nums">
             {summary.avgBbLoss !== null
               ? `${summary.avgBbLoss.toFixed(3)} bb`
               : summary.avgUsdLoss !== null
                 ? `${summary.avgUsdLoss.toFixed(3)} $EV`
                 : "—"}
           </div>
-          <div className="text-[0.6875rem] text-[#A1A6AA] mt-1">
+          <div className="text-[0.6875rem] text-[#94A3B8] mt-1">
             {summary.bbLossSample > 0
-              ? `${summary.bbLossSample} mãos bbEV`
+              ? `${pluralizePtBr(summary.bbLossSample, "mão bbEV", "mãos bbEV")}${summary.bbLossSample < 10 ? " (amostra baixa)" : ""}`
               : summary.usdLossSample > 0
-                ? `${summary.usdLossSample} mãos $EV`
-                : "Jogue spots com EV"}
+                ? `${pluralizePtBr(summary.usdLossSample, "mão $EV", "mãos $EV")}${summary.usdLossSample < 10 ? " (amostra baixa)" : ""}`
+                : "Jogue spots com tabela de EV"}
           </div>
         </div>
 
-        <div className="rounded-2xl bg-[#191B1D] border border-[#292C2F] p-4">
-          <div className="text-[0.6875rem] uppercase tracking-wider text-[#A1A6AA] font-semibold flex items-center gap-1">
+        <div className="rounded-2xl bg-[#090D16] border border-[#1E293B] p-4">
+          <div className="text-[0.6875rem] uppercase tracking-wider text-[#94A3B8] font-semibold flex items-center gap-1">
             <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
             Proveniência Verificada
           </div>
-          <div className="text-2xl font-extrabold text-indigo-300 mt-1 font-mono">
+          <div className="text-2xl font-extrabold text-indigo-300 mt-1 font-mono tabular-nums">
             {adaptiveAnalysis.dimensionalProgress.provenanceCompletenessPct.toFixed(0)}%
           </div>
-          <div className="text-[0.6875rem] text-[#A1A6AA] mt-1">
-            Proporção jogada em spots VERIFIED
+          <div className="text-[0.6875rem] text-[#94A3B8] mt-1">
+            Proporção jogada em spots verificados
           </div>
         </div>
 
-        <div className="rounded-2xl bg-[#191B1D] border border-[#292C2F] p-4">
-          <div className="text-[0.6875rem] uppercase tracking-wider text-[#A1A6AA] font-semibold flex items-center gap-1">
-            <AlertTriangle className="w-3.5 h-3.5 text-[#EF6666]" />
+        <div className="rounded-2xl bg-[#090D16] border border-[#1E293B] p-4">
+          <div className="text-[0.6875rem] uppercase tracking-wider text-[#94A3B8] font-semibold flex items-center gap-1">
+            <AlertTriangle
+              className={`w-3.5 h-3.5 ${
+                summary.worstPos ? "text-[#F87171]" : "text-[#60A5FA]"
+              }`}
+            />
             Maior Leak por Posição
           </div>
-          <div className="text-2xl font-extrabold text-[#EF6666] mt-1">
+          <div
+            className={`text-xl sm:text-2xl font-extrabold mt-1 ${
+              summary.worstPos ? "text-[#F87171]" : "text-[#60A5FA]"
+            }`}
+          >
             {summary.worstPos
               ? `${summary.worstPos.pos} (${summary.worstPos.pct}%)`
-              : "—"}
+              : "Nenhum leak detectado"}
           </div>
-          <div className="text-[0.6875rem] text-[#A1A6AA] mt-1">
-            {summary.worstPos ? `${summary.worstPos.total} mãos jogadas` : ""}
+          <div className="text-[0.6875rem] text-[#94A3B8] mt-1">
+            {summary.worstPos
+              ? `${pluralizePtBr(summary.worstPos.total, "mão jogada", "mãos jogadas")}${
+                  summary.worstPos.total < 10
+                    ? ` · ${formatSampleConfidencePtBr(summary.worstPos.total)}`
+                    : ""
+                }`
+              : summary.bestPos
+                ? `100% de precisão em ${pluralizePtBr(summary.total, "mão avaliada", "mãos avaliadas")}`
+                : "Jogue algumas mãos para identificar leaks"}
           </div>
         </div>
       </div>
 
       {/* ETAPA 5 (Item 3): Classificação Taxonômica de Leaks por Frequência, Impacto e Confiança */}
-      <div className="rounded-2xl bg-[#191B1D] border border-[#292C2F] p-4 space-y-3">
+      <div className="rounded-2xl bg-[#090D16] border border-[#1E293B] p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-sm font-bold text-[#F4F5F5] flex items-center gap-2">
-            <Target className="w-4 h-4 text-[#EF6666]" />
+          <h3 className="text-sm font-bold text-[#F8FAFC] flex items-center gap-2">
+            <Target className="w-4 h-4 text-[#F87171]" />
             Diagnóstico Taxonômico de Leaks (Frequência &times; Impacto de EV &times; Ponto Cego de Confiança)
           </h3>
-          <span className="text-[0.6875rem] text-[#A1A6AA]">
+          <span className="text-[0.6875rem] text-[#94A3B8]">
             Erros com confiança &ldquo;alta&rdquo; recebem peso 1.35&times; (ponto cego)
           </span>
         </div>
@@ -1184,29 +1428,29 @@ export function StatsView({
             {adaptiveAnalysis.classifiedLeaks.map((leak, idx) => (
               <div
                 key={leak.leakCategory}
-                className="rounded-xl bg-[#090B0C] border border-[#292C2F] p-3.5 flex flex-col justify-between gap-2.5 text-xs"
+                className="rounded-xl bg-[#05070B] border border-[#1E293B] p-3.5 flex flex-col justify-between gap-2.5 text-xs"
               >
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[0.625rem] font-mono font-bold px-2 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                    <span className="text-[0.6875rem] font-mono font-bold px-2 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30">
                       #{idx + 1} · Impacto {leak.impactScore.toFixed(3)}
                     </span>
-                    <span className="text-[0.625rem] font-mono text-[#A1A6AA]">
+                    <span className="text-[0.6875rem] font-mono text-[#94A3B8]">
                       {leak.occurrences} erro(s) ({Math.round(leak.frequencyOfTotalErrors * 100)}%)
                     </span>
                   </div>
-                  <div className="font-bold text-[#F4F5F5] text-sm">
+                  <div className="font-bold text-[#F8FAFC] text-sm">
                     {leak.label}
                   </div>
-                  <p className="text-[0.6875rem] text-[#A1A6AA] leading-relaxed">
+                  <p className="text-[0.6875rem] text-[#94A3B8] leading-relaxed">
                     {leak.description}
                   </p>
                 </div>
 
-                <div className="pt-2 border-t border-[#292C2F] space-y-1 text-[0.6875rem]">
+                <div className="pt-2 border-t border-[#1E293B] space-y-1 text-[0.6875rem]">
                   <div className="flex items-center justify-between text-slate-300">
                     <span>EV Loss médio:</span>
-                    <strong className="font-mono text-[#F1BE60]">
+                    <strong className="font-mono text-[#F59E0B]">
                       {leak.avgEvLoss !== null ? `${leak.avgEvLoss.toFixed(3)}` : "Sem EV"}
                     </strong>
                   </div>
@@ -1214,13 +1458,13 @@ export function StatsView({
                     <span>Pontos cegos (conf. alta):</span>
                     <strong
                       className={`font-mono ${
-                        leak.blindSpotCount > 0 ? "text-[#EF6666]" : "text-[#A1A6AA]"
+                        leak.blindSpotCount > 0 ? "text-[#EF4444]" : "text-[#94A3B8]"
                       }`}
                     >
                       {leak.blindSpotCount}
                     </strong>
                   </div>
-                  <div className="text-[0.625rem] text-[#A1A6AA] truncate">
+                  <div className="text-[0.6875rem] text-[#94A3B8] truncate">
                     Spots: {leak.topAffectedSpots.join(" · ")}
                   </div>
                 </div>
@@ -1255,7 +1499,7 @@ export function StatsView({
               <div className="min-w-0 space-y-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span
-                    className={`text-[0.625rem] font-mono font-bold px-1.5 py-0.5 rounded ${
+                    className={`text-[0.6875rem] font-mono font-bold px-1.5 py-0.5 rounded ${
                       item.isDueNow
                         ? "bg-[#DC2626]/20 text-red-200 border border-[#DC2626]/40"
                         : "bg-[#0F1B33] text-sky-200 border border-[#2563EB]/40"
@@ -1263,7 +1507,7 @@ export function StatsView({
                   >
                     Caixa {item.boxLevel} ({item.intervalDays}d)
                   </span>
-                  <span className="text-[0.625rem] text-[#94A3B8] flex items-center gap-1">
+                  <span className="text-[0.6875rem] text-[#94A3B8] flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     {item.isDueNow ? "Revisar Agora" : "Agendado"}
                   </span>
@@ -1271,7 +1515,7 @@ export function StatsView({
                 <div className="font-bold text-[#F8FAFC] truncate">
                   {item.spotName}
                 </div>
-                <div className="text-[0.625rem] text-[#94A3B8]">
+                <div className="text-[0.6875rem] text-[#94A3B8]">
                   {item.reason} · Conf. última:{" "}
                   <strong className="text-slate-200 uppercase">
                     {item.lastConfidence}
@@ -1300,8 +1544,8 @@ export function StatsView({
             <Compass className="w-4 h-4 text-[#60A5FA]" />
             Progresso Multidimensional: Posição, Stack, Formato de Torneio e Street
           </h3>
-          <span className="text-[0.65rem] text-[#60A5FA] group-open:hidden">Expandir</span>
-          <span className="text-[0.65rem] text-slate-400 hidden group-open:inline">Recolher</span>
+          <span className="text-[0.6875rem] text-[#60A5FA] group-open:hidden">Expandir</span>
+          <span className="text-[0.6875rem] text-slate-400 hidden group-open:inline">Recolher</span>
         </summary>
 
         <div className="flex flex-wrap items-center gap-1 bg-[#05070B] border border-[#1E293B] rounded-xl p-1">
@@ -1309,7 +1553,7 @@ export function StatsView({
             [
               { id: "position", label: "Por Posição" },
               { id: "stack", label: "Por Stack Efetivo" },
-              { id: "format", label: "Por Formato (chipEV / ICM / PKO / Spin)" },
+              { id: "format", label: "Por Formato (chipEV / ICM / PKO)" },
               { id: "street", label: "Por Street (Pré / Flop / Turn / River)" },
             ] as { id: DimensionTab; label: string }[]
           ).map((tab) => (
@@ -1360,21 +1604,21 @@ export function StatsView({
           <div className="overflow-x-auto">
             <table className="w-full text-xs border-collapse">
               <thead>
-                <tr className="text-[#A1A6AA]">
+                <tr className="text-[#94A3B8]">
                   <th className="text-left py-1.5 px-2 font-semibold">
                     Posição
                   </th>
                   {HEATMAP_STACKS.map((st) => (
-                    <th key={st} className="text-center py-1.5 px-2 font-mono">
-                      {st}BB
+                    <th key={st} className="text-center py-1.5 px-1.5 font-mono tabular-nums">
+                      {st === 28 ? "28BB (SRP)" : `${st}BB`}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {POSITIONS_8MAX.map((pos) => (
-                  <tr key={pos} className="border-t border-[#292C2F]/70">
-                    <td className="py-1.5 px-2 font-bold text-[#F4F5F5]">
+                  <tr key={pos} className="border-t border-[#1E293B]">
+                    <td className="py-1.5 px-2 font-bold text-[#F8FAFC]">
                       {pos}
                     </td>
                     {HEATMAP_STACKS.map((st) => {
@@ -1382,7 +1626,7 @@ export function StatsView({
                       if (!cell || cell.total === 0) {
                         return (
                           <td key={st} className="p-1 text-center">
-                            <div className="rounded-lg bg-[#090B0C] border border-[#292C2F]/60 py-1.5 text-slate-600 font-mono">
+                            <div className="rounded-lg bg-[#05070B] border border-[#1E293B] py-1.5 text-slate-600 font-mono">
                               —
                             </div>
                           </td>
@@ -1398,11 +1642,11 @@ export function StatsView({
                       return (
                         <td key={st} className="p-1 text-center">
                           <div
-                            className={`rounded-lg border py-1.5 font-mono font-bold ${colorClass}`}
+                            className={`rounded-lg border py-1.5 font-mono tabular-nums font-bold ${colorClass}`}
                             title={`${cell.ok}/${cell.total} acertos`}
                           >
                             {pct}%
-                            <span className="block text-[0.5625rem] font-normal opacity-75">
+                            <span className="block text-[0.6875rem] font-normal opacity-80">
                               ({cell.total})
                             </span>
                           </div>
@@ -1416,9 +1660,9 @@ export function StatsView({
           </div>
         </div>
 
-        <div className="lg:col-span-4 rounded-2xl bg-[#191B1D] border border-[#292C2F] p-4 flex flex-col justify-between gap-4">
+        <div className="lg:col-span-4 rounded-2xl bg-[#090D16] border border-[#1E293B] p-4 flex flex-col justify-between gap-4">
           <div>
-            <h3 className="text-sm font-bold text-[#F4F5F5] mb-3">
+            <h3 className="text-sm font-bold text-[#F8FAFC] mb-3">
               Desempenho por Tipo de Spot
             </h3>
             <div className="space-y-3">
@@ -1434,8 +1678,8 @@ export function StatsView({
                       <span className="text-slate-300 font-medium">
                         {t.label}
                       </span>
-                      <span className="font-mono text-[#A1A6AA]">
-                        {stats ? `${pct}% (${stats.total})` : "0 mão"}
+                      <span className="font-mono tabular-nums text-[#94A3B8]">
+                        {stats ? `${pct}% (${stats.total})` : "0 mãos"}
                       </span>
                     </div>
                     <div className="h-2 rounded-full bg-[#05070B] overflow-hidden">
@@ -1453,7 +1697,7 @@ export function StatsView({
           <div className="pt-3 border-t border-[#1E293B] flex items-center justify-between">
             <span className="text-[0.6875rem] text-[#94A3B8] flex items-center gap-1">
               <Gauge className="w-3.5 h-3.5 text-[#60A5FA]" />
-              {unifiedReviewRows.length} mão(s) registrada(s)
+              {pluralizePtBr(unifiedReviewRows.length, "mão registrada", "mãos registradas")}
             </span>
             <button
               type="button"

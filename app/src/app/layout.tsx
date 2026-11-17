@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "TreinerLM",
   description:
-    "TreinerLM — Plataforma responsiva de estudos GTO com Treiner Limpo de Memorização de Ranges, Modo Trainer completo, Explorador de Ranges (229 spots), Laboratório Matemático e AI Poker Coach. Desenvolvido por Luiz Miguel N. C.",
+    "TreinerLM — Plataforma responsiva de estudos GTO exclusiva para torneios MTT com Treiner Limpo, Modo Trainer, Explorador de Ranges MTT, Laboratório Matemático e AI Poker Coach. Desenvolvido por Luiz Miguel N. C.",
 };
 
 export const viewport: Viewport = {

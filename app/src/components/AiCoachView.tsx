@@ -36,9 +36,9 @@ interface AiCoachViewProps {
 
 const QUICK_PROMPTS = [
   "Quais os 5 erros de ICM que devo evitar na reta final de um MTT?",
-  "Como muda meu range de RFI e defesa em 14BB–20BB comparado a 50BB–100BB?",
-  "Quais princípios de Modern Poker Theory devo focar em pré-flop e 3-bet?",
-  "Como jogar BB vs BTN em Spin & Go com stack efetivo de 10BB?",
+  "Como muda meu range de RFI e defesa em 14BB–20BB comparado a 50BB–100BB no MTT?",
+  "Quais conceitos de 3-bet polarizada vs linear se aplicam em BTN vs CO no MTT?",
+  "Como defender o Big Blind no MTT 8-Max contra abertura do BTN com 30BB?",
 ];
 
 export function AiCoachView({
@@ -143,7 +143,10 @@ export function AiCoachView({
     try {
       const res = await fetch("/api/coach", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Poker-Coach": "local-v1",
+        },
         body: JSON.stringify({
           prompt: userMsg.text,
           model,
@@ -282,15 +285,16 @@ export function AiCoachView({
             <div className="py-6 flex flex-col items-center text-center gap-4">
               <div className="max-w-lg space-y-1.5">
                 <h3 className="text-base font-bold text-slate-100">
-                  Tire dúvidas de GTO, ICM e pós-flop com sua própria biblioteca
+                  Estudo offline de MTT: GTO, ICM e pós-flop com sua base local
                 </h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Toda pergunta busca automaticamente os trechos mais
-                  relevantes nos seus arquivos (<em>Modern Poker Theory</em>,{" "}
-                  <em>Play Optimal Poker 1 &amp; 2</em>,{" "}
-                  <em>The Grinder&apos;s Manual</em>, <em>5 Erros no ICM</em> e{" "}
-                  <em>Dicionário</em>) antes de responder. Você também pode{" "}
-                  <strong className="text-slate-200">
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  Uso exclusivo para estudo e revisão pós-sessão (nunca durante mãos ativas).
+                  Cada pergunta busca trechos reais indexados nos seus materiais locais (
+                  <em>Dicionário do Poker</em>, <em>E-book ICM</em>,{" "}
+                  <em>5 Erros em Retas Finais</em>, <em>Ranges MTT 8-Max</em> e os
+                  volumes indexados de Fitzgerald, Crawford, Hissa/Caputo e Leo Bello). Você
+                  também pode{" "}
+                  <strong className="text-slate-100">
                     colar (Ctrl+V) ou anexar um print
                   </strong>{" "}
                   de mão ou tabela de range.
@@ -339,13 +343,13 @@ export function AiCoachView({
 
                   {m.sourcesUsed && m.sourcesUsed.length > 0 && (
                     <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center gap-1.5">
-                      <span className="text-[0.625rem] uppercase tracking-wider text-slate-500 font-bold flex items-center gap-1 mr-1">
+                      <span className="text-[0.6875rem] uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1 mr-1">
                         <BookOpen className="w-3 h-3" /> Fontes usadas:
                       </span>
                       {m.sourcesUsed.map((src) => (
                         <span
                           key={src}
-                          className="text-[0.625rem] px-2 py-0.5 rounded-md bg-[#0F1B33] border border-[#2563EB]/40 text-sky-200"
+                          className="text-[0.6875rem] px-2 py-0.5 rounded-md bg-[#0F1B33] border border-[#2563EB]/40 text-sky-200"
                         >
                           {src}
                         </span>
@@ -355,7 +359,7 @@ export function AiCoachView({
 
                   {m.relatedVideos && m.relatedVideos.length > 0 && (
                     <div className="mt-2 pt-2 border-t border-slate-800/80 flex flex-col gap-1">
-                      <span className="text-[0.625rem] uppercase tracking-wider text-slate-500 font-bold flex items-center gap-1">
+                      <span className="text-[0.6875rem] uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1">
                         <Film className="w-3 h-3" /> Vídeos relacionados na sua
                         pasta:
                       </span>
@@ -365,7 +369,7 @@ export function AiCoachView({
                           className="text-[0.6875rem] text-slate-300 flex items-center justify-between gap-2 bg-slate-900/70 px-2 py-1 rounded"
                         >
                           <span className="truncate">{v.title}</span>
-                          <span className="text-[0.625rem] text-slate-500 shrink-0">
+                          <span className="text-[0.6875rem] text-slate-400 shrink-0">
                             {v.relativePath}
                           </span>
                         </div>
@@ -467,10 +471,10 @@ export function AiCoachView({
               Biblioteca de Aulas ({videos.length})
             </h3>
           </div>
-          <span className="text-[0.625rem] px-2 py-0.5 rounded bg-[#141D2F] text-sky-200 font-semibold group-open:hidden">
+          <span className="text-[0.6875rem] px-2 py-0.5 rounded bg-[#141D2F] text-sky-200 font-semibold group-open:hidden">
             Abrir
           </span>
-          <span className="text-[0.625rem] px-2 py-0.5 rounded bg-[#141D2F] text-slate-400 font-semibold hidden group-open:inline">
+          <span className="text-[0.6875rem] px-2 py-0.5 rounded bg-[#141D2F] text-slate-400 font-semibold hidden group-open:inline">
             Recolher
           </span>
         </summary>
@@ -494,12 +498,12 @@ export function AiCoachView({
                   <span className="text-xs font-semibold text-slate-200 leading-snug">
                     {v.title}
                   </span>
-                  <span className="text-[0.625rem] font-mono text-slate-500 shrink-0">
+                  <span className="text-[0.6875rem] font-mono text-slate-400 shrink-0">
                     {v.sizeMb} MB
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[0.625rem] text-[#60A5FA] truncate">
+                  <span className="text-[0.6875rem] text-[#60A5FA] truncate">
                     {v.category}
                   </span>
                   <button
@@ -509,7 +513,7 @@ export function AiCoachView({
                         `Resuma os principais conceitos e recomendações práticas sobre "${v.title}" (${v.category}).`,
                       )
                     }
-                    className="text-[0.625rem] text-slate-400 hover:text-[#60A5FA] underline shrink-0"
+                    className="text-[0.6875rem] text-slate-400 hover:text-[#60A5FA] underline shrink-0"
                   >
                     Perguntar ao Coach
                   </button>

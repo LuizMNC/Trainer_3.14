@@ -8,10 +8,23 @@ import type { CanonicalHand } from "@/lib/poker/handHistorySchema";
 import { MAX_REPLAY_JSON_BYTES, parseCanonicalHandText } from "@/lib/poker/handHistoryValidation";
 import { buildReplayFrame, formatAtoms, INITIAL_PLAYBACK, playbackTransition, replayEventLabel, replayPlayerName, STREET_LABELS, type PlaybackAction, type ReplayPerspective } from "@/lib/poker/handReplay";
 import styles from "./ReplayerView.module.css";
-import {readLibraryReplay,runLatest} from "@/lib/handLibraryClient";
+import {
+  libraryRequest,
+  libraryWrite,
+  readLibraryReplay,
+  runLatest,
+  type LibraryListing,
+  type StudyMetadata,
+} from "@/lib/handLibraryClient";
 import {replayToLab,type LabScenario} from "@/lib/poker/labTransfer";
 
-interface LoadedHand { hand: CanonicalHand; label: string; kind: "example"|"local"|"library-phh"|"library-json"; key: number }
+interface LoadedHand {
+  hand: CanonicalHand;
+  label: string;
+  kind: "example"|"local"|"library-phh"|"library-json";
+  key: number;
+  libraryRecordId?: string;
+}
 
 function ReplayCard({ code, dealt = true }: { code: string|null; dealt?: boolean }) {
   if (!code) return <span className={`${styles.card} ${styles.cardBack}`} aria-label={dealt ? "Carta oculta ou desconhecida" : "Carta não distribuída"}>{dealt ? "♠" : "—"}</span>;
@@ -20,7 +33,15 @@ function ReplayCard({ code, dealt = true }: { code: string|null; dealt?: boolean
   return <span className={styles.card} style={{ backgroundColor: suitBg, color: "#FFFFFF", borderColor: "rgba(255,255,255,0.22)" }} aria-label={code}><strong>{card.rank}</strong><span>{card.suit}</span></span>;
 }
 
-export function ReplayerView({librarySelection,onSendToLab}:{librarySelection?:{recordId:string;requestKey:number}|null;onSendToLab?:(scenario:LabScenario)=>void}) {
+export function ReplayerView({
+  librarySelection,
+  onLibraryStudyChanged,
+  onSendToLab,
+}: {
+  librarySelection?:{recordId:string;requestKey:number}|null;
+  onLibraryStudyChanged?:()=>void;
+  onSendToLab?:(scenario:LabScenario)=>void;
+}) {
   const [loaded,setLoaded] = useState<LoadedHand|null>(null);
   const [loading,setLoading] = useState(true);
   const [error,setError] = useState<string|null>(null);
@@ -46,7 +67,19 @@ export function ReplayerView({librarySelection,onSendToLab}:{librarySelection?:{
 
   const loadLibrary = useCallback(async (recordId:string)=>{
     setLoading(true);setLoaded(null);setError(null);setExampleId("");
-    await runLatest(request.current,()=>readLibraryReplay(recordId),(result,key)=>setLoaded({hand:result.hand,label:result.fileName||result.recordId,kind:result.provenance==="PHH_RECONSTRUCTED"?"library-phh":"library-json",key}),e=>setError(e instanceof Error?e.message:"Não foi possível abrir a mão da Biblioteca."),()=>setLoading(false));
+    await runLatest(
+      request.current,
+      ()=>readLibraryReplay(recordId),
+      (result,key)=>setLoaded({
+        hand:result.hand,
+        label:result.fileName||result.recordId,
+        kind:result.provenance==="PHH_RECONSTRUCTED"?"library-phh":"library-json",
+        key,
+        libraryRecordId:result.recordId,
+      }),
+      e=>setError(e instanceof Error?e.message:"Não foi possível abrir a mão da Biblioteca."),
+      ()=>setLoading(false),
+    );
   },[]);
 
   useEffect(()=>{
@@ -74,43 +107,103 @@ export function ReplayerView({librarySelection,onSendToLab}:{librarySelection?:{
     </div>
     {loading && <p className={styles.notice} role="status">Conferindo o histórico…</p>}
     {error && <div className={styles.error} role="alert"><strong>Histórico recusado</strong><p>{error}</p><p>Selecione um exemplo ou um JSON canônico do pipeline 2A.</p></div>}
-    {loaded && <ReplaySession key={loaded.key} loaded={loaded} onSendToLab={onSendToLab}/>}
+    {loaded && (
+      <ReplaySession
+        key={loaded.key}
+        loaded={loaded}
+        onLibraryStudyChanged={onLibraryStudyChanged}
+        onSendToLab={onSendToLab}
+      />
+    )}
   </section>;
 }
 
-function ReplaySession({loaded,onSendToLab}:{loaded:LoadedHand;onSendToLab?:(scenario:LabScenario)=>void}) {
+function ReplaySession({
+  loaded,
+  onLibraryStudyChanged,
+  onSendToLab,
+}:{
+  loaded:LoadedHand;
+  onLibraryStudyChanged?:()=>void;
+  onSendToLab?:(scenario:LabScenario)=>void;
+}) {
   const {hand}=loaded;
   const [playback,setPlayback] = useState(INITIAL_PLAYBACK);
   const [perspective,setPerspective] = useState<ReplayPerspective>({kind:"public"});
   const [markedForReview,setMarkedForReview] = useState(false);
+  const [syncStatus,setSyncStatus] = useState<string|null>(null);
+  const [libraryStudy,setLibraryStudy] = useState<StudyMetadata|null>(null);
 
   useEffect(()=>{
+    let active = true;
+    const recordId = loaded.libraryRecordId;
+    if (recordId) {
+      void libraryRequest<LibraryListing>({action:"list",q:recordId,pageSize:"10"})
+        .then((listing)=>{
+          if (!active) return;
+          const match = listing.items.find((it)=>it.recordId===recordId);
+          if (match) {
+            setLibraryStudy(match.study);
+            setMarkedForReview(match.study.pending);
+          }
+        })
+        .catch(()=>{});
+    }
     try {
       const raw = window.localStorage.getItem("poker_replayer_marked_hands_v1");
-      if (raw) {
+      if (raw && !recordId) {
         const list = JSON.parse(raw) as string[];
         queueMicrotask(() => {
-          setMarkedForReview(Array.isArray(list) && list.includes(hand.recordId));
+          if (active) setMarkedForReview(Array.isArray(list) && list.includes(hand.recordId));
         });
       }
     } catch {
       // Ignora erro local
     }
-  },[hand.recordId]);
+    return ()=>{ active = false; };
+  },[hand.recordId, loaded.libraryRecordId]);
 
-  const toggleMarkForReview = () => {
-    setMarkedForReview(prev => {
-      const next = !prev;
+  const toggleMarkForReview = async () => {
+    const next = !markedForReview;
+    setMarkedForReview(next);
+    setSyncStatus(null);
+    try {
+      const raw = window.localStorage.getItem("poker_replayer_marked_hands_v1");
+      const list = raw ? (JSON.parse(raw) as string[]) : [];
+      const updated = next ? Array.from(new Set([...list, hand.recordId])) : list.filter(id => id !== hand.recordId);
+      window.localStorage.setItem("poker_replayer_marked_hands_v1", JSON.stringify(updated));
+    } catch {
+      // Ignora erro local
+    }
+    if (loaded.libraryRecordId) {
       try {
-        const raw = window.localStorage.getItem("poker_replayer_marked_hands_v1");
-        const list = raw ? (JSON.parse(raw) as string[]) : [];
-        const updated = next ? Array.from(new Set([...list, hand.recordId])) : list.filter(id => id !== hand.recordId);
-        window.localStorage.setItem("poker_replayer_marked_hands_v1", JSON.stringify(updated));
+        const listing = await libraryRequest<LibraryListing>({
+          action:"list",
+          q:loaded.libraryRecordId,
+          pageSize:"10",
+        });
+        const currentStudy =
+          listing.items.find((it)=>it.recordId===loaded.libraryRecordId)?.study ??
+          libraryStudy ??
+          {note:"",tags:[],favorite:false,pending:false,lastReviewedAtUtc:null};
+        const saved = await libraryWrite<StudyMetadata>("study",{
+          recordId:loaded.libraryRecordId,
+          study:{
+            note:currentStudy.note,
+            tags:currentStudy.tags,
+            favorite:currentStudy.favorite,
+            pending:next,
+            markReviewed:false,
+          },
+        });
+        setLibraryStudy(saved);
+        setMarkedForReview(saved.pending);
+        setSyncStatus(saved.pending ? "Sincronizado com Biblioteca (Revisão pendente)" : "Sincronizado com Biblioteca (Revisão removida)");
+        onLibraryStudyChanged?.();
       } catch {
-        // Ignora erro local
+        setSyncStatus("Salvo apenas localmente no navegador (SQLite indisponível).");
       }
-      return next;
-    });
+    }
   };
   const count=hand.events.length;
   const dispatch = useCallback((action:PlaybackAction)=>setPlayback(state=>playbackTransition(state,action,count)),[count]);
@@ -158,7 +251,8 @@ function ReplaySession({loaded,onSendToLab}:{loaded:LoadedHand;onSendToLab?:(sce
     <div className={styles.handHeader}><div><strong>{loaded.label}</strong><p className={styles.provenance}>{loaded.kind==="example" ? "Exemplo sintético · cópia gerada pelo pipeline e hash conferido" : loaded.kind==="library-phh" ? "Biblioteca · PHH reconstruído pelo motor; autoria não autenticada" : "Arquivo local / Biblioteca JSON · estrutura conferida; origem não autenticada"}</p></div><span className={`${styles.badge} ${!hand.results.complete ? styles.partial : ""}`}>{hand.results.complete ? "Mão completa na fonte" : "Prefixo parcial · sem resultado final"}</span></div>
     <div className={styles.perspective}>
       {onSendToLab&&<button type="button" onClick={()=>{dispatch({type:"pause"});onSendToLab(replayToLab(hand,frame));}}>Enviar cenário ao Laboratório</button>}
-      <button type="button" onClick={toggleMarkForReview} aria-pressed={markedForReview} style={{border:"1px solid #1E293B",borderRadius:"8px",padding:"8px 12px",background:markedForReview?"#2563EB25":"#090D16",color:markedForReview?"#93C5FD":"#F8FAFC",fontSize:"0.75rem",fontWeight:700}}>{markedForReview ? "★ Marcada para revisão" : "☆ Marcar para revisão"}</button>
+      <button type="button" onClick={() => void toggleMarkForReview()} aria-pressed={markedForReview} style={{border:"1px solid #26334A",borderRadius:"8px",padding:"8px 12px",background:markedForReview?"#2563EB25":"#090D16",color:markedForReview?"#93C5FD":"#F8FAFC",fontSize:"0.75rem",fontWeight:700}}>{markedForReview ? "★ Marcada para revisão" : "☆ Marcar para revisão"}</button>
+      {syncStatus && <span className="text-[0.6875rem] text-[#93C5FD]" role="status">{syncStatus}</span>}
       <label>Perspectiva<select aria-label="Perspectiva" value={selectedPerspective} onChange={e=>{dispatch({type:"pause"});const value=e.target.value;setPerspective(value.startsWith("player:") ? {kind:"player",playerIndex:Number(value.slice(7))} : value==="recorded" ? {kind:"recorded"} : {kind:"public"});}}><option value="public">Visão pública</option>{hand.players.map(p=><option key={p.index} value={`player:${p.index}`}>Jogador: {replayPlayerName(hand,p.index)}</option>)}<option value="recorded">Visão completa pós-sessão</option></select></label>
       <p>{perspective.kind==="public" ? "Cartas privadas ficam ocultas até a revelação pública." : perspective.kind==="player" ? "Mostra suas cartas conhecidas após a distribuição, além das revelações públicas." : "Todas as cartas conhecidas na fonte até este evento. Essa informação não era necessariamente pública."}</p>
     </div>

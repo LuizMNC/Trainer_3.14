@@ -1,5 +1,6 @@
 import type { Street } from "./stateEngine.ts";
 import type { DecisionClassification } from "./drillEvaluator.ts";
+import { isSpotIdExcludedFromMtt } from "./mttCatalog.ts";
 import type {
   CanonicalSpot,
   CurriculumTrackId,
@@ -348,6 +349,7 @@ export function computeSpacedRepetitionSchedule<TTrack = CurriculumTrackId>(
   >();
 
   for (const rec of sorted) {
+    if (isSpotIdExcludedFromMtt(rec.spotId)) continue;
     const prev = stateBySpot.get(rec.spotId) ?? {
       spotName: rec.spotName,
       trackId: rec.trackId,

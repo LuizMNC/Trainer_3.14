@@ -18,7 +18,7 @@
   align-items:center;
   font-weight:800;
   font-size:1.625rem;
-  color:#F4F5F5
+  color:#F8FAFC
 }
 .heading p:not(.eyebrow) {
   font-size:0.8125rem;
@@ -27,9 +27,9 @@
 }
 .eyebrow {
   color:#60A5FA;
-  font-size:0.625rem;
+  font-size:0.6875rem;
   font-weight:800;
-  letter-spacing:.17em;
+  letter-spacing:.14em;
   margin-bottom:5px
 }
 .badge {
@@ -43,9 +43,9 @@
   line-height:1.5
 }
 .partial {
-  color:#F1BE60;
-  border-color:#F1BE6055;
-  background:#F1BE601f
+  color:#FCD34D;
+  border-color:#F59E0B55;
+  background:#F59E0B1f
 }
 .sourceBar {
   display:flex;
@@ -53,23 +53,23 @@
   align-items:center;
   flex-wrap:wrap;
   padding:16px;
-  background:#191B1D;
+  background:#090D16;
   border:1px solid var(--line);
   border-radius:14px;
   margin-bottom:18px
 }
 .root label {
   font-size:0.6875rem;
-  color:#F4F5F5;
+  color:#F8FAFC;
   font-weight:600
 }
 .root select {
   display:block;
-  border:1px solid #292C2F;
-  background:#090B0C;
+  border:1px solid #26334A;
+  background:#05070B;
   border-radius:8px;
   padding:9px 10px;
-  color:#F4F5F5;
+  color:#F8FAFC;
   font-size:0.75rem;
   margin-top:5px;
   max-width:100%
@@ -128,7 +128,7 @@
 .perspective p {
   font-size:0.75rem;
   max-width:550px;
-  color:#A1A6AA;
+  color:#94A3B8;
   line-height:1.6
 }
 .perspective select {
@@ -149,13 +149,13 @@
   flex-wrap:wrap;
   border:1px solid var(--line);
   border-radius:12px 12px 0 0;
-  background:#191B1D;
+  background:#090D16;
   padding:12px 16px;
   font-size:0.6875rem;
-  color:#A1A6AA
+  color:#94A3B8
 }
 .tableMeta b {
-  color:#F1BE60
+  color:#F59E0B
 }
 .table {
   position:relative;
@@ -163,7 +163,7 @@
   border:1px solid var(--line);
   border-top:0;
   border-radius:0 0 16px 16px;
-  background:radial-gradient(ellipse at center,#17191B,#101112 73%);
+  background:radial-gradient(ellipse at center,#0D1322,#05070B 73%);
   isolation:isolate
 }
 .felt {
@@ -181,18 +181,18 @@
   top:var(--seat-y);
   transform:translate(-50%,-50%);
   width:140px;
-  border:1.5px solid #292C2F;
+  border:1.5px solid #26334A;
   border-radius:14px;
   padding:9px 10px;
-  background:#191B1D;
+  background:#090D16;
   box-shadow:0 8px 20px #0006;
   transition:border-color .18s,background .18s,opacity .18s;
   z-index:1;
   min-width:0
 }
 .acted {
-  border:2px solid #F1BE60;
-  box-shadow:0 0 18px #F1BE6028;
+  border:2px solid #F59E0B;
+  box-shadow:0 0 18px #F59E0B28;
   padding:8px 9px
 }
 .waiting:not(.acted) {
@@ -200,8 +200,8 @@
   box-shadow:0 0 0 2px #3B82F622
 }
 .folded {
-  background:#101112;
-  color:#6A7075;
+  background:#090D16;
+  color:#94A3B8;
   border-style:dashed
 }
 .playerLine {
@@ -221,15 +221,15 @@
   border-radius:50%;
   background:#fef3c7;
   color:#1e293b;
-  font-size:0.5625rem;
+  font-size:0.6875rem;
   font-weight:900;
-  width:18px;
-  height:18px;
+  width:20px;
+  height:20px;
   display:grid;
   place-items:center
 }
 .position {
-  font-size:0.5625rem;
+  font-size:0.6875rem;
   color:#aab9d0;
   margin-top:3px;
   line-height:1.4
@@ -275,7 +275,7 @@
   align-items:center;
   justify-content:space-between;
   gap:6px;
-  font-size:0.625rem
+  font-size:0.6875rem
 }
 .stack span {
   color:#a7b5ca
@@ -287,7 +287,7 @@
   overflow-wrap:anywhere
 }
 .bet {
-  font-size:0.5625rem;
+  font-size:0.6875rem;
   display:flex;
   justify-content:space-between;
   gap:4px;
@@ -299,7 +299,7 @@
   font-variant-numeric:tabular-nums
 }
 .playerStatus {
-  font-size:0.5625rem;
+  font-size:0.6875rem;
   color:#a7f3d0;
   margin-top:6px;
   text-align:center;
@@ -331,7 +331,7 @@
   align-items:center
 }
 .emptyBoard {
-  font-size:0.625rem;
+  font-size:0.6875rem;
   color:#b7cec6
 }
 .pot {
@@ -344,7 +344,7 @@
   padding:8px 17px
 }
 .pot span {
-  font-size:0.5625rem;
+  font-size:0.6875rem;
   letter-spacing:.12em;
   color:#c2d9d4
 }
@@ -355,11 +355,11 @@
   font-variant-numeric:tabular-nums
 }
 .potHint {
-  font-size:0.5625rem;
+  font-size:0.6875rem;
   color:#b2c8c3
 }
 .tableNote {
-  font-size:0.625rem;
+  font-size:0.6875rem;
   color:var(--muted);
   margin:10px 2px 15px;
   line-height:1.5
@@ -451,7 +451,7 @@
   padding:18px
 }
 .eventTag {
-  font-size:0.5625rem;
+  font-size:0.6875rem;
   letter-spacing:.13em;
   color:#a5b4fc;
   font-weight:800
@@ -483,7 +483,7 @@
 }
 .explanation details {
   margin-top:14px;
-  font-size:0.625rem;
+  font-size:0.6875rem;
   color:#9db0c6;
   line-height:1.7
 }
@@ -503,7 +503,7 @@
   font-weight:700
 }
 .timelineTitle span {
-  font-size:0.625rem;
+  font-size:0.6875rem;
   color:var(--muted)
 }
 .eventList {
@@ -531,12 +531,12 @@
 }
 .eventList small {
   display:block;
-  font-size:0.5625rem;
+  font-size:0.6875rem;
   color:#a6b6ce;
   margin-top:3px
 }
 .eventNumber {
-  font-size:0.625rem;
+  font-size:0.6875rem;
   color:#8faaa6;
   font-variant-numeric:tabular-nums
 }
@@ -667,7 +667,7 @@
     gap:10px
   }
   .tableMeta {
-    font-size:0.625rem;
+    font-size:0.6875rem;
     padding:12px
   }
   .table {
@@ -744,7 +744,7 @@
     max-height:320px
   }
   .tableNote {
-    font-size:0.5625rem
+    font-size:0.6875rem
   }
 }
 @media(prefers-reduced-motion:reduce) {

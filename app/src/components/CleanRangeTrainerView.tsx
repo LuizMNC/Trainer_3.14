@@ -8,17 +8,29 @@ import {
   Grid3X3,
   Palette,
   RotateCcw,
+  ShieldAlert,
   Shuffle,
   SlidersHorizontal,
   XCircle,
 } from "lucide-react";
 import {
-  evaluateDecision,
+  adaptLegacyRangeSpotToCanonical,
+  computeMixedAdherenceStats,
+  evaluateDrillDecision,
+  filterConfirmedMttLegacySpots,
+  formatActionLabelPtBr,
+  getActionVisualStyle,
+  getSpotHandIntegrityIssue,
+  isSpotIdExcludedFromMtt,
+  loadCleanTrainerSession,
   pickDrillHand,
   POSITIONS_8MAX,
   sampleCardsForHand,
-  type DecisionEvaluation,
+  saveCleanTrainerSession,
   type DrillDifficulty,
+  type DrillEvaluationResult,
+  type LegacyRangeSpot,
+  type MixedAttemptRecord,
   type PlayingCard,
   type RangeSpot,
   type SpotType,
@@ -79,15 +91,20 @@ export function getAvailablePositionsForType(
   return available;
 }
 
+function pickInitialCleanHand(
+  spot: RangeSpot | null,
+  difficulty: DrillDifficulty,
+): string {
+  if (!spot) return "KQo";
+  try {
+    return pickDrillHand(spot, difficulty, () => 0.37);
+  } catch {
+    return Object.keys(spot.matrix ?? {})[0] ?? "KQo";
+  }
+}
+
 function getActionButtonStyle(actionName: string): string {
-  const lower = actionName.toLowerCase();
-  if (lower === "fold") {
-    return "bg-[#090D16] hover:bg-[#111827] border-[#26334A] text-[#CBD5E1]";
-  }
-  if (lower.includes("call") || lower.includes("check")) {
-    return "bg-[#1D4ED8] hover:bg-[#2563EB] border-[#60A5FA]/70 text-white shadow-[0_4px_16px_rgba(37,99,235,0.3)]";
-  }
-  return "bg-gradient-to-r from-[#DC2626] to-[#B91C1C] hover:from-[#EF4444] hover:to-[#DC2626] border-[#F87171]/70 text-white shadow-[0_4px_16px_rgba(220,38,38,0.32)]";
+  return `${getActionVisualStyle(actionName).buttonClass} shadow-md`;
 }
 
 interface CleanRangeTrainerViewProps {
@@ -95,26 +112,28 @@ interface CleanRangeTrainerViewProps {
 }
 
 export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
+  const mttSpots = useMemo(() => filterConfirmedMttLegacySpots(spots), [spots]);
+
   const [spotTypeFilter, setSpotTypeFilter] =
     useState<MemorizerSpotTypeFilter>("rfi");
   const availablePositions = useMemo(
-    () => getAvailablePositionsForType(spots, spotTypeFilter),
-    [spots, spotTypeFilter],
+    () => getAvailablePositionsForType(mttSpots, spotTypeFilter),
+    [mttSpots, spotTypeFilter],
   );
 
   const [heroPosition, setHeroPosition] = useState<string>(() => {
     const first = POSITIONS_8MAX.find((pos) =>
-      spots.some((s) => s.spotType === "rfi" && s.heroPosition === pos),
+      mttSpots.some((s) => s.spotType === "rfi" && s.heroPosition === pos),
     );
-    return first ?? spots[0]?.heroPosition ?? "BTN";
+    return first ?? mttSpots[0]?.heroPosition ?? "BTN";
   });
 
   const matchingSpots = useMemo(() => {
-    const byPos = filterMemorizerSpots(spots, spotTypeFilter, heroPosition);
+    const byPos = filterMemorizerSpots(mttSpots, spotTypeFilter, heroPosition);
     if (byPos.length > 0) return byPos;
-    const byType = filterMemorizerSpots(spots, spotTypeFilter, "all");
-    return byType.length > 0 ? byType : spots;
-  }, [spots, spotTypeFilter, heroPosition]);
+    const byType = filterMemorizerSpots(mttSpots, spotTypeFilter, "all");
+    return byType.length > 0 ? byType : mttSpots;
+  }, [mttSpots, spotTypeFilter, heroPosition]);
 
   const [selectedSpotId, setSelectedSpotId] = useState<string>(
     () => matchingSpots[0]?.id ?? "",
@@ -124,30 +143,34 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
     () =>
       matchingSpots.find((s) => s.id === selectedSpotId) ??
       matchingSpots[0] ??
-      spots[0] ??
+      mttSpots[0] ??
       null,
-    [matchingSpots, selectedSpotId, spots],
+    [matchingSpots, selectedSpotId, mttSpots],
+  );
+
+  const canonicalCurrentSpot = useMemo(
+    () =>
+      currentSpot
+        ? adaptLegacyRangeSpotToCanonical(currentSpot as LegacyRangeSpot)
+        : null,
+    [currentSpot],
   );
 
   const [difficulty, setDifficulty] = useState<DrillDifficulty>("borderline");
   const [useRng, setUseRng] = useState<boolean>(false);
   const [autoAdvance, setAutoAdvance] = useState<boolean>(false);
 
-  const [handClass, setHandClass] = useState<string>(() => {
-    if (!currentSpot) return "AKs";
-    const keys = Object.keys(currentSpot.matrix ?? {});
-    return keys[0] ?? "AKs";
-  });
+  const [handClass, setHandClass] = useState<string>(() =>
+    pickInitialCleanHand(currentSpot, "borderline"),
+  );
   const [cards, setCards] = useState<[PlayingCard, PlayingCard]>(() => {
-    const firstHand = currentSpot
-      ? (Object.keys(currentSpot.matrix ?? {})[0] ?? "AKs")
-      : "AKs";
+    const firstHand = pickInitialCleanHand(currentSpot, "borderline");
     try {
       return sampleCardsForHand(firstHand, [], () => 0);
     } catch {
       return [
-        { rank: "A", suit: "♠" },
         { rank: "K", suit: "♠" },
+        { rank: "Q", suit: "♦" },
       ];
     }
   });
@@ -155,11 +178,13 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
   const [dealKey, setDealKey] = useState<number>(0);
 
   const [chosenAction, setChosenAction] = useState<string | null>(null);
-  const [evaluation, setEvaluation] = useState<DecisionEvaluation | null>(null);
+  const [evaluation, setEvaluation] = useState<DrillEvaluationResult | null>(null);
 
   const [totalCount, setTotalCount] = useState<number>(0);
   const [rightCount, setRightCount] = useState<number>(0);
   const [streak, setStreak] = useState<number>(0);
+  const [mixedAttempts, setMixedAttempts] = useState<MixedAttemptRecord[]>([]);
+  const [hasHydratedStorage, setHasHydratedStorage] = useState<boolean>(false);
 
   const [showOptionsPanel, setShowOptionsPanel] = useState<boolean>(false);
   const [showMatrixPanel, setShowMatrixPanel] = useState<boolean>(false);
@@ -178,17 +203,86 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
 
   useEffect(() => {
     let active = true;
-    const saved = loadTableAppearance();
+    const savedAppearance = loadTableAppearance();
+    const validSpotIds = new Set(mttSpots.map((s) => s.id));
     queueMicrotask(() => {
       if (!active) return;
-      setTableAppearance(saved);
-      setFeltHexInput(saved.feltColor);
-      setRailHexInput(saved.railColor);
+      setTableAppearance(savedAppearance);
+      setFeltHexInput(savedAppearance.feltColor);
+      setRailHexInput(savedAppearance.railColor);
+
+      try {
+        const { session: saved } = loadCleanTrainerSession(undefined, validSpotIds);
+        if (saved) {
+          if (mttSpots.some((s) => saved.spotTypeFilter === "all" || s.spotType === saved.spotTypeFilter)) {
+            setSpotTypeFilter(saved.spotTypeFilter);
+          }
+          if ((POSITIONS_8MAX as readonly string[]).includes(saved.heroPosition)) {
+            setHeroPosition(saved.heroPosition);
+          }
+          if (
+            saved.selectedSpotId &&
+            !isSpotIdExcludedFromMtt(saved.selectedSpotId) &&
+            validSpotIds.has(saved.selectedSpotId)
+          ) {
+            const restoredSpot = mttSpots.find((s) => s.id === saved.selectedSpotId) ?? null;
+            setSelectedSpotId(saved.selectedSpotId);
+            if (restoredSpot) {
+              const initialHand = pickInitialCleanHand(restoredSpot, saved.difficulty);
+              setHandClass(initialHand);
+              try {
+                setCards(sampleCardsForHand(initialHand, [], () => 0));
+              } catch {
+                // mantém cartas atuais
+              }
+            }
+          }
+          setDifficulty(saved.difficulty);
+          setUseRng(saved.useRng);
+          setAutoAdvance(saved.autoAdvance);
+          setTotalCount(saved.totalCount);
+          setRightCount(saved.rightCount);
+          setStreak(saved.streak);
+          setMixedAttempts(saved.mixedAttempts);
+        }
+      } catch {
+        // Ignora falha de leitura de localStorage
+      } finally {
+        setHasHydratedStorage(true);
+      }
     });
     return () => {
       active = false;
     };
-  }, []);
+  }, [mttSpots]);
+
+  useEffect(() => {
+    if (!hasHydratedStorage) return;
+    saveCleanTrainerSession({
+      spotTypeFilter,
+      heroPosition,
+      selectedSpotId,
+      difficulty,
+      useRng,
+      autoAdvance,
+      totalCount,
+      rightCount,
+      streak,
+      mixedAttempts,
+    });
+  }, [
+    hasHydratedStorage,
+    spotTypeFilter,
+    heroPosition,
+    selectedSpotId,
+    difficulty,
+    useRng,
+    autoAdvance,
+    totalCount,
+    rightCount,
+    streak,
+    mixedAttempts,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -225,13 +319,13 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
 
   const handleSpotTypeChange = (nextType: MemorizerSpotTypeFilter) => {
     setSpotTypeFilter(nextType);
-    const nextAvail = getAvailablePositionsForType(spots, nextType);
+    const nextAvail = getAvailablePositionsForType(mttSpots, nextType);
     const nextPos = nextAvail.has(heroPosition)
       ? heroPosition
       : (POSITIONS_8MAX.find((pos) => nextAvail.has(pos)) ?? heroPosition);
     setHeroPosition(nextPos);
-    const nextSpots = filterMemorizerSpots(spots, nextType, nextPos);
-    const targetSpot = nextSpots[0] ?? spots[0] ?? null;
+    const nextSpots = filterMemorizerSpots(mttSpots, nextType, nextPos);
+    const targetSpot = nextSpots[0] ?? mttSpots[0] ?? null;
     if (targetSpot) {
       setSelectedSpotId(targetSpot.id);
       dealHandForSpot(targetSpot);
@@ -240,7 +334,7 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
 
   const handlePositionChange = (pos: string) => {
     setHeroPosition(pos);
-    const nextSpots = filterMemorizerSpots(spots, spotTypeFilter, pos);
+    const nextSpots = filterMemorizerSpots(mttSpots, spotTypeFilter, pos);
     const targetSpot = nextSpots[0] ?? null;
     if (targetSpot) {
       setSelectedSpotId(targetSpot.id);
@@ -255,24 +349,56 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
     dealHandForSpot(found);
   };
 
+  const handIntegrityIssue = useMemo(
+    () => getSpotHandIntegrityIssue(canonicalCurrentSpot, handClass),
+    [canonicalCurrentSpot, handClass],
+  );
+
   const handleChooseAction = useCallback(
     (actionName: string) => {
-      if (!currentSpot || evaluation) return;
-      const result = evaluateDecision(
-        currentSpot,
+      if (!currentSpot || !canonicalCurrentSpot || evaluation) return;
+      const result = evaluateDrillDecision({
+        spot: canonicalCurrentSpot,
         handClass,
-        actionName,
+        chosenAction: actionName,
         rngValue,
         useRng,
-      );
+        mode: "LEARNING",
+        enforceIntegrityGuard: true,
+      });
       setChosenAction(actionName);
       setEvaluation(result);
+
+      if (result.integrityBlocked) {
+        return;
+      }
+
       setTotalCount((n) => n + 1);
-      if (result.status !== "error") {
+      const passed =
+        result.classification !== "ev_error" &&
+        result.classification !== "unsolved";
+      if (passed) {
         setRightCount((n) => n + 1);
         setStreak((n) => n + 1);
       } else {
         setStreak(0);
+      }
+      const dist = currentSpot.matrix[handClass] ?? { Fold: 1 };
+      const activeBranches = Object.values(dist).filter((v) => v > 0.005).length;
+      if (activeBranches >= 2 && !handIntegrityIssue) {
+        setMixedAttempts((prev) =>
+          [
+            ...prev,
+            {
+              spotId: currentSpot.id,
+              hand: handClass,
+              chosenAction: actionName,
+              targetDistribution: dist,
+              evLoss: null,
+              timestamp: Date.now(),
+            },
+          ].slice(-150),
+        );
       }
       if (autoAdvance) {
         autoTimerRef.current = setTimeout(() => {
@@ -282,10 +408,12 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
     },
     [
       autoAdvance,
+      canonicalCurrentSpot,
       currentSpot,
       dealHandForSpot,
       evaluation,
       handClass,
+      handIntegrityIssue,
       rngValue,
       useRng,
     ],
@@ -331,14 +459,32 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
 
   const accuracyPct =
     totalCount > 0 ? Math.round((rightCount / totalCount) * 100) : null;
+  const mixedSummary = useMemo(
+    () =>
+      mixedAttempts.length > 0
+        ? computeMixedAdherenceStats(mixedAttempts)
+        : null,
+    [mixedAttempts],
+  );
 
   if (!currentSpot) {
     return (
       <div className="rounded-2xl bg-[#0A0E17] border border-[#1E293B] p-6 text-center text-sm text-[#94A3B8]">
-        Nenhum spot de range disponível para memorização no momento.
+        Nenhum spot MTT confirmado disponível para memorização no momento.
       </div>
     );
   }
+
+  const feedbackTone = evaluation
+    ? evaluation.integrityBlocked
+      ? "blocked"
+      : evaluation.classification === "exact_primary"
+        ? "correct"
+        : evaluation.classification === "valid_mixed" ||
+            evaluation.classification === "low_freq_acceptable"
+          ? "mixed"
+          : "error"
+    : null;
 
   return (
     <div className="flex flex-col gap-3 sm:gap-4 max-w-5xl mx-auto w-full">
@@ -349,8 +495,8 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <span className="text-[0.625rem] font-extrabold uppercase tracking-[0.14em] text-[#60A5FA] block">
-              Treiner Limpo · Memorização de Ranges
+            <span className="text-[0.6875rem] font-extrabold uppercase tracking-[0.12em] text-[#60A5FA] block">
+              Treiner Limpo · Memorização de Ranges MTT
             </span>
             <h2 className="text-sm sm:text-base font-extrabold text-[#F8FAFC]">
               {currentSpot.name}
@@ -358,13 +504,32 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="inline-flex items-center gap-1 rounded-lg bg-[#05070B] border border-[#1E293B] px-2.5 py-1 font-mono text-[#F8FAFC]">
+            <span className="inline-flex items-center gap-1 rounded-lg bg-[#05070B] border border-[#1E293B] px-2.5 py-1 font-mono tabular-nums text-[#F8FAFC]">
               Memorizadas: <strong>{totalCount}</strong>
             </span>
-            <span className="inline-flex items-center gap-1 rounded-lg bg-[#05070B] border border-[#2563EB]/45 px-2.5 py-1 font-mono text-[#93C5FD]">
+            <span className="inline-flex items-center gap-1 rounded-lg bg-[#05070B] border border-[#2563EB]/45 px-2.5 py-1 font-mono tabular-nums text-[#93C5FD]">
               Acertos: <strong>{accuracyPct !== null ? `${accuracyPct}%` : "—"}</strong>
             </span>
-            <span className="inline-flex items-center gap-1 rounded-lg bg-[#05070B] border border-[#DC2626]/45 px-2.5 py-1 font-mono text-[#FCA5A5]">
+            {mixedSummary && (
+              <span
+                className="inline-flex items-center gap-1 rounded-lg bg-[#05070B] border border-[#22C55E]/40 px-2.5 py-1 font-mono tabular-nums text-[#86EFAC]"
+                title="Aderência ponderada às frequências mistas por cenário (1 - TVD), excluindo células incompletas"
+              >
+                Mix:{" "}
+                <strong>
+                  {mixedSummary.reliableAttempts > 0 ? `${mixedSummary.adherencePct}%` : "—"}
+                </strong>
+                <span className="text-[0.6875rem] text-[#94A3B8]">
+                  ({mixedSummary.reliableAttempts} mãos · {mixedSummary.reliableGroupsCount}{" "}
+                  {mixedSummary.reliableGroupsCount === 1 ? "cen." : "cens."}
+                  {mixedSummary.incompleteExcludedAttempts > 0
+                    ? ` · ${mixedSummary.incompleteExcludedAttempts} incomp. excl.`
+                    : ""}
+                  )
+                </span>
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1 rounded-lg bg-[#05070B] border border-[#DC2626]/45 px-2.5 py-1 font-mono tabular-nums text-[#FCA5A5]">
               <Flame className="w-3.5 h-3.5 text-[#EF4444]" />
               {streak}
             </span>
@@ -375,6 +540,7 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
                   setTotalCount(0);
                   setRightCount(0);
                   setStreak(0);
+                  setMixedAttempts([]);
                 }}
                 aria-label="Zerar placar do treiner limpo"
                 title="Zerar placar"
@@ -386,17 +552,22 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
           </div>
         </div>
 
-        {/* Linha 1: Tipo de Spot (RFI, vs RFI, etc.) */}
+        {/* Linha 1: Tipo de Spot (apenas MTT confirmados habilitados) */}
         <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Tipo de situação">
           {MEMORIZER_SPOT_TYPE_OPTIONS.map((opt) => {
             const active = spotTypeFilter === opt.id;
             const hasAny =
-              opt.id === "all" || spots.some((s) => s.spotType === opt.id);
+              opt.id === "all" || mttSpots.some((s) => s.spotType === opt.id);
             return (
               <button
                 key={opt.id}
                 type="button"
                 disabled={!hasAny}
+                title={
+                  hasAny
+                    ? opt.label
+                    : `${opt.label}: indisponível no acervo MTT atual (spots Spin & Go excluídos)`
+                }
                 onClick={() => handleSpotTypeChange(opt.id)}
                 className={`min-h-[38px] px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
                   active
@@ -685,11 +856,23 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
           animationKey={dealKey}
           heroAction={chosenAction}
           appearance={tableAppearance}
-          formatLabel="Memorização"
-          anteLabel={`${currentSpot.stackBb} BB`}
+          formatLabel="MTT 8-Max"
+          anteLabel="Ante 0.125bb"
         />
 
-        {/* Botões de Ação Táteis para Desktop, iPad e Celular */}
+        {handIntegrityIssue && (
+          <div
+            role="status"
+            className="rounded-xl bg-[#1B1406] border border-[#F59E0B]/55 px-3 py-2 text-xs text-[#FDE68A] flex items-center gap-2"
+          >
+            <ShieldAlert className="w-4 h-4 text-[#FBBF24] shrink-0" />
+            <span>
+              Célula com extração incompleta ({handClass}: soma {(handIntegrityIssue.sum * 100).toFixed(1)}%). Disponível para estudo visual; correção automática bloqueada quando a integridade for insuficiente.
+            </span>
+          </div>
+        )}
+
+        {/* Botões de Ação Táteis com Paleta WCAG AA & Rótulos em pt-BR */}
         <div
           className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap gap-2.5"
           aria-label="Ações de memorização"
@@ -702,6 +885,7 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
               !currentSpot.matrix[handClass]
                 ? 1
                 : 0);
+            const visual = getActionVisualStyle(act.name);
             return (
               <button
                 key={act.name}
@@ -719,13 +903,19 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
                 }`}
               >
                 <span className="flex items-center gap-2">
-                  <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-black/30 border border-white/20 text-[0.625rem] font-mono">
+                  <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-black/30 border border-white/25 text-[0.6875rem] font-mono tabular-nums">
                     {idx + 1}
                   </kbd>
-                  <span>{act.name}</span>
+                  <span
+                    className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-black/30 border border-white/25 text-[0.6875rem] font-mono font-bold"
+                    aria-hidden="true"
+                  >
+                    {visual.shortGlyph}
+                  </span>
+                  <span>{formatActionLabelPtBr(act.name)}</span>
                 </span>
                 {evaluation && (
-                  <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-black/35">
+                  <span className="font-mono tabular-nums text-xs px-1.5 py-0.5 rounded bg-black/35">
                     {Math.round(distFreq * 100)}%
                   </span>
                 )}
@@ -739,15 +929,17 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
           <div
             role="status"
             className={`trainer-feedback rounded-2xl border p-3.5 flex flex-wrap items-center justify-between gap-3 ${
-              evaluation.status === "correct"
+              feedbackTone === "correct"
                 ? "bg-[#0D182C] border-[#2563EB] text-[#E0F2FE]"
-                : evaluation.status === "mixed"
+                : feedbackTone === "mixed" || feedbackTone === "blocked"
                   ? "bg-[#1A160B] border-[#F59E0B] text-[#FEF3C7]"
                   : "bg-[#240B12] border-[#DC2626] text-[#FEE2E2]"
             }`}
           >
             <div className="flex items-start gap-2.5 min-w-0">
-              {evaluation.status === "error" ? (
+              {feedbackTone === "blocked" ? (
+                <ShieldAlert className="w-5 h-5 text-[#FBBF24] shrink-0 mt-0.5" />
+              ) : feedbackTone === "error" ? (
                 <XCircle className="w-5 h-5 text-[#EF4444] shrink-0 mt-0.5" />
               ) : (
                 <CheckCircle2 className="w-5 h-5 text-[#60A5FA] shrink-0 mt-0.5" />
@@ -757,6 +949,11 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
                   {evaluation.headline} · <span className="font-mono">{handClass}</span>
                 </div>
                 <p className="text-xs opacity-90">{evaluation.detail}</p>
+                {evaluation.integrityWarning && !evaluation.integrityBlocked && (
+                  <p className="text-[0.6875rem] text-[#FDE68A]">
+                    {evaluation.integrityWarning}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -783,7 +980,7 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
         open={showMatrixPanel}
         onToggle={setShowMatrixPanel}
         badge={
-          <span className="text-[0.6rem] px-1.5 py-0.5 rounded bg-[#05070B] border border-[#26334A] text-[#93C5FD] font-mono">
+          <span className="text-[0.6875rem] px-2 py-0.5 rounded bg-[#05070B] border border-[#26334A] text-[#93C5FD] font-mono tabular-nums">
             {currentSpot.stackBb} BB
           </span>
         }
