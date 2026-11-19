@@ -107,12 +107,16 @@ function withEnv(overrides: Record<string, string | undefined>, fn: () => Promis
 }
 
 describe("TreinerLM Access Auth — Configuração, Criptografia e Proteção", () => {
-  it("resolve estado disabled localmente, enforced com senha e misconfigured na Vercel sem senha", () => {
+  it("resolve estado disabled sem senha (local e Vercel), enforced com senha e misconfigured com TREINERLM_REQUIRE_AUTH=1 sem senha", () => {
     assert.equal(getAuthConfigState({}), "disabled");
     assert.equal(getAuthConfigState({ NODE_ENV: "production" }), "disabled");
-    assert.equal(getAuthConfigState({ VERCEL: "1" }), "misconfigured");
-    assert.equal(getAuthConfigState({ VERCEL_ENV: "production" }), "misconfigured");
+    assert.equal(getAuthConfigState({ VERCEL: "1" }), "disabled");
+    assert.equal(getAuthConfigState({ VERCEL_ENV: "production" }), "disabled");
     assert.equal(getAuthConfigState({ TREINERLM_REQUIRE_AUTH: "1" }), "misconfigured");
+    assert.equal(
+      getAuthConfigState({ VERCEL: "1", TREINERLM_REQUIRE_AUTH: "1" }),
+      "misconfigured",
+    );
     assert.equal(
       getAuthConfigState({ VERCEL: "1", TREINERLM_ACCESS_PASSWORD: "senha-segura" }),
       "enforced",
@@ -283,9 +287,9 @@ describe("TreinerLM Access Auth — Rotas /api/auth e Middleware Next.js", () =>
     );
   });
 
-  it("POST /api/auth/login retorna 503 se Vercel estiver sem senha configurada", async () => {
+  it("POST /api/auth/login retorna 503 se TREINERLM_REQUIRE_AUTH=1 estiver ativo sem senha configurada", async () => {
     await withEnv(
-      { VERCEL: "1", TREINERLM_ACCESS_PASSWORD: undefined },
+      { VERCEL: "1", TREINERLM_REQUIRE_AUTH: "1", TREINERLM_ACCESS_PASSWORD: undefined },
       async () => {
         const res = await loginPost(
           new Request("https://treinerlm.vercel.app/api/auth/login", {
@@ -299,7 +303,7 @@ describe("TreinerLM Access Auth — Rotas /api/auth e Middleware Next.js", () =>
     );
   });
 
-  it("middleware bloqueia rotas sem sessão, libera com cookie válido e mantém modo local aberto", async () => {
+  it("middleware bloqueia rotas sem sessão quando protegido, libera com cookie válido e mantém acesso aberto sem senha", async () => {
     await withEnv(
       { VERCEL: undefined, VERCEL_ENV: undefined, TREINERLM_REQUIRE_AUTH: undefined, TREINERLM_ACCESS_PASSWORD: undefined },
       async () => {
@@ -309,7 +313,15 @@ describe("TreinerLM Access Auth — Rotas /api/auth e Middleware Next.js", () =>
     );
 
     await withEnv(
-      { VERCEL: "1", TREINERLM_ACCESS_PASSWORD: undefined },
+      { VERCEL: "1", TREINERLM_REQUIRE_AUTH: undefined, TREINERLM_ACCESS_PASSWORD: undefined },
+      async () => {
+        const res = await middleware(new NextRequest("https://treinerlm.vercel.app/"));
+        assert.equal(res.status, 200);
+      },
+    );
+
+    await withEnv(
+      { VERCEL: "1", TREINERLM_REQUIRE_AUTH: "1", TREINERLM_ACCESS_PASSWORD: undefined },
       async () => {
         const homeRes = await middleware(new NextRequest("https://treinerlm.vercel.app/"));
         assert.equal(homeRes.status, 307);

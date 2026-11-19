@@ -53,7 +53,7 @@ Variáveis úteis do backend local e publicação na Vercel:
 - `POKER_LIBRARY_ENABLED=1` — habilita os endpoints da Biblioteca de Mãos (`/api/hand-library`)
 - `POKER_LIBRARY_DATABASE` — caminho alternativo do arquivo SQLite para testes/estudos isolados
 - `POKER_HH_PYTHON` — caminho explícito do executável Python da `.venv`
-- `TREINERLM_ACCESS_PASSWORD` — ativa a tela de login com senha (`/login`) para publicar o **TreinerLM** na Vercel e compartilhar acesso somente com quem tiver a senha (na Vercel, bloqueia o acesso automaticamente se não estiver definida; localmente fica opcional para o iniciador offline)
+- `TREINERLM_ACCESS_PASSWORD` — *(opcional)* ativa a tela de login com senha (`/login`) para restringir o acesso quando desejar (sem ela, o site abre diretamente sem senha; defina também `TREINERLM_REQUIRE_AUTH=1` se quiser bloquear o acesso caso a senha não esteja configurada)
 - `TREINERLM_AUTH_SECRET` — *(opcional)* segredo adicional para assinatura do cookie de sessão `treinerlm_access_v1`
 - `TREINERLM_AI_REDIS_REST_URL`, `TREINERLM_AI_REDIS_REST_TOKEN` e `TREINERLM_AI_RATE_SECRET` (mínimo de 32 caracteres) — contador compartilhado Upstash Redis obrigatório para habilitar consultas de IA no site público; ausência/falha bloqueia a consulta antes do provedor. Localmente o limite é mantido na instância do computador.
 - `TREINERLM_PUBLIC_ORIGIN` — *(opcional)* origem HTTPS adicional autorizada para IA; nunca uma URL de destino do provedor.

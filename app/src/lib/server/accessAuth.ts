@@ -51,9 +51,8 @@ export function getAuthConfigState(env: AuthEnvLike = process.env): AuthConfigSt
   if (password.length > 0) {
     return "enforced";
   }
-  const runningOnVercel = env.VERCEL === "1" || Boolean(env.VERCEL_ENV);
   const authExplicitlyRequired = env.TREINERLM_REQUIRE_AUTH === "1";
-  if (runningOnVercel || authExplicitlyRequired) {
+  if (authExplicitlyRequired) {
     return "misconfigured";
   }
   return "disabled";
