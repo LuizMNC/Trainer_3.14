@@ -1,17 +1,58 @@
 import type {CanonicalHand} from "./poker/handHistorySchema.ts";
 import {validateCanonicalHand} from "./poker/handHistoryValidation.ts";
 
+export type LibraryProvenance = "PHH_RECONSTRUCTED"|"POKERSTARS_RECONSTRUCTED"|"JSON_UNAUTHENTICATED";
 export interface StudyMetadata {note:string;tags:string[];favorite:boolean;pending:boolean;lastReviewedAtUtc:string|null}
 export interface LibrarySummary {
   recordId:string;canonicalRecordId:string;handId:string|number|null;fileName:string|null;
-  provenance:"PHH_RECONSTRUCTED"|"JSON_UNAUTHENTICATED";playedDate:string|null;playedTime:string|null;timeZone:string|null;
-  importedAtUtc:string;playerCount:number;variant:string;gameFormat:string|null;decimalPlaces:number;currency:string|null;
+  provenance:LibraryProvenance;playedDate:string|null;playedTime:string|null;timeZone:string|null;
+  importedAtUtc:string;playerCount:number;variant:string;gameFormat:string|null;
+  gameFormatStatus?:string;gameFormatReason?:string|null;tournamentId?:string|null;buyIn?:string|null;language?:string|null;hasBounty?:boolean;
+  decimalPlaces:number;currency:string|null;
   blindsAtoms:string[];antesAtoms:string[];bigBlind:string;status:"VALIDATED_COMPLETE"|"VALIDATED_PARTIAL";board:string[];
   players:{label:string;name:string|null;position:string|null;positionStatus:string;initialStackAtoms:string}[];study:StudyMetadata;
 }
-export interface LibraryListing {items:LibrarySummary[];total:number;page:number;pageSize:number;stats:{total:number;complete:number;partial:number;favorites:number;pending:number;byPlayers:{label:string;count:number}[];byImportMonth:{label:string;count:number}[]}}
+export interface LibraryListing {
+  items:LibrarySummary[];
+  total:number;
+  page:number;
+  pageSize:number;
+  stats:{
+    total:number;complete:number;partial:number;favorites:number;pending:number;
+    byPlayers:{label:string;count:number}[];
+    byFormat?:{label:string;count:number}[];
+    tournaments?:{tournamentId:string;buyIn:string|null;gameFormat:string|null;count:number}[];
+    byImportMonth:{label:string;count:number}[];
+  };
+}
 export interface BatchResult {name:string;status:"IMPORTED"|"DUPLICATE"|"INVALID"|"UNSUPPORTED"|"ERROR";message:string;recordId?:string}
-export interface LibraryReplay {hand:CanonicalHand;provenance:"PHH_RECONSTRUCTED"|"JSON_UNAUTHENTICATED";fileName:string;recordId:string}
+export interface LibraryReplay {hand:CanonicalHand;provenance:LibraryProvenance;fileName:string;recordId:string}
+export interface BatchIssue {fileName:string;handId:string|null;status:string;code:string;message:string}
+export interface BatchProgress {
+  phase:"analyze"|"commit";
+  processedFiles:number;
+  totalFiles:number;
+  currentFile:string;
+  filesFound:number;
+  zipEntries:number;
+  txtFiles:number;
+  phhFiles:number;
+  jsonFiles:number;
+  handsIdentified:number;
+  validHands:number;
+  problemHands:number;
+  duplicates:number;
+  totalToImport:number;
+  importedHands:number;
+  cancelled:boolean;
+}
+export interface BatchImportSummary extends BatchProgress {
+  formatsDetected:{MTT:number;SNG:number;CASH:number;UNKNOWN:number};
+  languagesDetected:Record<string,number>;
+  tournamentsDetected:{tournamentId:string;buyIn:string|null;gameFormat:string|null;validCount:number}[];
+  issueCodeCounts:Record<string,number>;
+  issues:BatchIssue[];
+}
 export const LIBRARY_HEADERS={"X-Poker-Library":"local-v1"};
 
 export async function libraryRequest<T>(params:Record<string,string>,options:RequestInit={}):Promise<T> {
@@ -26,7 +67,7 @@ export function libraryWrite<T>(action:string,value:unknown):Promise<T> {
 export async function readLibraryReplay(recordId:string):Promise<LibraryReplay> {
   const result=await libraryRequest<LibraryReplay>({action:"read",recordId});
   validateCanonicalHand(result.hand);
-  if(!["PHH_RECONSTRUCTED","JSON_UNAUTHENTICATED"].includes(result.provenance)||result.recordId!==recordId)throw new Error("Identificação da mão recuperada é incompatível.");
+  if(!["PHH_RECONSTRUCTED","POKERSTARS_RECONSTRUCTED","JSON_UNAUTHENTICATED"].includes(result.provenance)||result.recordId!==recordId)throw new Error("Identificação da mão recuperada é incompatível.");
   return result;
 }
 
@@ -49,6 +90,93 @@ export async function importLibraryBatch(files:readonly File[],onResult:(result:
     try {const result=await send(file,format,Math.max(1,Math.min(35_000,deadline-Date.now())));onResult({...result,name:file.name});}
     catch(error){onResult({name:file.name,status:"ERROR",message:error instanceof Error?error.message:"Erro de leitura ou armazenamento."});}
   }
+}
+
+export async function encodeBatchFiles(files: readonly File[]): Promise<{name:string;format:string;base64:string}[]> {
+  if (files.length < 1 || files.length > 500) {
+    throw new Error("Selecione entre 1 e 500 arquivos por operação.");
+  }
+  const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+  if (totalBytes > 48 * 1024 * 1024) {
+    throw new Error("Tamanho total selecionado excede 48 MiB.");
+  }
+  const prepared: {name:string;format:string;base64:string}[] = [];
+  for (const file of files) {
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+    if (!["zip", "txt", "phh", "json"].includes(ext)) {
+      throw new Error(`Formato não suportado em "${file.name}". Use ZIP, TXT PokerStars, PHH ou JSON.`);
+    }
+    if (ext === "zip" && file.size > 16 * 1024 * 1024) {
+      throw new Error(`Arquivo ZIP "${file.name}" excede 16 MiB.`);
+    }
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let binary = "";
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    prepared.push({ name: file.name, format: ext, base64: btoa(binary) });
+  }
+  return prepared;
+}
+
+export async function runBatchImportStream(
+  action: "analyzeBatch" | "commitBatch",
+  files: readonly File[],
+  onProgress: (progress: BatchProgress) => void,
+  signal?: AbortSignal,
+): Promise<BatchImportSummary> {
+  const prepared = await encodeBatchFiles(files);
+  const response = await fetch("/api/hand-library?action=" + action, {
+    method: "POST",
+    headers: { ...LIBRARY_HEADERS, "Content-Type": "application/json" },
+    body: JSON.stringify({ files: prepared, stream: true }),
+    signal,
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    const errJson = await response.json().catch(() => null);
+    throw new Error(errJson && typeof errJson.error === "string" ? errJson.error : "Falha na comunicação com a biblioteca local.");
+  }
+  if (!response.body) {
+    const payload = await response.json();
+    if (!payload.ok) throw new Error(typeof payload.error === "string" ? payload.error : "Erro ao processar lote.");
+    return payload.data as BatchImportSummary;
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let doneResult: BatchImportSummary | null = null;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    let nl = buffer.indexOf("\n");
+    while (nl >= 0) {
+      const line = buffer.slice(0, nl).trim();
+      buffer = buffer.slice(nl + 1);
+      if (line) {
+        const msg = JSON.parse(line) as { event?: string; ok?: boolean; error?: string; data?: unknown };
+        if (msg.ok === false) {
+          throw new Error(typeof msg.error === "string" ? msg.error : "Importação recusada.");
+        }
+        if (msg.event === "progress" && msg.data) {
+          onProgress(msg.data as BatchProgress);
+        } else if (msg.event === "done" && msg.ok && msg.data) {
+          doneResult = msg.data as BatchImportSummary;
+        }
+      }
+      nl = buffer.indexOf("\n");
+    }
+  }
+  const tail = (buffer + decoder.decode()).trim();
+  if (tail) {
+    const msg = JSON.parse(tail) as { event?: string; ok?: boolean; error?: string; data?: unknown };
+    if (msg.ok === false) throw new Error(typeof msg.error === "string" ? msg.error : "Importação recusada.");
+    if (msg.event === "done" && msg.ok && msg.data) doneResult = msg.data as BatchImportSummary;
+  }
+  if (!doneResult) throw new Error("Fluxo encerrado sem resumo final da importação.");
+  return doneResult;
 }
 
 export function downloadLocal(bytes:BlobPart,name:string,type="application/json") {

@@ -1,4 +1,5 @@
 node_modules/
+.next-redesign*/
 .next/
 out/
 .env.local

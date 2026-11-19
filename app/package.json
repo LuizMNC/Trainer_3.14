@@ -2,21 +2,25 @@
   "name": "projeto-poker-gto",
   "version": "1.0.0",
   "private": true,
-  "description": "Aplicação pessoal de estudos GTO de Poker com Modo Trainer, Explorador de Ranges e AI Poker Coach via Google AI Studio (Gemini API).",
+  "description": "TreinerLM: estudos de poker MTT, explorador de ranges e assistente de IA multiprovedor com chaves pessoais.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/lib/__tests__/*.test.ts"
+    "test": "node --test src/lib/__tests__/*.test.ts",
+    "test:ai:live": "node scripts/test-ai-live.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.29.1",
     "lucide-react": "^0.511.0",
     "next": "^15.3.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",

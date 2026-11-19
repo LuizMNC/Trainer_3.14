@@ -1,60 +1,105 @@
 "use client";
 
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  BookOpen,
   Film,
   ImagePlus,
   Loader2,
-  RotateCcw,
   Send,
-  Settings,
-  Sparkles,
   Trash2,
+  X,
 } from "lucide-react";
 import type { VideoEntry } from "@/lib/rag";
+import type { ProviderId } from "@/lib/ai/types";
+import type { CanonicalSpot } from "@/lib/poker/strategySchema";
+import { readCoachResponse } from "@/lib/ai/client";
+import {
+  emptyProviderConfig,
+  isConfigTested,
+  PROVIDER_NAMES,
+  type ProviderConfigs,
+} from "@/lib/ai/clientStorage";
+import {
+  ASSISTANT_NAME,
+  formatProviderModel,
+} from "@/lib/ai/assistantIdentity";
+import {
+  evidenceToSpotContext,
+  resolveEvidenceForQuestion,
+  type SpotEvidence,
+} from "@/lib/ai/provenance";
+import {
+  AssistantResponseCard,
+  SpotIdentificationBar,
+  TheNerdEinstenHeader,
+} from "./AssistantResponseCard";
 
 interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   text: string;
+  questionText?: string;
+  evidence?: SpotEvidence | null;
+  streaming?: boolean;
   imagePreviewUrl?: string;
   sourcesUsed?: string[];
   relatedVideos?: VideoEntry[];
   model?: string;
+  provider?: string;
   error?: boolean;
 }
 
-interface AiCoachViewProps {
-  apiKey: string;
-  model: string;
-  hasEnvKey: boolean;
+export interface PendingHandAnalysis {
+  prompt: string;
+  evidence: SpotEvidence | null;
+  nonce: number;
+}
+
+export interface AiCoachViewProps {
+  provider: ProviderId;
+  providers: ProviderId[];
+  configs: ProviderConfigs;
+  onProviderChange: (provider: ProviderId) => void;
+  onModelChange: (model: string) => void;
   totalChunks: number;
   videos: VideoEntry[];
   onOpenSettings: () => void;
+  canonicalSpots?: CanonicalSpot[];
+  pendingHandAnalysis?: PendingHandAnalysis | null;
+  onClearPendingHandAnalysis?: () => void;
+  onLaunchSpotDrill?: (spotId: string) => void;
+  initialDraftPrompt?: { text: string; key: number; evidence?: SpotEvidence | null } | null;
 }
 
 const QUICK_PROMPTS = [
+  "Dei fold com AA no SB contra abertura do HJ com 30 BB. Foi certo?",
   "Quais os 5 erros de ICM que devo evitar na reta final de um MTT?",
   "Como muda meu range de RFI e defesa em 14BB–20BB comparado a 50BB–100BB no MTT?",
-  "Quais conceitos de 3-bet polarizada vs linear se aplicam em BTN vs CO no MTT?",
-  "Como defender o Big Blind no MTT 8-Max contra abertura do BTN com 30BB?",
+  "No river o pote tinha 10 BB e o vilão apostou 5 BB. Qual a equidade mínima e o MDF?",
 ];
 
 export function AiCoachView({
-  apiKey,
-  model,
-  hasEnvKey,
+  provider,
+  providers,
+  configs,
+  onProviderChange,
+  onModelChange,
   totalChunks,
   videos,
   onOpenSettings,
+  canonicalSpots = [],
+  pendingHandAnalysis = null,
+  onClearPendingHandAnalysis,
+  onLaunchSpotDrill,
+  initialDraftPrompt = null,
 }: AiCoachViewProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [conversationProvider, setConversationProvider] = useState(provider);
+  const [transferHistory, setTransferHistory] = useState(false);
   const [input, setInput] = useState("");
-  const [previousInteractionId, setPreviousInteractionId] = useState<
-    string | undefined
-  >(undefined);
+  const [stagedEvidence, setStagedEvidence] = useState<SpotEvidence | null>(null);
   const [loading, setLoading] = useState(false);
+  const [attachmentError, setAttachmentError] = useState("");
 
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageMimeType, setImageMimeType] = useState<string>("image/png");
@@ -62,9 +107,64 @@ export function AiCoachView({
   const [videoSearch, setVideoSearch] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const imageReaderRef = useRef<FileReader | null>(null);
   const msgSeqRef = useRef<number>(0);
+  const abortRef = useRef<AbortController | null>(null);
+  const pendingRef = useRef(false);
+  const lastHandNonceRef = useRef<number>(-1);
+  const lastDraftKeyRef = useRef<number>(-1);
 
-  const hasAnyKey = Boolean(apiKey.trim()) || hasEnvKey;
+  const config = configs[provider] ?? emptyProviderConfig();
+  const { apiKey, model } = config;
+  const canChat = isConfigTested(config, provider === "ollama");
+  const activeModel = config.models.find((m) => m.id === model);
+  const supportsImages = Boolean(activeModel?.images);
+  const visibleMessages = conversationProvider === provider ? messages : [];
+
+  useEffect(() => () => {
+    abortRef.current?.abort();
+    imageReaderRef.current?.abort();
+  }, []);
+
+  useEffect(() => {
+    if (conversationProvider === provider) return;
+    abortRef.current?.abort();
+    imageReaderRef.current?.abort();
+    queueMicrotask(() => {
+      setMessages([]);
+      setConversationProvider(provider);
+      setTransferHistory(false);
+      setImageBase64(null);
+      setImagePreviewUrl(null);
+      setInput("");
+    });
+  }, [provider, conversationProvider]);
+
+  useEffect(() => {
+    if (!initialDraftPrompt || initialDraftPrompt.key === lastDraftKeyRef.current) {
+      return;
+    }
+    lastDraftKeyRef.current = initialDraftPrompt.key;
+    queueMicrotask(() => {
+      setInput(initialDraftPrompt.text);
+      setStagedEvidence(initialDraftPrompt.evidence ?? null);
+      textareaRef.current?.focus();
+    });
+  }, [initialDraftPrompt]);
+
+  useEffect(() => {
+    if (!pendingHandAnalysis || pendingHandAnalysis.nonce === lastHandNonceRef.current) {
+      return;
+    }
+    lastHandNonceRef.current = pendingHandAnalysis.nonce;
+    queueMicrotask(() => {
+      setInput(pendingHandAnalysis.prompt);
+      setStagedEvidence(pendingHandAnalysis.evidence);
+      onClearPendingHandAnalysis?.();
+      textareaRef.current?.focus();
+    });
+  }, [pendingHandAnalysis, onClearPendingHandAnalysis]);
 
   const filteredVideos = useMemo(() => {
     const q = videoSearch.trim().toLowerCase();
@@ -77,8 +177,23 @@ export function AiCoachView({
   }, [videos, videoSearch]);
 
   const loadImageFile = (file: File) => {
-    if (!file.type.startsWith("image/")) return;
+    setAttachmentError("");
+    if (!supportsImages) {
+      setAttachmentError(
+        "Este modelo aceita somente texto. Selecione e teste um modelo com suporte a imagens.",
+      );
+      return;
+    }
+    if (
+      !["image/png", "image/jpeg", "image/webp"].includes(file.type) ||
+      file.size > 2.5 * 1024 * 1024
+    ) {
+      setAttachmentError("Use PNG, JPEG ou WebP de até 2,5 MiB.");
+      return;
+    }
+    imageReaderRef.current?.abort();
     const reader = new FileReader();
+    imageReaderRef.current = reader;
     reader.onload = () => {
       const dataUrl = String(reader.result ?? "");
       const commaIdx = dataUrl.indexOf(",");
@@ -92,6 +207,7 @@ export function AiCoachView({
   };
 
   const clearImage = () => {
+    imageReaderRef.current?.abort();
     setImageBase64(null);
     setImagePreviewUrl(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -113,30 +229,84 @@ export function AiCoachView({
   };
 
   const handleResetChat = () => {
+    abortRef.current?.abort();
     setMessages([]);
-    setPreviousInteractionId(undefined);
+    setConversationProvider(provider);
+    setInput("");
+    setStagedEvidence(null);
+    setTransferHistory(false);
     clearImage();
+  };
+
+  const switchProvider = (next: ProviderId) => {
+    if (next === provider || loading) return;
+    setMessages(
+      transferHistory
+        ? visibleMessages
+            .filter((m) => !m.error)
+            .map((m) => ({ ...m, imagePreviewUrl: undefined }))
+        : [],
+    );
+    setConversationProvider(next);
+    setInput("");
+    clearImage();
+    setTransferHistory(false);
+    onProviderChange(next);
+  };
+
+  const focusInputWith = (nextPrompt?: string) => {
+    if (typeof nextPrompt === "string") setInput(nextPrompt);
+    textareaRef.current?.focus();
   };
 
   const sendMessage = async (overridePrompt?: string) => {
     const textToSend = (overridePrompt ?? input).trim();
     if (!textToSend && !imageBase64) return;
-    if (loading) return;
+    if (pendingRef.current || !canChat) return;
+    if (imageBase64 && !supportsImages) {
+      setAttachmentError("Remova a imagem: o modelo selecionado aceita somente texto.");
+      return;
+    }
+    pendingRef.current = true;
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     msgSeqRef.current += 1;
     const msgId = msgSeqRef.current;
+    const userQuestion = textToSend || "Analise esta imagem de poker / range.";
+    const activeEvidence =
+      stagedEvidence ?? resolveEvidenceForQuestion(userQuestion, canonicalSpots);
+
     const userMsg: ChatMessage = {
       id: `u_${msgId}`,
       role: "user",
-      text: textToSend || "Analise esta imagem de poker / range.",
+      text: userQuestion,
       imagePreviewUrl: imagePreviewUrl ?? undefined,
     };
 
     const currentImgBase64 = imageBase64;
     const currentImgMime = imageMimeType;
+    const useStreaming = Boolean(activeModel?.streaming);
 
-    setMessages((prev) => [...prev, userMsg]);
+    const assistantId = `a_${msgId}`;
+    let partial = "";
+    setConversationProvider(provider);
+    setMessages([
+      ...visibleMessages,
+      userMsg,
+      {
+        id: assistantId,
+        role: "assistant",
+        text: "",
+        questionText: userQuestion,
+        evidence: activeEvidence,
+        streaming: useStreaming,
+        model,
+        provider,
+      },
+    ]);
     if (!overridePrompt) setInput("");
+    setStagedEvidence(null);
     clearImage();
     setLoading(true);
 
@@ -148,152 +318,182 @@ export function AiCoachView({
           "X-Poker-Coach": "local-v1",
         },
         body: JSON.stringify({
+          action: "chat",
+          provider,
           prompt: userMsg.text,
           model,
-          apiKey: apiKey || undefined,
-          previousInteractionId,
+          apiKey,
+          messages: visibleMessages
+            .filter((m) => !m.error)
+            .map((m) => ({ role: m.role, content: m.text })),
+          spotContext: activeEvidence ? evidenceToSpotContext(activeEvidence) : undefined,
           imageBase64: currentImgBase64 ?? undefined,
           imageMimeType: currentImgBase64 ? currentImgMime : undefined,
+          stream: useStreaming,
         }),
+        signal: controller.signal,
+        cache: "no-store",
       });
-      const data = await res.json();
-
-      if (!res.ok || data.error) {
-        msgSeqRef.current += 1;
-        const errId = msgSeqRef.current;
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `e_${errId}`,
-            role: "assistant",
-            text:
-              data.error ??
-              "Erro ao consultar o Google AI Studio. Verifique sua chave de API.",
-            error: true,
-          },
-        ]);
-      } else {
-        msgSeqRef.current += 1;
-        const replyId = msgSeqRef.current;
-        setPreviousInteractionId(data.interactionId || undefined);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `a_${replyId}`,
-            role: "assistant",
-            text: data.text,
-            sourcesUsed: data.sourcesUsed ?? [],
-            relatedVideos: data.relatedVideos ?? [],
-            model: data.model,
-          },
-        ]);
-      }
-    } catch {
-      msgSeqRef.current += 1;
-      const netErrId = msgSeqRef.current;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `e_${netErrId}`,
-          role: "assistant",
-          text: "Falha de rede ao se comunicar com /api/coach.",
-          error: true,
-        },
-      ]);
+      const data = await readCoachResponse(res, (text) => {
+        partial = text;
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId ? { ...m, text, streaming: true } : m,
+          ),
+        );
+      });
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, ...data, text: data.text, streaming: false }
+            : m,
+        ),
+      );
+    } catch (error) {
+      const message = controller.signal.aborted
+        ? "Resposta cancelada. O texto parcial está incompleto; o provedor pode ter consumido quota."
+        : error instanceof Error
+          ? error.message
+          : "Falha de rede ao consultar o servidor TreinerLM.";
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? {
+                ...m,
+                text: partial ? `${partial}\n\n${message}` : message,
+                streaming: false,
+                error: true,
+              }
+            : m,
+        ),
+      );
     } finally {
+      pendingRef.current = false;
       setLoading(false);
     }
   };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-      {/* Chat principal */}
-      <div className="lg:col-span-8 flex flex-col rounded-2xl bg-slate-900/90 border border-slate-800 overflow-hidden min-h-[620px] max-h-[82vh]">
-        {/* Header do Coach */}
-        <div className="px-4 py-3 border-b border-[#1E293B] flex flex-wrap items-center justify-between gap-2 bg-[#05070B]/80">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#2563EB]/20 border border-[#3B82F6]/40 flex items-center justify-center text-[#60A5FA]">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-slate-100">
-                AI Poker Coach (Gemini Interactions API)
-              </h2>
-              <p className="text-[0.6875rem] text-slate-400">
-                Base RAG local com{" "}
-                <span className="text-[#60A5FA] font-semibold">
-                  {totalChunks} trechos
-                </span>{" "}
-                dos seus PDFs e livros · Modelo{" "}
-                <span className="font-mono text-slate-300">{model}</span>
-              </p>
-            </div>
-          </div>
+      {/* Coluna principal do TheNerdEinsten */}
+      <div className="lg:col-span-8 min-w-0 flex flex-col rounded-2xl bg-slate-900/90 border border-slate-800 overflow-hidden min-h-[620px] lg:max-h-[88vh]">
+        <TheNerdEinstenHeader
+          provider={provider}
+          model={model}
+          totalChunks={totalChunks}
+          canChat={canChat}
+          hasMessages={visibleMessages.length > 0}
+          onResetChat={handleResetChat}
+          onOpenSettings={onOpenSettings}
+        />
 
-          <div className="flex items-center gap-2">
-            {messages.length > 0 && (
-              <button
-                type="button"
-                onClick={handleResetChat}
-                className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-[#141D2F] hover:bg-[#1E293B] text-slate-200 transition"
+        {/* Seleção de provedor e modelo ativo */}
+        <div className="p-3 border-b border-slate-800 space-y-2 bg-[#070B14]/70">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label className="min-w-0 text-xs text-slate-300">
+              Provedor de IA
+              <select
+                aria-label="Provedor de IA ativo"
+                value={provider}
+                disabled={loading}
+                onChange={(event) => switchProvider(event.target.value as ProviderId)}
+                className="mt-1 block w-full min-w-0 rounded-lg bg-slate-950 border border-slate-700 p-2"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Nova Conversa
-              </button>
-            )}
+                {providers.map((id) => (
+                  <option key={id} value={id}>
+                    {PROVIDER_NAMES[id]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="min-w-0 text-xs text-slate-300">
+              Modelo ativo
+              <select
+                aria-label="Modelo de IA ativo"
+                value={model}
+                disabled={loading || !config.models.length}
+                onChange={(event) => {
+                  clearImage();
+                  onModelChange(event.target.value);
+                }}
+                className="mt-1 block w-full min-w-0 rounded-lg bg-slate-950 border border-slate-700 p-2"
+              >
+                <option value="">Configure um modelo</option>
+                {config.models.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} — {m.id}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <label className="flex gap-2 items-start text-xs text-slate-300">
+            <input
+              type="checkbox"
+              checked={transferHistory}
+              disabled={loading || !visibleMessages.length}
+              onChange={(event) => setTransferHistory(event.target.checked)}
+              className="mt-0.5"
+            />
+            Ao trocar de provedor, compartilhar o texto desta conversa com o novo provedor
+            (imagens não são transferidas).
+          </label>
+          <p className="text-xs text-slate-400">
+            A troca inicia uma conversa vazia por padrão. Histórico pessoal nunca é enviado
+            automaticamente. Ao clicar em Enviar, pergunta, contexto determinístico da mão e
+            anexos selecionados seguem para o provedor escolhido.
+          </p>
+          {visibleMessages.length > 0 && (
             <button
               type="button"
-              onClick={onOpenSettings}
-              className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition ${
-                hasAnyKey
-                  ? "bg-[#0F1B33] border-[#2563EB]/60 text-sky-200 hover:bg-[#162647]"
-                  : "bg-[#2B0B11] border-[#DC2626]/70 text-red-200 hover:bg-[#3A1018]"
-              }`}
+              onClick={handleResetChat}
+              className="text-xs text-slate-300 underline"
             >
-              <Settings className="w-3.5 h-3.5" />
-              {hasAnyKey ? "API Conectada" : "Configurar API Key"}
+              Limpar histórico
             </button>
-          </div>
+          )}
         </div>
 
         {/* Área de mensagens */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {!hasAnyKey && (
+        <div
+          role="log"
+          aria-label={`Conversa com ${ASSISTANT_NAME}`}
+          aria-live="polite"
+          aria-busy={loading}
+          className="flex-1 overflow-y-auto p-4 space-y-4"
+        >
+          {!canChat && (
             <div className="rounded-xl border border-amber-700/60 bg-amber-950/30 p-3.5 flex flex-wrap items-center justify-between gap-3">
               <div className="text-xs text-amber-200 leading-relaxed">
-                <strong>Chave do Google AI Studio necessária:</strong> cole sua{" "}
-                <code className="px-1 py-0.5 rounded bg-slate-900 text-amber-300">
-                  GEMINI_API_KEY
-                </code>{" "}
-                nas Configurações (ou em{" "}
-                <code className="px-1 py-0.5 rounded bg-slate-900 text-amber-300">
-                  app/.env.local
-                </code>
-                ) para conversar com o Coach e analisar prints de mãos.
+                <strong>Configuração ainda não testada:</strong> informe sua chave em
+                Configurações do {ASSISTANT_NAME}, consulte os modelos, selecione um e clique
+                em Testar conexão. O teste faz uma chamada real. Nenhuma integração é
+                considerada operacional apenas por testes simulados.
               </div>
               <button
                 type="button"
                 onClick={onOpenSettings}
                 className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition"
               >
-                Informar Chave Agora
+                Configurar {ASSISTANT_NAME}
               </button>
             </div>
           )}
 
-          {messages.length === 0 ? (
-            <div className="py-6 flex flex-col items-center text-center gap-4">
-              <div className="max-w-lg space-y-1.5">
+          {visibleMessages.length === 0 ? (
+            <div className="py-5 flex flex-col items-center text-center gap-4">
+              <div className="max-w-xl space-y-1.5">
                 <h3 className="text-base font-bold text-slate-100">
-                  Estudo offline de MTT: GTO, ICM e pós-flop com sua base local
+                  Conversar com {ASSISTANT_NAME}: estudo pós-sessão de MTT
                 </h3>
                 <p className="text-sm text-slate-300 leading-relaxed">
                   Uso exclusivo para estudo e revisão pós-sessão (nunca durante mãos ativas).
-                  Cada pergunta busca trechos reais indexados nos seus materiais locais (
-                  <em>Dicionário do Poker</em>, <em>E-book ICM</em>,{" "}
-                  <em>5 Erros em Retas Finais</em>, <em>Ranges MTT 8-Max</em> e os
-                  volumes indexados de Fitzgerald, Crawford, Hissa/Caputo e Leo Bello). Você
-                  também pode{" "}
+                  O {ASSISTANT_NAME} apresenta primeiro a conclusão rápida e os fatores que
+                  importam, diferencia <strong>cálculos matemáticos verificados</strong>,{" "}
+                  <strong>referências GTO verificadas</strong>,{" "}
+                  <strong>charts importados sem EV</strong> e{" "}
+                  <strong>interpretações didáticas da IA</strong>, e mantém o aprofundamento
+                  recolhido para evitar paredes de texto. Você também pode{" "}
                   <strong className="text-slate-100">
                     colar (Ctrl+V) ou anexar um print
                   </strong>{" "}
@@ -306,7 +506,7 @@ export function AiCoachView({
                   <button
                     key={q}
                     type="button"
-                    onClick={() => sendMessage(q)}
+                    onClick={() => focusInputWith(q)}
                     className="text-left p-3 rounded-xl bg-[#05070B] hover:bg-[#101829] border border-[#1E293B] hover:border-[#3B82F6]/60 text-xs text-slate-300 transition"
                   >
                     {q}
@@ -315,82 +515,109 @@ export function AiCoachView({
               </div>
             </div>
           ) : (
-            messages.map((m) => (
+            visibleMessages.map((m) => (
               <div
                 key={m.id}
                 className={`flex flex-col gap-1.5 ${
                   m.role === "user" ? "items-end" : "items-start"
                 }`}
               >
-                <div
-                  className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                    m.role === "user"
-                      ? "bg-[#2563EB]/20 border border-[#3B82F6]/50 text-slate-100"
-                      : m.error
-                        ? "bg-[#2B0B11] border border-[#DC2626]/60 text-red-200"
-                        : "bg-[#05070B] border border-[#1E293B] text-slate-200"
-                  }`}
-                >
-                  {m.imagePreviewUrl && (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={m.imagePreviewUrl}
-                      alt="Print anexado"
-                      className="max-h-60 rounded-lg border border-slate-700 mb-2 object-contain"
+                {m.role === "user" ? (
+                  <div className="max-w-[85%] sm:max-w-[68ch] rounded-2xl px-4 py-2.5 text-sm leading-relaxed bg-[#2563EB]/20 border border-[#3B82F6]/50 text-slate-100">
+                    {m.imagePreviewUrl && (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={m.imagePreviewUrl}
+                        alt="Print anexado"
+                        className="max-h-60 rounded-lg border border-slate-700 mb-2 object-contain"
+                      />
+                    )}
+                    <div className="whitespace-pre-wrap break-words">{m.text}</div>
+                  </div>
+                ) : m.error ? (
+                  <div className="w-full max-w-[68ch] rounded-2xl px-4 py-3 text-sm leading-relaxed bg-[#2B0B11] border border-[#DC2626]/60 text-red-200 space-y-1.5">
+                    <div className="text-[0.6875rem] font-mono text-red-300/90">
+                      {formatProviderModel(m.provider ?? provider, m.model ?? model)}
+                    </div>
+                    <div className="whitespace-pre-wrap break-words">{m.text}</div>
+                  </div>
+                ) : (
+                  <div className="w-full max-w-[72ch] rounded-2xl bg-[#05070B] border border-[#1E293B] p-4 shadow-lg">
+                    <AssistantResponseCard
+                      text={m.text}
+                      streaming={m.streaming}
+                      provider={m.provider ?? provider}
+                      model={m.model ?? model}
+                      questionText={m.questionText}
+                      evidence={m.evidence}
+                      sourcesUsed={m.sourcesUsed}
+                      relatedVideos={m.relatedVideos}
+                      onRepeatSpot={
+                        m.evidence?.spotId && onLaunchSpotDrill
+                          ? () => onLaunchSpotDrill(m.evidence!.spotId!)
+                          : undefined
+                      }
+                      onCompareAnotherAction={(suggested) => focusInputWith(suggested)}
+                      onTrainSimilarHands={
+                        m.evidence?.spotId && onLaunchSpotDrill
+                          ? () => onLaunchSpotDrill(m.evidence!.spotId!)
+                          : () =>
+                              focusInputWith(
+                                m.evidence
+                                  ? `Quais mãos semelhantes a ${m.evidence.handClass} devo treinar em ${m.evidence.spotName}?`
+                                  : "Quais mãos semelhantes devo treinar neste spot?",
+                              )
+                      }
+                      onContinueConversation={() => focusInputWith()}
+                      onNewQuestion={handleResetChat}
                     />
-                  )}
-                  <div className="whitespace-pre-wrap">{m.text}</div>
-
-                  {m.sourcesUsed && m.sourcesUsed.length > 0 && (
-                    <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center gap-1.5">
-                      <span className="text-[0.6875rem] uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1 mr-1">
-                        <BookOpen className="w-3 h-3" /> Fontes usadas:
-                      </span>
-                      {m.sourcesUsed.map((src) => (
-                        <span
-                          key={src}
-                          className="text-[0.6875rem] px-2 py-0.5 rounded-md bg-[#0F1B33] border border-[#2563EB]/40 text-sky-200"
-                        >
-                          {src}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {m.relatedVideos && m.relatedVideos.length > 0 && (
-                    <div className="mt-2 pt-2 border-t border-slate-800/80 flex flex-col gap-1">
-                      <span className="text-[0.6875rem] uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1">
-                        <Film className="w-3 h-3" /> Vídeos relacionados na sua
-                        pasta:
-                      </span>
-                      {m.relatedVideos.map((v) => (
-                        <div
-                          key={v.relativePath}
-                          className="text-[0.6875rem] text-slate-300 flex items-center justify-between gap-2 bg-slate-900/70 px-2 py-1 rounded"
-                        >
-                          <span className="truncate">{v.title}</span>
-                          <span className="text-[0.6875rem] text-slate-400 shrink-0">
-                            {v.relativePath}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             ))
           )}
 
           {loading && (
-            <div className="flex items-center gap-2 text-xs text-[#60A5FA] px-2">
+            <div
+              role="status"
+              className="flex flex-wrap items-center gap-2 text-xs text-[#60A5FA] px-2"
+            >
               <Loader2 className="w-4 h-4 animate-spin" />
-              Consultando base de conhecimento e Gemini ({model})...
+              <span>
+                {ASSISTANT_NAME} consultando ({formatProviderModel(provider, model)})…
+              </span>
+              <button
+                type="button"
+                onClick={() => abortRef.current?.abort()}
+                className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold"
+              >
+                Cancelar geração
+              </button>
             </div>
           )}
         </div>
 
-        {/* Input + Upload de Imagem */}
+        {/* Mão preparada para análise pós-sessão + Input + Upload de Imagem */}
         <div className="p-3 border-t border-slate-800 bg-slate-950/70 space-y-2">
+          {stagedEvidence && (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between gap-2 text-[0.6875rem] text-sky-300 font-semibold px-1">
+                <span>
+                  Mão vinculada para análise pós-sessão (enviada somente ao clicar em Enviar):
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setStagedEvidence(null)}
+                  className="inline-flex items-center gap-1 text-slate-400 hover:text-white"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Desvincular mão
+                </button>
+              </div>
+              <SpotIdentificationBar evidence={stagedEvidence} />
+            </div>
+          )}
+
           {imagePreviewUrl && (
             <div className="flex items-center gap-3 bg-slate-900 border border-slate-700 rounded-xl p-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -400,8 +627,8 @@ export function AiCoachView({
                 className="h-14 w-20 object-cover rounded-lg border border-slate-700"
               />
               <div className="flex-1 text-xs text-slate-300">
-                Imagem anexada ({imageMimeType}). Será enviada junto com sua
-                pergunta ao Gemini Vision.
+                Imagem anexada ({imageMimeType}). Será enviada junto com sua pergunta a{" "}
+                {PROVIDER_NAMES[provider]} somente ao clicar em Enviar.
               </div>
               <button
                 type="button"
@@ -418,7 +645,7 @@ export function AiCoachView({
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/png,image/jpeg,image/webp"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
@@ -428,14 +655,23 @@ export function AiCoachView({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              title="Anexar print de mão, HUD ou range (PNG/JPG)"
-              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition shrink-0"
+              disabled={!supportsImages || loading}
+              aria-label="Anexar imagem para revisão pós-sessão"
+              title={
+                supportsImages
+                  ? "Anexar imagem para revisão pós-sessão (até 2,5 MiB)"
+                  : "Modelo sem suporte a imagens"
+              }
+              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition shrink-0 disabled:opacity-40"
             >
               <ImagePlus className="w-4 h-4" />
             </button>
 
             <textarea
+              ref={textareaRef}
               value={input}
+              aria-label={`Pergunta para o ${ASSISTANT_NAME}`}
+              maxLength={8000}
               onChange={(e) => setInput(e.target.value)}
               onPaste={handlePaste}
               onKeyDown={(e) => {
@@ -445,25 +681,39 @@ export function AiCoachView({
                 }
               }}
               rows={2}
-              placeholder="Pergunte sobre um spot GTO, cole um print de mão (Ctrl+V) ou envie a descrição de uma jogada..."
-              className="flex-1 bg-[#05070B] border border-[#26334A] rounded-xl px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 resize-none focus:outline-none focus:border-[#3B82F6]"
+              placeholder={`Perguntar ao ${ASSISTANT_NAME} sobre uma decisão ou mão encerrada…`}
+              className="min-w-0 flex-1 bg-[#05070B] border border-[#26334A] rounded-xl px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 resize-none focus:outline-none focus:border-[#3B82F6]"
             />
 
             <button
               type="button"
               onClick={() => sendMessage()}
-              disabled={loading || (!input.trim() && !imageBase64)}
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#DC2626] to-[#2563EB] hover:brightness-110 disabled:opacity-40 disabled:pointer-events-none text-white font-semibold text-sm flex items-center gap-1.5 transition shrink-0"
+              disabled={!canChat || loading || (!input.trim() && !imageBase64)}
+              className="px-2 sm:px-4 py-2.5 rounded-xl bg-blue-700 hover:brightness-110 disabled:opacity-40 disabled:pointer-events-none text-white font-semibold text-sm flex items-center gap-1.5 transition shrink-0"
             >
               <Send className="w-4 h-4" />
               Enviar
             </button>
           </div>
+          {!supportsImages && (
+            <p className="text-xs text-slate-400">
+              O modelo selecionado aceita somente texto ou ainda não teve a capacidade de
+              imagens confirmada.
+            </p>
+          )}
+          {attachmentError && (
+            <p role="alert" className="text-xs text-red-200">
+              {attachmentError}
+            </p>
+          )}
         </div>
       </div>
 
       {/* Sidebar: Catálogo das Aulas em Vídeo (recolhível via details) */}
-      <details open className="lg:col-span-4 rounded-2xl bg-[#090D16] border border-[#1E293B] p-4 flex flex-col gap-3 lg:max-h-[82vh] group">
+      <details
+        open
+        className="lg:col-span-4 rounded-2xl bg-[#090D16] border border-[#1E293B] p-4 flex flex-col gap-3 lg:max-h-[82vh] group"
+      >
         <summary className="cursor-pointer list-none flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Film className="w-4 h-4 text-[#60A5FA]" />
@@ -509,13 +759,13 @@ export function AiCoachView({
                   <button
                     type="button"
                     onClick={() =>
-                      setInput(
+                      focusInputWith(
                         `Resuma os principais conceitos e recomendações práticas sobre "${v.title}" (${v.category}).`,
                       )
                     }
                     className="text-[0.6875rem] text-slate-400 hover:text-[#60A5FA] underline shrink-0"
                   >
-                    Perguntar ao Coach
+                    Perguntar ao {ASSISTANT_NAME}
                   </button>
                 </div>
               </div>

@@ -1,4 +1,9 @@
+import { parseCard, type PlayingCard } from "./cards.ts";
 import type { CanonicalHand, HandEvent, HandSnapshot } from "./handHistorySchema.ts";
+import { validateCanonicalHand } from "./handHistoryValidation.ts";
+
+export const UNREPLAYABLE_HAND_MESSAGE =
+  "Não foi possível reproduzir esta mão. Alguns dados do histórico estão incompletos.";
 
 export type ReplayPerspective = { kind: "public" } | { kind: "player"; playerIndex: number } | { kind: "recorded" };
 export interface ReplayFrame {
@@ -14,6 +19,145 @@ export interface ReplayFrame {
   atEnd: boolean;
   completed: boolean;
   showdown: boolean;
+}
+
+export function safeParseCard(code: string | null | undefined): PlayingCard | null {
+  if (typeof code !== "string" || !code.trim()) return null;
+  try {
+    return parseCard(code);
+  } catch {
+    return null;
+  }
+}
+
+export function safeBigInt(value: unknown, fallback = 0n): bigint {
+  if (typeof value === "bigint") return value;
+  if (typeof value === "string" && /^-?\d+$/.test(value)) {
+    try {
+      return BigInt(value);
+    } catch {
+      return fallback;
+    }
+  }
+  return fallback;
+}
+
+export function safeFormatAtoms(
+  value: unknown,
+  decimalPlaces: number,
+  fallback = "—",
+): string {
+  try {
+    if (typeof value !== "string" && typeof value !== "bigint") return fallback;
+    return formatAtoms(value, decimalPlaces);
+  } catch {
+    return fallback;
+  }
+}
+
+export function assessHandReplayability(
+  value: unknown,
+):
+  | { ok: true; hand: CanonicalHand; warnings: string[] }
+  | { ok: false; summary: string; detail: string } {
+  let hand: CanonicalHand;
+  try {
+    hand = validateCanonicalHand(value);
+  } catch (err) {
+    return {
+      ok: false,
+      summary: UNREPLAYABLE_HAND_MESSAGE,
+      detail: err instanceof Error ? err.message : "Estrutura canônica inválida.",
+    };
+  }
+
+  const n = hand.players.length;
+  if (n < 2 || n > 9) {
+    return {
+      ok: false,
+      summary: UNREPLAYABLE_HAND_MESSAGE,
+      detail: `Número de jogadores (${n}) fora do intervalo suportado (2–9).`,
+    };
+  }
+  if (!Array.isArray(hand.events) || hand.events.length === 0) {
+    return {
+      ok: false,
+      summary: UNREPLAYABLE_HAND_MESSAGE,
+      detail: "Nenhum evento cronológico registrado para reprodução.",
+    };
+  }
+  if (!Array.isArray(hand.table?.rawBlindsAtoms) || hand.table.rawBlindsAtoms.length < 2) {
+    return {
+      ok: false,
+      summary: UNREPLAYABLE_HAND_MESSAGE,
+      detail: "Blinds iniciais ausentes ou incompletos na configuração da mesa.",
+    };
+  }
+
+  for (let i = 0; i < hand.events.length; i++) {
+    const ev = hand.events[i];
+    if (!ev || !ev.before || !ev.after) {
+      return {
+        ok: false,
+        summary: UNREPLAYABLE_HAND_MESSAGE,
+        detail: `Evento ${i + 1} sem estado anterior/posterior completo.`,
+      };
+    }
+    if (
+      ev.before.stacksAtoms.length !== n ||
+      ev.before.betsAtoms.length !== n ||
+      ev.before.folded.length !== n ||
+      ev.after.stacksAtoms.length !== n ||
+      ev.after.betsAtoms.length !== n ||
+      ev.after.folded.length !== n ||
+      ev.paidAtoms.length !== n ||
+      ev.returnedAtoms.length !== n ||
+      ev.awardedAtoms.length !== n
+    ) {
+      return {
+        ok: false,
+        summary: UNREPLAYABLE_HAND_MESSAGE,
+        detail: `Dimensão dos vetores do evento ${i + 1} diverge dos ${n} assentos da mão.`,
+      };
+    }
+    for (const c of ev.after.board) {
+      if (!safeParseCard(c)) {
+        return {
+          ok: false,
+          summary: UNREPLAYABLE_HAND_MESSAGE,
+          detail: `Carta de board inválida no evento ${i + 1}: "${String(c)}".`,
+        };
+      }
+    }
+  }
+
+  const warnings: string[] = [...(hand.integrity.warnings ?? [])];
+  if (hand.integrity.status === "VALIDATED_PARTIAL" || !hand.results.complete) {
+    warnings.push("Histórico com validação parcial: o trecho disponível será exibido sem resultado final.");
+  }
+
+  return { ok: true, hand, warnings };
+}
+
+export function buildReplayFrameSafe(
+  hand: CanonicalHand,
+  cursor: number,
+  perspective: ReplayPerspective,
+): { ok: true; frame: ReplayFrame } | { ok: false; summary: string; detail: string } {
+  try {
+    const safeCursor = Math.min(hand.events.length, Math.max(0, Math.trunc(Number.isFinite(cursor) ? cursor : 0)));
+    const safePerspective =
+      perspective.kind === "player" && !hand.players[perspective.playerIndex]
+        ? ({ kind: "public" } as const)
+        : perspective;
+    return { ok: true, frame: buildReplayFrame(hand, safeCursor, safePerspective) };
+  } catch (err) {
+    return {
+      ok: false,
+      summary: UNREPLAYABLE_HAND_MESSAGE,
+      detail: err instanceof Error ? err.message : "Falha ao montar estado da mesa.",
+    };
+  }
 }
 
 /** Reduz conhecimento e ledger; não aplica regras de poker nem recalcula snapshots. */
@@ -56,8 +200,9 @@ export function formatAtoms(value: string | bigint, decimalPlaces: number): stri
 
 export const STREET_LABELS = { PREFLOP:"Pré-flop", FLOP:"Flop", TURN:"Turn", RIVER:"River" };
 export function replayPlayerName(hand: CanonicalHand, player: number): string {
-  const p = hand.players[player];
-  return p.name.status!=="MISSING" && p.name.value.trim() ? p.name.value : p.sourceLabel;
+  const p = hand.players?.[player];
+  if (!p) return `Jogador ${player + 1}`;
+  return p.name?.status !== "MISSING" && p.name?.value?.trim() ? p.name.value : (p.sourceLabel || `p${player + 1}`);
 }
 
 /** Não inclui cartas privadas/board nem resultados futuros na lista cronológica. */

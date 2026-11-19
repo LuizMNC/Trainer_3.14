@@ -1,0 +1,411 @@
+
+> projeto-poker-gto@1.0.0 test
+> node --test src/lib/__tests__/*.test.ts
+
+(node:17912) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/accessAuth.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ TreinerLM Access Auth — Configuração, Criptografia e Proteção
+  ✔ resolve estado disabled localmente, enforced com senha e misconfigured na Vercel sem senha (1.9703ms)
+  ✔ valida senha em tempo constante e rejeita vazio ou divergente (45.2679ms)
+  ✔ emite e verifica tokens assinados, expira e invalida quando a senha muda (33.8618ms)
+  ✔ sanitiza parâmetro next prevenindo open redirect e loop em /login (4.194ms)
+  ✔ aplica rate limiting após falhas consecutivas e limpa ao acertar (1.0093ms)
+✔ TreinerLM Access Auth — Configuração, Criptografia e Proteção (94.8958ms)
+▶ TreinerLM Access Auth — Rotas /api/auth e Middleware Next.js
+  ✔ POST /api/auth/login valida senha, emite cookie HttpOnly e bloqueia força bruta (2600.3467ms)
+  ✔ POST /api/auth/login retorna 503 se Vercel estiver sem senha configurada (1.4292ms)
+  ✔ middleware bloqueia rotas sem sessão, libera com cookie válido e mantém modo local aberto (46.9739ms)
+✔ TreinerLM Access Auth — Rotas /api/auth e Middleware Next.js (2652.4942ms)
+▶ TreinerLM Access Auth — Interface LoginView e Botão Sair
+  ✔ renderiza LoginView configurado vs sem variável na Vercel (101.3615ms)
+  ✔ exibe o botão Sair na barra do TreinerLM apenas quando authEnabled=true (793.6854ms)
+✔ TreinerLM Access Auth — Interface LoginView e Botão Sair (895.729ms)
+(node:19388) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/actionPalette.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Paleta semântica global de ações
+  ✔ preserva os sete pares obrigatórios e contraste WCAG AA em texto normal (2.5957ms)
+  ✔ desenha frequências pequenas e resíduos sem normalizar, arredondar ou inventar Fold (168.6331ms)
+  ✔ renderiza legenda com texto escuro no Limp e descrição acessível das misturas/incompletas (112.4572ms)
+  ✔ usa o mesmo par amarelo/escuro nas ações da mesa e feedback do herói (41.7077ms)
+✔ Paleta semântica global de ações (328.7651ms)
+(node:9344) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/aiClient.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Credenciais individuais do Assistente de IA
+  ✔ usa sessão por padrão, mantém provedores independentes e não migra a chave legada (5.6501ms)
+  ✔ lembrar no navegador exige opt-in, reteste e a remoção apaga ambas as durações (0.6848ms)
+  ✔ ignora armazenamento malformado e capacidades atribuídas a outro provedor (2.2216ms)
+✔ Credenciais individuais do Assistente de IA (11.2086ms)
+▶ Respostas progressivas do Assistente
+  ✔ recompõe NDJSON e caracteres UTF-8 entre chunks e preserva as fontes (94.1179ms)
+  ✔ não trata stream truncado, cancelado, vazio ou erro upstream como resposta concluída (6.8553ms)
+✔ Respostas progressivas do Assistente (102.5762ms)
+(node:19012) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/aiCoachRoute.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ API de IA: contrato completo com rede simulada
+  ✔ lista provedores sem Origin no GET do navegador e não expõe chaves de ambiente (39.2601ms)
+  ✔ consulta somente o provedor/modelo escolhidos, preserva contexto e remove segredo refletido (24.783ms)
+  ✔ streaming avança com chunks curtos e oculta chave dividida entre eventos (15.6603ms)
+  ✔ recusa payloads inválidos antes de enviar qualquer dado ao provedor (19.0535ms)
+  ✔ modelo indisponível não provoca substituição nem chamada de inferência (1.9775ms)
+  ✔ aceita imagem de 2,5 MiB sem estouro de RegExp e bloqueia imagem em modelo sem capacidade (158.5064ms)
+  ✔ cancelar a leitura interrompe o transporte de upstream (10.4791ms)
+  ✔ erro upstream não devolve chave, headers ou corpo remoto (28.2588ms)
+  ✔ modo Vercel usa contador compartilhado, limite de corpo público e bloqueia Ollama (14.5264ms)
+✔ API de IA: contrato completo com rede simulada (318.5961ms)
+(node:18512) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/aiProviders.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ adaptadores de IA: testes simulados, sem homologação real
+  ✔ gemini: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (79.8645ms)
+  ✔ gemini: recusa chave inválida/quota/modelo sem ecoar erros secretos (3.2271ms)
+  ✔ openai: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (4.75ms)
+  ✔ openai: recusa chave inválida/quota/modelo sem ecoar erros secretos (1.6983ms)
+  ✔ anthropic: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (3.2429ms)
+  ✔ anthropic: recusa chave inválida/quota/modelo sem ecoar erros secretos (1.7597ms)
+  ✔ deepseek: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (3.0789ms)
+  ✔ deepseek: recusa chave inválida/quota/modelo sem ecoar erros secretos (1.2112ms)
+  ✔ groq: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (3.2744ms)
+  ✔ groq: recusa chave inválida/quota/modelo sem ecoar erros secretos (1.2936ms)
+  ✔ openrouter: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (11.4862ms)
+  ✔ openrouter: recusa chave inválida/quota/modelo sem ecoar erros secretos (1.2118ms)
+  ✔ mistral: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (3.7698ms)
+  ✔ mistral: recusa chave inválida/quota/modelo sem ecoar erros secretos (0.699ms)
+  ✔ ollama: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (2.5645ms)
+  ✔ duas credenciais simultâneas não compartilham headers, contexto nem respostas (1.6088ms)
+  ✔ respostas incompletas e streams sem conclusão são recusados (1.0007ms)
+  ✔ cancelamento propaga o signal ao transporte e erro de rede é sanitizado (0.5719ms)
+  ✔ capacidades desconhecidas desativam imagens e IDs perigosos/modelos especializados são excluídos (0.2368ms)
+  ✔ Gemini oferece somente Gemma hospedados com systemInstruction documentado, sem aceitar famílias antigas ou desconhecidas (0.885ms)
+  ✔ Ollama omite cloud e aliases remotos em tags/show antes de oferecer inferência (5.1945ms)
+  ✔ Ollama rejeita IDs cloud também nas chamadas diretas send/stream sem executar fetch (1.054ms)
+✔ adaptadores de IA: testes simulados, sem homologação real (139.5384ms)
+▶ segurança de IA e controle de abuso
+  ✔ aceita público HTTPS autorizado e loopback, inclusive normalização do Next; rejeita CSRF e host forjado (11.9827ms)
+  ✔ destinos arbitrários e redirects nunca recebem credenciais (2.1725ms)
+  ✔ Ollama exige opt-in e fica oculto/bloqueado na Vercel mesmo com opt-in (0.7521ms)
+  ✔ local limita 20/min; público sem contador durável falha fechado (49.5806ms)
+  ✔ contador serverless é atômico, usa buckets com expiração e não recebe credencial pessoal/IP puro (7.8826ms)
+✔ segurança de IA e controle de abuso (73.0619ms)
+(node:9300) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/cleanRangeTrainer.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Treiner Limpo — Filtros por tipo e posição + Painéis recolhíveis
+  ✔ filtra spots corretamente por tipo (all, rfi, vs_rfi) e posição (12.8219ms)
+  ✔ retorna apenas as posições disponíveis para cada filtro de spotType (0.8307ms)
+  ✔ renderiza CleanRangeTrainerView com mesa limpa, filtros RFI/vs RFI, 8 posições, matriz recolhida e sem EV inventado (325.4701ms)
+  ✔ CollapsiblePanel respeita estado inicial recolhido por padrão vs defaultOpen=true e aria-expanded (16.1925ms)
+✔ Treiner Limpo — Filtros por tipo e posição + Painéis recolhíveis (382.5995ms)
+(node:6988) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/dailyDoseInteractive.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Daily Dose of GTO & Treinos Interativos — Validação Matemática e Pedagógica
+  ✔ contém 12 microlições curtas (máx 3 frases por shortContext) com opções explícitas (2.2866ms)
+  ✔ avalia construção de range 13×13 ponderada por combos (6/4/12) sem inventar EV (3.2721ms)
+  ✔ funciona também sobre a solução verificada real do TexasSolver (Ah Kd 7c) (2.4609ms)
+  ✔ treino de Pot Odds calcula equidade mínima, MDF e Bluff Break-Even analiticamente (1.0868ms)
+  ✔ treino de Blockers enumera exatamente os combos restantes via getAvailableCombosForClass (1.3629ms)
+  ✔ comparador de sizings usa calculateLabEv (MODEL_BASED_EV) e identifica o melhor EV do modelo (2.3923ms)
+✔ Daily Dose of GTO & Treinos Interativos — Validação Matemática e Pedagógica (16.0393ms)
+(node:18224) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/etapa1Audit.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ ETAPA 1 — Auditoria dos 229 spots de ranges_gto.json
+  ✔ 11. Audita todos os 229 spots (38.701 células) e comprova as anomalias 0.964 em 17bb_sb_vs_utg_rfi/AA e 20bb_btn_vs_mp_rfi/KK (68.6842ms)
+✔ ETAPA 1 — Auditoria dos 229 spots de ranges_gto.json (70.7957ms)
+▶ ETAPA 1 — Testes Ampliados: Card Removal, Ações Legais, All-In, Side Pots, ICM e EV Loss
+  ✔ 12. Card Removal: assimetria entre blockers em pares/suited/offsuit e conservação global de combos com board completo (5 cartas) (4.3727ms)
+  ✔ 13. Ações Legais e All-In: short-stack < minRaise (incomplete raise), exatamente = callAmount, e check/bet postflop (1.8923ms)
+  ✔ 14. Side Pots complexos: 5 jogadores com 2 all-ins de mesmo stack, 1 fold com fichas mortas e 2 over-stacks (0.8737ms)
+  ✔ 15. ICM, Bubble Factor e PKO: concavidade do valor das fichas, WTA (BF = 1.0), stack zero e guarda PKO (3.668ms)
+  ✔ 16. Matemática fundamental e EV Loss: identidade FE + MDF = 1, EV Loss em $EV vs bbEV e aderência de estratégia mista (35.451ms)
+✔ ETAPA 1 — Testes Ampliados: Card Removal, Ações Legais, All-In, Side Pots, ICM e EV Loss (47.3801ms)
+(node:18940) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/etapa6RealSolver.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ ETAPA 6 — Solução GTO Real TexasSolver, Integridade e Desktop Postflop EV
+  ✔ validação real do dump TexasSolver v0.2.0 (BTN vs BB SRP 30BB Ah Kd 7c) (43.1458ms)
+  ✔ rejeita bundle TexasSolver adulterado (hash inválido, carta morta no board ou matrixEv injetada) (21.8551ms)
+  ✔ rejeita payloads sem SHA-256, sem ranges, ação ilegal vs toCallBb ou Modo GTO Técnico sem hash (5.5678ms)
+  ✔ converte CSV do Desktop Postflop (com Action % e Action EV), valida SHA-256 e calcula EV loss real (43.1637ms)
+✔ ETAPA 6 — Solução GTO Real TexasSolver, Integridade e Desktop Postflop EV (123.9837ms)
+(node:20244) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/etapas2To5.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ ETAPA 2 — Integração do Currículo RegLife (18 Aulas + 7 Vídeos Complementares)
+  ✔ 17. preserva as 7 trilhas fundamentais e vincula as 18 aulas da série RegLife (2.3623ms)
+  ✔ 18. identifica estritamente as 15 aulas com transcrição verificada e as 3 sem transcrição (Spots 01, 07 e 08) (2.2345ms)
+✔ ETAPA 2 — Integração do Currículo RegLife (18 Aulas + 7 Vídeos Complementares) (12.6741ms)
+▶ ETAPA 3 — Evolução do Treinador (Modos, RNG, Sizing Comparison e Raciocínio)
+  ✔ 19. separa Modo Aprendizagem de Modo GTO Técnico e bloqueia spots não verificados no Modo GTO Técnico (23.7958ms)
+  ✔ 20. suporta randomizador determinístico (createSeededRng) e fração de blefe polarizado no river (2.3801ms)
+  ✔ 21. compara sizings apenas para spots VERIFIED e distingue combinatória exata de blockers de modelos heurísticos (9.2207ms)
+✔ ETAPA 3 — Evolução do Treinador (Modos, RNG, Sizing Comparison e Raciocínio) (36.083ms)
+▶ ETAPA 4 — Integração de Soluções e Auditoria dos 9 Spots Reclassificados
+  ✔ 22. comprova que os 9 spots sintéticos tiveram a classificação VERIFIED revogada (3 DIDACTIC_DEMO sem EV + 6 UNSOLVED) e rejeita proveniência interna/sintética (7.2171ms)
+  ✔ 23. mantém payloads incompatíveis ou incompletos estritamente como UNSOLVED sem inventar ranges, frequências ou EVs (0.9453ms)
+✔ ETAPA 4 — Integração de Soluções e Auditoria dos 9 Spots Reclassificados (8.8214ms)
+▶ ETAPA 5 — Diagnóstico Adaptativo (Leaks, Repetição Espaçada e Progresso Multidimensional)
+  ✔ 24. classifica leaks por frequência, impacto de EV e ponto cego de confiança (3.3274ms)
+  ✔ 25. agenda repetição espaçada (Leitner) e acompanha progresso por Posição, Stack, Formato e Street (24.2749ms)
+✔ ETAPA 5 — Diagnóstico Adaptativo (Leaks, Repetição Espaçada e Progresso Multidimensional) (28.149ms)
+(node:12272) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/fase1Homologacao.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Homologação — evidência extraída dos arquivos
+  ✔ reconstitui as 101 médias e 563 combos diretamente do dump bruto, sem depender do relatório (17.3398ms)
+  ✔ confere hashes do manifesto contra os artefatos físicos e a cópia do bundle (87.3375ms)
+  ✔ separa 229 charts, demonstrações, UNSOLVED e apenas a solução embarcada VERIFIED (2.3938ms)
+✔ Homologação — evidência extraída dos arquivos (109.6262ms)
+▶ Homologação — avaliador e frequências
+  ✔ ranking sem EV usa taxa de erro apenas para prioridade e mantém EV médio indisponível (0.7481ms)
+  ✔ avalia todas as 303 decisões reais, inclusive <5%, intermediárias e >=90%, sem fabricar EV (17.6451ms)
+  ✔ ações zero em charts são desvios de frequência sem EV, e modo técnico bloqueia todos os não verificados (570.43ms)
+  ✔ aceitar ação rara não valida jogá-la sempre: aderência acumulada detecta o excesso (61.2081ms)
+  ✔ não pontua nem calcula EV para um rótulo VERIFIED sem proveniência em nenhum modo (0.7257ms)
+✔ Homologação — avaliador e frequências (651.8323ms)
+▶ Homologação — persistência e relógio controlado
+  ✔ preserva bytes de versões incompatíveis e JSON corrompido ao tentar salvar (1.605ms)
+  ✔ primeiro acerto de confiança baixa vai à caixa 1 e não à revisão imediata (2.7754ms)
+  ✔ empate de timestamp mantém a ordem real de envio inclusive após serializar e carregar (1.1609ms)
+  ✔ retenção de 100 respostas não altera caixa/prazo e os contadores representam a janela (1.3226ms)
+  ✔ vence no instante exato, atravessa meia-noite e ano sem antecipar a revisão (0.4426ms)
+  ✔ deduplica, rejeita respostas malformadas e não altera outra chave de armazenamento (0.6071ms)
+✔ Homologação — persistência e relógio controlado (9.7254ms)
+▶ Homologação — destinos e matemática analítica
+  ✔ confere os três contextos reais e não modifica o status das referências (309.7228ms)
+  ✔ fórmulas, precisão e invariância de escala sem recomendações estratégicas (2.5448ms)
+✔ Homologação — destinos e matemática analítica (312.6335ms)
+(node:8948) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/fatalErrors.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Fase 1 — Catálogo e integridade de evidência
+  ✔ preserva byte a byte os 20 itens da fonte, sem promoção de GTO ou EV (55.2581ms)
+  ✔ relaciona somente aulas existentes e mantém ressalvas de transcrição (0.7158ms)
+  ✔ avalia todas as alternativas dos 20 quizzes sem pontuação GTO ou EV loss (4.4189ms)
+  ✔ não avalia a decisão pelo resultado da mão e não proíbe ações mistas (14.8139ms)
+✔ Fase 1 — Catálogo e integridade de evidência (78.6166ms)
+▶ Fase 1 — Filtros, respostas e repetição espaçada
+  ✔ combina street, categoria, dificuldade e status e permite resultado vazio (3.7006ms)
+  ✔ reutiliza Leitner: acertos avançam, erros retornam e o prazo muda o status (3.8786ms)
+✔ Fase 1 — Filtros, respostas e repetição espaçada (9.1684ms)
+▶ Fase 1 — Persistência defensiva
+  ✔ restaura respostas incorretas e confiança após reabrir, sem sobrescrever histórico do treinador (2.146ms)
+  ✔ recalcula acerto e descarta EV loss e campos adulterados da persistência (2.5216ms)
+  ✔ tolera JSON corrompido, versão desconhecida e armazenamento bloqueado ou cheio (1.2248ms)
+  ✔ limita por cartão e deduplica sem apagar o estudo de outros temas (1.2198ms)
+✔ Fase 1 — Persistência defensiva (8.2405ms)
+▶ Fase 1 — Navegação e modelos matemáticos
+  ✔ preserva o lançamento após consumir o pedido e libera sorteio ao alterar filtros ou modo (0.5245ms)
+  ✔ lança apenas vínculos disponíveis em aprendizagem e mantém a classificação do destino (0.617ms)
+  ✔ reproduz os limiares do dossiê e rejeita entradas inválidas (1.5148ms)
+✔ Fase 1 — Navegação e modelos matemáticos (3.1392ms)
+(node:14728) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/fatalErrorsNavigation.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Fase 1 — Navegação e renderização dos componentes reais
+  ✔ estatísticas de frequências sem EV não afirmam rentabilidade +EV e exibem Limpar tudo e filtros de revisão (202.7688ms)
+  ✔ inclui a nova aba e preserva as seis abas existentes (205.0575ms)
+  ✔ renderiza catálogo, quatro filtros, vínculos e estado inicial antes da hidratação (32.6851ms)
+  ✔ cada quiz renderiza três opções com rótulos e exige confirmação explícita (60.8838ms)
+  ✔ calculadoras exibem modelos com restrições, sem recomendação de ação (213.228ms)
+✔ Fase 1 — Navegação e renderização dos componentes reais (725.6235ms)
+(node:19924) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/handHistory.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Fase 2A — ponte real Python/TypeScript, sem estratégias GTO
+  ✔ confere cartas e side pots com motor existente: hu_fold (4955.1049ms)
+  ✔ confere cartas e side pots com motor existente: decimal_fold (2935.4312ms)
+  ✔ confere cartas e side pots com motor existente: three_way_allin (2868.5202ms)
+  ✔ confere cartas e side pots com motor existente: folded_sidepot (2689.6127ms)
+  ✔ confere cartas e side pots com motor existente: showdown_muck (2413.1014ms)
+  ✔ não certifica projeções incompatíveis: ante e prefixo parcial (5229.379ms)
+  ✔ rejeita sequência incompleta em vez de inserir decisões (2676.2322ms)
+  ✔ preserva posição PHH e assento físico, independente da ordem numérica (2370.3134ms)
+  ✔ confere divergências reais de cartas/potes sem alterar o histórico (3085.0344ms)
+  ✔ recusa projeção de precisão incompatível e versão futura (1708.1039ms)
+✔ Fase 2A — ponte real Python/TypeScript, sem estratégias GTO (30934.9517ms)
+(node:7592) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/handLibrary.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Fase 2C — fronteira local e limites
+  ✔ recusa backend desativado, host externo, CSRF, falta de cabeçalho e métodos (135.797ms)
+  ✔ limita bytes reais mesmo sem Content-Length e rejeita comprimento falso (7.0306ms)
+✔ Fase 2C — fronteira local e limites (145.4551ms)
+▶ Fase 2C — lotes e seleção concorrente
+  ✔ continua após erro individual e distingue cinco resultados (8.5501ms)
+  ✔ recusa lotes excessivos, vazios e arquivos acima do limite antes de enviar (31.0395ms)
+  ✔ uma resposta antiga não substitui a seleção nova nem finaliza seu carregamento (16.8347ms)
+  ✔ desmontar invalida sucesso, erro e finally; trocar mão cria nova sessão no início (12.0702ms)
+  ✔ cliente revalida o canônico recuperado antes de entregá-lo ao replayer (14.2118ms)
+✔ Fase 2C — lotes e seleção concorrente (83.954ms)
+▶ Fase 2C — API real Next → Python → SQLite
+  ✔ persiste lote misto, pesquisa, organiza, exporta e exclui somente com confirmação (32668.9232ms)
+✔ Fase 2C — API real Next → Python → SQLite (32669.8485ms)
+(node:17412) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/handReplay.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Fase 2B — validação runtime do contrato, sem autenticação de origem
+  ✔ aceita os oito exemplos reais do pipeline e confere os hashes do catálogo (117.1512ms)
+  ✔ aceita canônico, saída de importação e exportação única do CLI (15.1822ms)
+  ✔ recusa o diagnóstico inválido, JSON malformado e arquivos grandes (4.4804ms)
+  ✔ recusa versões, perfil, identificadores, tipos e campos não permitidos (120.7553ms)
+  ✔ não coage números/strings monetárias nem aceita overflow ou dupla devolução (40.7084ms)
+  ✔ recusa eventos quebrados, atores inexistentes e máscaras incompatíveis (31.0521ms)
+  ✔ recusa cartas inválidas, duplicadas, retroativas e agregados divergentes (25.2671ms)
+  ✔ recusa elegibilidade/pagamentos incoerentes e resultado final em prefixo (62.6016ms)
+  ✔ confere limites de metadados e mantém distinção entre tipo e autenticidade (9.5081ms)
+✔ Fase 2B — validação runtime do contrato, sem autenticação de origem (430.6812ms)
+▶ Fase 2B — frames e integridade temporal
+  ✔ conserva todas as fichas em cada frame dos oito exemplos (468.4196ms)
+  ✔ avança, regride e volta ao início sem acumular pagamentos ou cartas (163.3ms)
+  ✔ board aparece somente nos eventos alcançados e acompanha as streets (8.6063ms)
+  ✔ aplica perspectivas sem mostrar cartas antes de sua distribuição (24.3322ms)
+  ✔ não consulta o agregado final para antecipar cartas desconhecidas (74.0952ms)
+  ✔ muck mantém cartas legitimamente conhecidas e não as torna públicas (87.8936ms)
+  ✔ não duplica devoluções e separa prêmio destinado de crédito físico (35.5792ms)
+  ✔ prefixo termina sem vencedor nem liquidação e labels não revelam cartas (156.9944ms)
+  ✔ formata valores e deltas sem conversão em ponto flutuante (0.8213ms)
+✔ Fase 2B — frames e integridade temporal (1021.5022ms)
+▶ Fase 2B — estado dos controles de reprodução
+  ✔ play, tick, pause e retomada respeitam o cursor (0.396ms)
+  ✔ velocidade muda o intervalo sem avançar eventos e seleção pausa (0.2628ms)
+  ✔ para no final, limita a navegação e rejeita cursor inválido (0.3419ms)
+✔ Fase 2B — estado dos controles de reprodução (1.2728ms)
+(node:18252) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/mathLab.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ avaliador: dez categorias incluindo royal, wheel e kickers (43.633ms)
+✔ entradas inválidas, blockers e ranges incompatíveis (138.3581ms)
+✔ 100%, 0%, empate obrigatório e multiway: conservação do pote (5.3627ms)
+✔ enumeração turn analítica: AA perde somente nos dois reis restantes (4.6159ms)
+✔ pesos condicionados à distribuição conjunta legal (24.9803ms)
+✔ limites recusam enumeração antes do trabalho; cancelamento e timeout (36.1535ms)
+✔ Monte Carlo: seeds fixas, reprodução, IC de fração de pote e convergência (851.3807ms)
+✔ Monte Carlo ponderado não amostra sequencialmente ranges incompatíveis (632.656ms)
+✔ frações de pote variáveis usam sua variância, sem aproximação Bernoulli (624.0665ms)
+✔ contagens grandes preservam inteiros e entradas grandes são recusadas (162.5051ms)
+✔ cancelamento em lotes; curvas 1k, 10k e 100k são prefixos reproduzíveis (6611.954ms)
+✔ EV: referências analíticas, equilíbrio, extremos, valores fracionários e sizings (13.731ms)
+✔ EV rejeita NaN, probabilidades incompletas e custo/condições fora do modelo (1.1837ms)
+✔ transferência do Replayer preserva visibilidade temporal e não inventa ranges (29.1018ms)
+(node:19344) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/pokerCore.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ 13x13 grid has exactly 169 classes and 1326 physical combos (78 pairs, 312 suited, 936 offsuit) (7.3717ms)
+✔ Card removal and blockers remove exact combos and prevent duplicate cards (4.8641ms)
+✔ Card removal throws when 0 combos remain for a hand class (1.7949ms)
+✔ GameState engine rejects duplicate cards, negative pot, negative stack, and computes legal actions + side pots (3.2754ms)
+✔ Pot odds, bluff breakeven fold equity, and simplified MDF formulas match specification (0.9074ms)
+✔ ICM Malmuth-Harville satisfies symmetry, total prize pool conservation, and PKO guard (3.5362ms)
+✔ Curriculum has 7 modules, didactic demo drills pass validation, and UNSOLVED blocks GTO scoring (21.0699ms)
+✔ Mixed strategy adherence and adaptive leak ranking compute expected metrics (43.3135ms)
+✔ Verified solution importer enforces unit consistency, frequency sum=1, and CSV export/import roundtrip (13.7342ms)
+✔ Legacy ranges_gto.json adapts cleanly and audits frequency sums honestly (295.2686ms)
+(node:8168) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/pokerstarsImport.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Route /api/hand-library suporta analyzeBatch/commitBatch ZIP/TXT, filtros, estudo e replayer PokerStars (27144.0711ms)
+(node:10316) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/posHomologacaoMtt2026.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Pós-Homologação MTT 2026 — Preservação, Integridade, Persistência e Segurança
+  ✔ preserva SHA-256 original de ranges_gto.json e verified_ahkd7c_texassolver.json sem auto-normalização (86.2001ms)
+  ✔ classifica corretamente soma = 1, resíduo <= 0,002 e desvios graves (0,964) e menores (0,976/0,988) (14.4897ms)
+  ✔ bloqueia correção automática em células graves (17bb/AA e 20bb/KK = 0,964) e não inventa EV nem pune ações minoritárias ausentes (11.3592ms)
+  ✔ pickRngTargetAction nunca converte massa ausente (96,4..100) na ação dominante (0.9356ms)
+  ✔ computeMixedAdherenceStats exclui tentativas de células incompletas e rejeita entradas corrompidas (51.9991ms)
+  ✔ persistência v1 do Trainer e Treiner Limpo valida esquema, migra v0, filtra Spin e sobrevive a JSON inválido (16.7846ms)
+  ✔ isola Spin/SNG/Cash por metadados/proveniência, evita TypeError em strategy ausente e alerta exercício indisponível (676.902ms)
+  ✔ valida estritamente listas no Lab ICM e explicita hipóteses estruturais PKO 50/50 (4.6872ms)
+  ✔ rota /api/coach aplica 403, 400 (JSON/previousInteractionId/spotContext/base64), 413 (>6 MiB) e 429 (104.238ms)
+✔ Pós-Homologação MTT 2026 — Preservação, Integridade, Persistência e Segurança (994.6404ms)
+(node:17584) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/refinamentoMtt2026.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Refinamento 2026 — Regra Definitiva MTT-Only, Integridade e UI
+  ✔ preserva SHA-256 original de ranges_gto.json e verified_ahkd7c_texassolver.json (41.9355ms)
+  ✔ classifica explicitamente MTT vs Spin vs Cash vs Desconhecido sem promover desconhecidos nem classificar só por stack (11.9943ms)
+  ✔ exclui Spin & Go do agendamento Leitner e de todos os componentes estratégicos (SSR) (1902.6749ms)
+  ✔ audita perdas de extração da matriz (0.964..0.988) separadas de arredondamento trivial sem alterar os dados brutos (1.3632ms)
+  ✔ avalia frequências mistas < 5% no Treiner Limpo como low_freq_acceptable sem EV inventado e calcula aderência invariante à ordem (8.5929ms)
+  ✔ rejeita NaN/Infinity em mathEngine e aplica bountyChipFactor uma única vez no modelo PKO (12.0374ms)
+  ✔ impõe host loopback, origin e cabeçalho X-Poker-Coach em assertCoachAccess sem exigir POKER_LIBRARY_ENABLED (244.7318ms)
+  ✔ corrige formatação de ações, pluralização, falso leak com 100% em StatsView e assentos aguardando ação em PokerTable (129.2556ms)
+✔ Refinamento 2026 — Regra Definitiva MTT-Only, Integridade e UI (2357.6554ms)
+(node:11268) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/replayerCriticalAndAnalysis.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Correção Crítica Replayer + Análise Pós-Sessão (Etapas 4–12)
+  ✔ ErrorBoundary captura ChunkLoadError e erro de reprodução sem derrubar o app e preserva retorno à Biblioteca (66.9588ms)
+  ✔ assessHandReplayability e buildReplayFrameSafe nunca lançam exceções em mãos inválidas ou incompletas (77.1734ms)
+  ✔ reproduz mãos com 3, 6, 7, 8 e 9 jogadores, encerramento pré-flop, parcial no flop, showdown, all-in, side pots, cartas ocultas e devoluções (228.3686ms)
+  ✔ calcula exatamente Pote 10 BB / Aposta 5 BB = 50% / Equidade mínima 25% e distingue incremento vs alvo no raise (75.2309ms)
+  ✔ respeita regra MTT-only: não usa Spin & Go/Desconhecido, não calcula EV loss sem solver verificado e sanitiza rascunho de IA (230.3999ms)
+✔ Correção Crítica Replayer + Análise Pós-Sessão (Etapas 4–12) (681.8815ms)
+(node:6772) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/tableAppearance.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Personalização da mesa e oponentes cientistas (TreinerLM)
+  ✔ normaliza e sombreia cores hexadecimais arbitrárias com fallback seguro (2.2348ms)
+  ✔ sanitiza configurações inválidas preservando opções válidas de mesa, cartas e fichas (2.588ms)
+  ✔ atribui os 8 cientistas famosos às posições 8-max (1.0015ms)
+  ✔ renderiza PokerTable com TreinerLM na mesa, nomes científicos nos oponentes e cor personalizada (70.555ms)
+✔ Personalização da mesa e oponentes cientistas (TreinerLM) (79.6129ms)
+(node:12404) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/theNerdEinsten.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ TheNerdEinsten — Identidade, Prompt Padrão, Provedores e Português Brasileiro
+  ✔ mantém grafia exata TheNerdEinsten, subtítulo MTT e prompt padrão em português brasileiro (2.0647ms)
+  ✔ formata metadados reais de qualquer provedor e modelo sem usar nome fixo (85.0474ms)
+✔ TheNerdEinsten — Identidade, Prompt Padrão, Provedores e Português Brasileiro (91.4387ms)
+▶ TheNerdEinsten — Renderização Segura de Markdown, Fórmulas, Tabelas e Streaming
+  ✔ renderiza títulos, negrito, itálico, listas, tabelas responsivas e fórmulas sem expor ### ou ** (118.8608ms)
+  ✔ bloqueia links maliciosos (javascript:, data:, vbscript:) e ignora HTML potencialmente perigoso (16.0745ms)
+  ✔ suporta streaming com Markdown incompleto sem quebrar a interface e produz cópia textual limpa (7.7634ms)
+✔ TheNerdEinsten — Renderização Segura de Markdown, Fórmulas, Tabelas e Streaming (143.4904ms)
+▶ TheNerdEinsten — Estrutura de Resposta, JSON Parcial/Inválido, Paredes de Texto e Estado Vazio/Carregando
+  ✔ organiza respostas longas em Resposta rápida, O que importa e seções recolhíveis sem descartar conteúdo (73.2695ms)
+  ✔ valida JSON estruturado válido e trata JSON parcialmente inválido com mensagem segura e recuperação (15.9941ms)
+  ✔ trata resposta vazia e estados de configuração/carregamento na visão principal (21.2069ms)
+✔ TheNerdEinsten — Estrutura de Resposta, JSON Parcial/Inválido, Paredes de Texto e Estado Vazio/Carregando (111.5252ms)
+▶ TheNerdEinsten — Qualidade Epistêmica, Cenário AA no SB vs HJ 30 BB e Cálculos Determinísticos
+  ✔ avalia AA no SB vs HJ com 30 BB usando o chart real (IMPORTED_CHART_NO_EV) e sinaliza contradições da IA (50.8433ms)
+  ✔ testa AA no SB vs HJ com 30 BB sem spot carregado (UNSOLVED) sem forçar frequência ou EV inexistente (13.5233ms)
+  ✔ calcula pot odds, MDF e fold equity pelas funções matemáticas determinísticas somente quando há dados reais (22.0314ms)
+✔ TheNerdEinsten — Qualidade Epistêmica, Cenário AA no SB vs HJ 30 BB e Cálculos Determinísticos (87.1374ms)
+ℹ tests 219
+ℹ suites 42
+ℹ pass 219
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37086.326

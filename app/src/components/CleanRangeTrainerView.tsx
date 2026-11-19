@@ -18,6 +18,7 @@ import {
   computeMixedAdherenceStats,
   evaluateDrillDecision,
   filterConfirmedMttLegacySpots,
+  formatActionFrequencyPtBr,
   formatActionLabelPtBr,
   getActionVisualStyle,
   getSpotHandIntegrityIssue,
@@ -49,6 +50,7 @@ import {
 } from "@/lib/poker/tableAppearance";
 import { CollapsiblePanel } from "./CollapsiblePanel";
 import { PokerTable } from "./PokerTable";
+import { useStudioMotion } from "./StudioMotion";
 import { RangeMatrix } from "./RangeMatrix";
 
 export type MemorizerSpotTypeFilter = "all" | SpotType;
@@ -112,6 +114,7 @@ interface CleanRangeTrainerViewProps {
 }
 
 export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
+  const { motion } = useStudioMotion();
   const mttSpots = useMemo(() => filterConfirmedMttLegacySpots(spots), [spots]);
 
   const [spotTypeFilter, setSpotTypeFilter] =
@@ -424,7 +427,7 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
     const list = [...currentSpot.actions];
     const hasFold = list.some((a) => a.name.toLowerCase() === "fold");
     if (!hasFold) {
-      list.push({ name: "Fold", color: "#3b82f6", pct: 0 });
+      list.push({ name: "Fold", color: getActionVisualStyle("Fold").bg, pct: 0 });
     }
     return list;
   }, [currentSpot]);
@@ -487,7 +490,7 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
     : null;
 
   return (
-    <div className="flex flex-col gap-3 sm:gap-4 max-w-5xl mx-auto w-full">
+    <div data-motion={motion} className="trainer-experience clean-trainer flex flex-col gap-3 sm:gap-4 max-w-5xl mx-auto w-full">
       {/* Barra Minimalista: Filtro de Situação (RFI / vs RFI / etc.) + Posição + Stack */}
       <section
         aria-label="Filtros do Treiner Limpo de Memorização"
@@ -847,7 +850,7 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
       )}
 
       {/* Palco Limpo: Apenas a Mesa + Ações Diretas */}
-      <div className="flex flex-col gap-3">
+      <div className="clean-table-workspace flex flex-col gap-3">
         <PokerTable
           spot={currentSpot}
           cards={cards}
@@ -903,11 +906,11 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
                 }`}
               >
                 <span className="flex items-center gap-2">
-                  <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-black/30 border border-white/25 text-[0.6875rem] font-mono tabular-nums">
+                  <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded border border-current text-[0.6875rem] font-mono tabular-nums">
                     {idx + 1}
                   </kbd>
                   <span
-                    className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-black/30 border border-white/25 text-[0.6875rem] font-mono font-bold"
+                    className="inline-flex items-center justify-center w-5 h-5 rounded-md border border-current text-[0.6875rem] font-mono font-bold"
                     aria-hidden="true"
                   >
                     {visual.shortGlyph}
@@ -915,8 +918,8 @@ export function CleanRangeTrainerView({ spots }: CleanRangeTrainerViewProps) {
                   <span>{formatActionLabelPtBr(act.name)}</span>
                 </span>
                 {evaluation && (
-                  <span className="font-mono tabular-nums text-xs px-1.5 py-0.5 rounded bg-black/35">
-                    {Math.round(distFreq * 100)}%
+                  <span className="font-mono tabular-nums text-xs px-1.5 py-0.5 rounded border border-current">
+                    {formatActionFrequencyPtBr(distFreq)}
                   </span>
                 )}
               </button>

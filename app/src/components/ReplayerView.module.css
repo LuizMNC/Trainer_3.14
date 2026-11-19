@@ -1,6 +1,6 @@
 .root {
-  --line:#1E293B;
-  --muted:#94A3B8;
+  --line:var(--gto-border);
+  --muted:var(--gto-text-secondary);
   color:#F8FAFC;
   min-width:0
 }
@@ -26,7 +26,7 @@
   margin-top:5px
 }
 .eyebrow {
-  color:#60A5FA;
+  color:var(--gto-accent-primary);
   font-size:0.6875rem;
   font-weight:800;
   letter-spacing:.14em;
@@ -53,7 +53,7 @@
   align-items:center;
   flex-wrap:wrap;
   padding:16px;
-  background:#090D16;
+  background:var(--gto-bg-panel);
   border:1px solid var(--line);
   border-radius:14px;
   margin-bottom:18px
@@ -65,8 +65,8 @@
 }
 .root select {
   display:block;
-  border:1px solid #26334A;
-  background:#05070B;
+  border:1px solid var(--gto-border);
+  background:var(--gto-bg-main);
   border-radius:8px;
   padding:9px 10px;
   color:#F8FAFC;
@@ -128,7 +128,7 @@
 .perspective p {
   font-size:0.75rem;
   max-width:550px;
-  color:#94A3B8;
+  color:var(--gto-text-secondary);
   line-height:1.6
 }
 .perspective select {
@@ -149,10 +149,10 @@
   flex-wrap:wrap;
   border:1px solid var(--line);
   border-radius:12px 12px 0 0;
-  background:#090D16;
+  background:var(--gto-bg-panel);
   padding:12px 16px;
   font-size:0.6875rem;
-  color:#94A3B8
+  color:var(--gto-text-secondary)
 }
 .tableMeta b {
   color:#F59E0B
@@ -163,7 +163,7 @@
   border:1px solid var(--line);
   border-top:0;
   border-radius:0 0 16px 16px;
-  background:radial-gradient(ellipse at center,#0D1322,#05070B 73%);
+  background:radial-gradient(ellipse at center,#0D1322,var(--gto-bg-main) 73%);
   isolation:isolate
 }
 .felt {
@@ -171,7 +171,7 @@
   inset:100px 45px;
   border:3px solid #991B1B;
   border-radius:50%;
-  background:radial-gradient(ellipse,#0B1B36,#05070B);
+  background:radial-gradient(ellipse,#0B1B36,var(--gto-bg-main));
   box-shadow:inset 0 0 50px #0009,0 12px 45px #0006;
   z-index:-1
 }
@@ -181,10 +181,10 @@
   top:var(--seat-y);
   transform:translate(-50%,-50%);
   width:140px;
-  border:1.5px solid #26334A;
+  border:1.5px solid var(--gto-border);
   border-radius:14px;
   padding:9px 10px;
-  background:#090D16;
+  background:var(--gto-bg-panel);
   box-shadow:0 8px 20px #0006;
   transition:border-color .18s,background .18s,opacity .18s;
   z-index:1;
@@ -200,8 +200,8 @@
   box-shadow:0 0 0 2px #3B82F622
 }
 .folded {
-  background:#090D16;
-  color:#94A3B8;
+  background:var(--gto-bg-panel);
+  color:var(--gto-text-secondary);
   border-style:dashed
 }
 .playerLine {
@@ -404,7 +404,7 @@
   min-width:110px
 }
 .root button:hover:not(:disabled) {
-  border-color:#60A5FA;
+  border-color:var(--gto-accent-primary);
   background-color:#162647
 }
 .root button:disabled {
@@ -676,7 +676,7 @@
     grid-template-columns:repeat(2,minmax(0,1fr));
     gap:12px;
     padding:16px 12px;
-    background:radial-gradient(ellipse,#0B1B36,#05070B)
+    background:radial-gradient(ellipse,#0B1B36,var(--gto-bg-main))
   }
   .felt {
     inset:7px;
@@ -753,4 +753,76 @@
     transition:none!important;
     scroll-behavior:auto!important
   }
+}
+
+/* Apresentação compartilhada com o Trainer; os valores vêm sempre do frame atual. */
+.sourceBar { background: var(--gto-bg-panel); border-radius: 14px; padding: 14px 16px; }
+.handHeader { margin-top: 14px; }
+.layout { grid-template-columns: minmax(0,1fr) minmax(260px,300px); gap: 16px; }
+.tableMeta { background: var(--gto-bg-panel); border-radius: 14px 14px 0 0; }
+.table { height: 550px; background: radial-gradient(ellipse,#0c211b,var(--gto-bg-main) 75%); }
+.felt { inset: 92px 38px; border: 2px solid #277657; background: radial-gradient(ellipse at 50% 35%,#0a5036,#052c21 75%); box-shadow: inset 0 0 60px #0005,0 0 0 7px #1a282d,0 0 0 9px #35464c,0 15px 28px #0006; }
+.seat { width: 132px; background: #111b21f5; border-color: #4c5d65; border-radius: 13px; }
+.acted { border-color: #65e4b1; box-shadow: 0 0 0 2px #40df9e18; }
+.waiting:not(.acted) { border-color: #6ac3df; box-shadow: 0 0 0 2px #6ac3df16; }
+.playerLine { justify-content: flex-start; gap: 6px; }
+.playerLine strong { flex: 1; min-width: 0; }
+.avatar { flex: none; color: #a7b9bf; background: #27353d; box-sizing: content-box; border-radius: 50%; padding: 5px; }
+.card { border-radius: 6px; animation: none; box-shadow: 0 3px 7px #0005; }
+.cardBack { background: repeating-linear-gradient(45deg,#19372f 0,#19372f 3px,#112b25 3px,#112b25 6px); color: #98c5b2; border-color: #4f7265; }
+.stack strong { color: #b1f4d4; }
+.pot { border-radius: 12px; background: #081c16e6; border-color: #346e55; padding: 8px 18px; }
+.pot strong { color: #e2fff0; font-size: 1.25rem; }
+.explanation,.timeline { background: var(--gto-bg-panel); border-radius: 14px; }
+.eventTag { color: var(--gto-accent-primary); }
+.selectedEvent { background: #0c382b!important; border-color: #277657!important; }
+.controls { background: var(--gto-bg-panel); border-color: var(--gto-border); border-radius: 12px; }
+.root button:hover:not(:disabled) { background-color: #1a3028; border-color: #4bb98c; }
+.root button:focus-visible,.root select:focus-visible,.root input:focus-visible { outline-color: var(--gto-accent-primary); }
+.transport .play { background: #087f5b; border-color: #239974; }
+.progress input { accent-color: #40df9e; }
+.motionLabel { position: absolute; left: 50%; bottom: -16px; transform: translateX(-50%); pointer-events: none; opacity: 0; z-index: 8; padding: 3px 9px; background: #475569; border: 1px solid #d1dce055; color: #fff; border-radius: 6px; font-size: .65rem; font-weight: 800; letter-spacing: .07em; white-space: nowrap; }
+.motionObjects { position: absolute; pointer-events: none; left: calc(50% - 13px); top: 50%; opacity: 0; display: flex; z-index: 12; }
+.motionObjects i { display: block; width: 17px; height: 17px; border-radius: 50%; border: 3px dashed #edfff5; background: #047857; box-shadow: 0 2px 4px #0008; margin-left: -5px; }
+.seat[data-motion-active="fold"] .motionObjects i { border-radius: 3px; height: 29px; width: 21px; border: 1px solid #8bbda8; background: repeating-linear-gradient(45deg,#194c38 0,#194c38 3px,#103825 3px,#103825 5px); }
+.seat[data-motion-active="fold"] .motionObjects i:last-child { display: none; }
+.seat[data-motion-active="fold"] .motionLabel { background: #1D4ED8; }
+.seat[data-motion-active="call"] .motionLabel { background: #047857; }
+.seat[data-motion-active="bet"] .motionLabel { background: #C2410C; }
+.seat[data-motion-active="raise"] .motionLabel { background: #B91C1C; }
+.seat[data-motion-active="allin"] .motionLabel { background: #6D28D9; }
+.seat[data-motion-active="check"] { outline: 2px solid #9cb1b8; outline-offset: 3px; }
+.seat:is([data-motion-active="bet"],[data-motion-active="raise"],[data-motion-active="allin"]) .bet b { color: #fff; background: #243e34; border-radius: 3px; padding-inline: 4px; }
+.seat[data-motion-active="allin"] { border-color: #a78bfa; }
+.seat[data-motion-active="fold"] { z-index: 7; }
+.seat[data-motion-active="fold"] .holeCards { opacity: 0; }
+.folded .holeCards { opacity: .28; }
+.seat:has([data-replay-cue-label]:not(:empty)) { z-index: 7; }
+[data-replay-motion="off"] .card { animation: none; }
+@media(max-width:1100px) {
+  .layout { grid-template-columns: minmax(0,1fr); }
+  .aside { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+  .eventList { max-height: 300px; }
+}
+@media(min-width:1100px) {
+  .table[data-player-count="7"], .table[data-player-count="8"], .table[data-player-count="9"] { height: 820px; }
+  .bet { font-size: 0.65rem; }
+}
+@media(min-width:701px) and (max-width:1099px) {
+  .seat { width: 110px; padding: 6px 7px; }
+  .acted { padding: 5px 6px; }
+  .holeCards { margin: 4px 0; }
+  .card { width: 27px; height: 37px; font-size: 0.875rem; }
+  .bet { font-size: 0.625rem; }
+  .position { font-size: 0.625rem; }
+  .felt { inset: 92px 24px; }
+  .center { width: 205px; }
+  .table[data-player-count="7"], .table[data-player-count="8"], .table[data-player-count="9"] { height: 830px; }
+}
+@media(max-width:700px) {
+  .table { height: auto; background: radial-gradient(ellipse,#123528,var(--gto-bg-main)); }
+  .felt { inset: 8px; border-radius: 20px; box-shadow: none; }
+  .seat { width: auto; min-height: 158px; }
+  .headsUpSeat { width: min(230px,100%); }
+  .aside { display: flex; }
 }

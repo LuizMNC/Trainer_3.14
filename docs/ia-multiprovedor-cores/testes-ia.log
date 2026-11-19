@@ -1,0 +1,68 @@
+(node:28024) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/aiClient.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Credenciais individuais do Assistente de IA
+  ✔ usa sessão por padrão, mantém provedores independentes e não migra a chave legada (3.5057ms)
+  ✔ lembrar no navegador exige opt-in, reteste e a remoção apaga ambas as durações (0.4031ms)
+  ✔ ignora armazenamento malformado e capacidades atribuídas a outro provedor (1.0311ms)
+✔ Credenciais individuais do Assistente de IA (6.5913ms)
+▶ Respostas progressivas do Assistente
+  ✔ recompõe NDJSON e caracteres UTF-8 entre chunks e preserva as fontes (38.5612ms)
+  ✔ não trata stream truncado, cancelado, vazio ou erro upstream como resposta concluída (4.4054ms)
+✔ Respostas progressivas do Assistente (43.3173ms)
+(node:22368) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/aiCoachRoute.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ API de IA: contrato completo com rede simulada
+  ✔ lista provedores sem Origin no GET do navegador e não expõe chaves de ambiente (18.6283ms)
+  ✔ consulta somente o provedor/modelo escolhidos, preserva contexto e remove segredo refletido (13.0922ms)
+  ✔ streaming avança com chunks curtos e oculta chave dividida entre eventos (9.9977ms)
+  ✔ recusa payloads inválidos antes de enviar qualquer dado ao provedor (12.2189ms)
+  ✔ modelo indisponível não provoca substituição nem chamada de inferência (1.955ms)
+  ✔ aceita imagem de 2,5 MiB sem estouro de RegExp e bloqueia imagem em modelo sem capacidade (74.1842ms)
+  ✔ cancelar a leitura interrompe o transporte de upstream (7.3015ms)
+  ✔ erro upstream não devolve chave, headers ou corpo remoto (1.5205ms)
+  ✔ modo Vercel usa contador compartilhado, limite de corpo público e bloqueia Ollama (11.7389ms)
+✔ API de IA: contrato completo com rede simulada (153.8905ms)
+(node:21292) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/lmnaz/OneDrive/Desktop/Reposit%C3%B3rio%20Github/Projeto-Poker/app/src/lib/__tests__/aiProviders.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\lmnaz\OneDrive\Desktop\Repositório Github\Projeto-Poker\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ adaptadores de IA: testes simulados, sem homologação real
+  ✔ gemini: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (39.8088ms)
+  ✔ gemini: recusa chave inválida/quota/modelo sem ecoar erros secretos (1.5524ms)
+  ✔ openai: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (1.9143ms)
+  ✔ openai: recusa chave inválida/quota/modelo sem ecoar erros secretos (0.6003ms)
+  ✔ anthropic: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (1.5366ms)
+  ✔ anthropic: recusa chave inválida/quota/modelo sem ecoar erros secretos (0.5272ms)
+  ✔ deepseek: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (1.3344ms)
+  ✔ deepseek: recusa chave inválida/quota/modelo sem ecoar erros secretos (0.8223ms)
+  ✔ groq: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (1.6384ms)
+  ✔ groq: recusa chave inválida/quota/modelo sem ecoar erros secretos (0.7976ms)
+  ✔ openrouter: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (0.9044ms)
+  ✔ openrouter: recusa chave inválida/quota/modelo sem ecoar erros secretos (0.3504ms)
+  ✔ mistral: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (1.8026ms)
+  ✔ mistral: recusa chave inválida/quota/modelo sem ecoar erros secretos (0.4012ms)
+  ✔ ollama: descobre apenas chat, envia, verifica chave e transmite com parâmetros próprios (1.2718ms)
+  ✔ duas credenciais simultâneas não compartilham headers, contexto nem respostas (0.9188ms)
+  ✔ respostas incompletas e streams sem conclusão são recusados (0.5518ms)
+  ✔ cancelamento propaga o signal ao transporte e erro de rede é sanitizado (0.313ms)
+  ✔ capacidades desconhecidas desativam imagens e IDs perigosos/modelos especializados são excluídos (0.1339ms)
+✔ adaptadores de IA: testes simulados, sem homologação real (59.4522ms)
+▶ segurança de IA e controle de abuso
+  ✔ aceita público HTTPS autorizado e loopback, inclusive normalização do Next; rejeita CSRF e host forjado (2.5639ms)
+  ✔ destinos arbitrários e redirects nunca recebem credenciais (0.3584ms)
+  ✔ Ollama exige opt-in e fica oculto/bloqueado na Vercel mesmo com opt-in (0.3304ms)
+  ✔ local limita 20/min; público sem contador durável falha fechado (1.1204ms)
+  ✔ contador serverless é atômico, usa buckets com expiração e não recebe credencial pessoal/IP puro (4.5777ms)
+✔ segurança de IA e controle de abuso (9.254ms)
+ℹ tests 38
+ℹ suites 5
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 745.8719

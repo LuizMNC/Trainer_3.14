@@ -25,7 +25,6 @@ import {
   ShieldCheck,
   Shuffle,
   SlidersHorizontal,
-  Sparkles,
   Target,
   Upload,
   X,
@@ -48,6 +47,7 @@ import {
   type DrillEvaluationResult,
   evaluateDrillDecision,
   exportSpotMatrixToCsv,
+  formatActionFrequencyPtBr,
   formatActionLabelPtBr,
   formatSampleConfidencePtBr,
   getActionVisualStyle,
@@ -87,10 +87,22 @@ import {
 } from "@/lib/poker/tableAppearance";
 import { PokerTable } from "./PokerTable";
 import { RangeMatrix } from "./RangeMatrix";
+import { useStudioMotion } from "./StudioMotion";
 import { TrainingViewport } from "./TrainingViewport";
 import { InteractiveDrillsLab, type InteractiveDrillTabId } from "./InteractiveDrillsLab";
 import { shouldKeepLaunchedDrill } from "@/lib/studyNavigation";
 import type { HandHistoryItem } from "./StatsView";
+import type { ProviderId } from "@/lib/ai/types";
+import { ASSISTANT_NAME } from "@/lib/ai/assistantIdentity";
+import {
+  buildSpotEvidence,
+  evidenceToSpotContext,
+  type SpotEvidence,
+} from "@/lib/ai/provenance";
+import {
+  AssistantResponseCard,
+  TheNerdEinstenIcon,
+} from "./AssistantResponseCard";
 
 export type SelfReviewTag = "revisar_agora" | "preciso_praticar" | "ja_compreendi";
 
@@ -98,6 +110,8 @@ export interface TrainerViewProps {
   canonicalSpots: CanonicalSpot[];
   apiKey: string;
   model: string;
+  provider?: ProviderId;
+  credentialTested?: boolean;
   requestedSpotId?: string | null;
   requestedMode?: TrainerModeId | null;
   requestedSubView?: "table" | "interactive" | null;
@@ -112,6 +126,7 @@ export interface TrainerViewProps {
   onRecordAdaptiveAttempt?: (record: AdaptiveExerciseRecord) => void;
   onImportVerifiedSpot: (spot: CanonicalSpot) => void;
   onOpenSettings: () => void;
+  onSendHandToAssistant?: (payload: { prompt: string; evidence: SpotEvidence }) => void;
 }
 
 function toLegacySpot(c: CanonicalSpot): RangeSpot {
@@ -222,6 +237,8 @@ export function TrainerView({
   canonicalSpots,
   apiKey,
   model,
+  provider,
+  credentialTested = false,
   requestedSpotId,
   requestedMode,
   requestedSubView,
@@ -233,6 +250,7 @@ export function TrainerView({
   onRecordAdaptiveAttempt,
   onImportVerifiedSpot,
   onOpenSettings,
+  onSendHandToAssistant,
 }: TrainerViewProps) {
   const [subView, setSubView] = useState<"table" | "interactive">("table");
   const [interactiveTab, setInteractiveTab] = useState<InteractiveDrillTabId>("range-builder");
@@ -240,7 +258,7 @@ export function TrainerView({
   const [isTraining, setIsTraining] = useState(false);
   const [showTrainingSettings, setShowTrainingSettings] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [motion, setMotion] = useState<"normal" | "fast" | "off">("normal");
+  const { motion, setMotion } = useStudioMotion();
   const nativeFullscreenRef = useRef(false);
   const trainingActiveRef = useRef(false);
   const [dealId, setDealId] = useState(0);
@@ -1115,11 +1133,28 @@ export function TrainerView({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [subView, currentSpot, evaluation, dealNextHand, handleAction]);
 
+  const currentHandEvidence = useMemo(
+    () =>
+      buildSpotEvidence({
+        spot: currentSpot,
+        handClass,
+        chosenAction,
+        cardsText: `${cards[0].rank}${cards[0].suit} ${cards[1].rank}${cards[1].suit}`,
+      }),
+    [currentSpot, handClass, chosenAction, cards],
+  );
+
   const askCoach = async () => {
+    if (!provider || !credentialTested) {
+      setCoachError(
+        `Configure e teste sua chave e o modelo do ${ASSISTANT_NAME} antes de enviar este cenário.`,
+      );
+      onOpenSettings();
+      return;
+    }
     setCoachLoading(true);
     setCoachError(null);
     try {
-      const dist = currentSpot.referenceStrategy.matrixFrequencies?.[handClass];
       const res = await fetch("/api/coach", {
         method: "POST",
         headers: {
@@ -1127,35 +1162,28 @@ export function TrainerView({
           "X-Poker-Coach": "local-v1",
         },
         body: JSON.stringify({
+          action: "chat",
+          provider,
           apiKey: apiKey || undefined,
           model,
           prompt:
             currentSpot.referenceStrategy.status === "UNSOLVED"
               ? `Este spot está em estado UNSOLVED (sem solução de solver). Explique os conceitos teóricos para ${handClass} em ${currentSpot.name} SEM inventar frequências numéricas de GTO ou EV.`
-              : `Acabei de jogar esta mão no Modo ${trainerMode}. Explique o raciocínio teórico para ${handClass} em ${currentSpot.name} (${currentSpot.referenceStrategy.status}), considerando posição, stack, vantagem de range/nuts e bloqueadores.`,
-          spotContext: {
-            spotName: currentSpot.name,
-            stackBb: currentSpot.effectiveStackBb,
-            heroPosition: currentSpot.heroPosition,
-            villainPosition: currentSpot.villainPosition,
-            spotType: currentSpot.spotType,
-            handClass,
-            cardsText: `${cards[0].rank}${cards[0].suit} ${cards[1].rank}${cards[1].suit}`,
-            chosenAction: chosenAction ?? undefined,
-            gtoDistribution: dist,
+              : `Acabei de jogar esta mão no Modo ${trainerMode} (minha ação: ${chosenAction ?? "não informada"}). Explique o raciocínio teórico para ${handClass} em ${currentSpot.name} (${currentSpot.referenceStrategy.status}), considerando posição, stack, vantagem de range/nuts e bloqueadores.`,
+          spotContext: evidenceToSpotContext(currentHandEvidence, {
             rngValue: useRng ? rngValue : null,
-          },
+          }),
         }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setCoachError(data.error || "Falha ao consultar o AI Coach.");
+        setCoachError(data.error || `Falha ao consultar o ${ASSISTANT_NAME}.`);
       } else {
         setCoachExplanation(data.text);
         setCoachSources(data.sourcesUsed || []);
       }
     } catch {
-      setCoachError("Erro de rede ao conectar com o servidor local.");
+      setCoachError("Erro de rede ao conectar com o servidor TreinerLM.");
     } finally {
       setCoachLoading(false);
     }
@@ -1947,6 +1975,7 @@ export function TrainerView({
 
             {/* LAYOUT RESPONSIVO: CELULAR/IPAD RETRATO (1 col, mesa primeiro) · IPAD PAISAGEM (2 cols: mesa + matriz) · DESKTOP (3 cols) */}
             <div
+              data-range-visible={showRangePanel}
               className={`trainer-workspace grid grid-cols-1 gap-4 items-start ${
                 showRangePanel
                   ? "lg:grid-cols-[minmax(0,1fr)_minmax(345px,400px)] xl:grid-cols-[minmax(255px,300px)_minmax(0,1fr)_minmax(390px,465px)]"
@@ -1955,7 +1984,7 @@ export function TrainerView({
             >
               {/* COLUNA ESQUERDA: Controles Recolhíveis + Placar da Sessão */}
               <aside
-                className="order-2 lg:col-span-2 xl:col-span-1 xl:order-1 flex flex-col gap-3 rounded-2xl bg-[#0A0E17] border border-[#1E293B] p-3.5 shadow-lg"
+                className="trainer-control-panel order-2 lg:col-span-2 xl:col-span-1 xl:order-1 flex flex-col gap-3 rounded-2xl bg-[#0A0E17] border border-[#1E293B] p-3.5 shadow-lg"
                 aria-label="Controles e Estatísticas da Sessão"
               >
                 {/* Seletor de Modo: GTO Técnico vs Aprendizagem */}
@@ -2437,7 +2466,7 @@ export function TrainerView({
               </aside>
 
               {/* COLUNA CENTRAL: Mesa + Botões de Ação + Feedback Enxuto Pós-Decisão */}
-              <div className="order-1 xl:order-2 flex flex-col gap-3 min-w-0">
+              <div className="trainer-table-column order-1 xl:order-2 flex flex-col gap-3 min-w-0">
                 {/* Cabeçalho Compacto do Spot */}
                 <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-[#0A0E17] border border-[#1E293B] px-3.5 py-2.5">
                   <div className="min-w-0">
@@ -2557,7 +2586,7 @@ export function TrainerView({
                             : evaluation && isBest
                               ? "#60A5FA"
                               : wizColors.border,
-                          color: wizColors.text,
+                          color: evaluation && !isChosen && !isBest ? "#F8FAFC" : wizColors.text,
                         }}
                         className={`relative flex flex-col items-center justify-center rounded-xl py-3 px-4 font-extrabold border-2 transition shadow-md ${
                           evaluation
@@ -2569,16 +2598,16 @@ export function TrainerView({
                       >
                         <span className="flex items-center gap-1.5 text-sm sm:text-base tracking-wide">
                           <span
-                            className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-black/30 border border-white/25 text-[0.6875rem] font-mono font-bold"
+                            className="inline-flex items-center justify-center w-5 h-5 rounded-md border border-current text-[0.6875rem] font-mono font-bold"
                             aria-hidden="true"
                           >
                             {wizColors.shortGlyph}
                           </span>
                           <span>{formatActionLabelPtBr(act.name)}</span>
                         </span>
-                        <span className="text-[0.6875rem] text-white/95 font-mono tabular-nums mt-0.5">
+                        <span className="text-[0.6875rem] font-mono tabular-nums mt-0.5">
                           {evaluation && !isUnsolved && freqVal !== undefined
-                            ? `${Math.round(freqVal * 100)}%${
+                            ? `${formatActionFrequencyPtBr(freqVal)}${
                                 evVal !== undefined &&
                                 currentSpot.referenceStrategy.evUnit
                                   ? ` (${evVal >= 0 ? "+" : ""}${evVal.toFixed(2)} ${currentSpot.referenceStrategy.evUnit})`
@@ -2695,9 +2724,7 @@ export function TrainerView({
                         </div>
                         <div className="relative h-5 w-full rounded-lg overflow-hidden bg-[#0F1522] border border-[#1E293B] flex">
                           {currentSpot.legalActions.map((act) => {
-                            const pct = Math.round(
-                              (currentHandDist[act.name] ?? 0) * 100,
-                            );
+                            const pct = (currentHandDist[act.name] ?? 0) * 100;
                             if (pct <= 0) return null;
                             const wizColors = getActionWizardColors(act.name);
                             const labelPtBr = formatActionLabelPtBr(act.name);
@@ -2709,7 +2736,7 @@ export function TrainerView({
                                   backgroundColor: wizColors.bg,
                                   color: wizColors.text,
                                 }}
-                                className="h-full flex items-center justify-center text-[0.6875rem] font-bold font-mono tabular-nums overflow-hidden whitespace-nowrap"
+                                className="h-full shrink-0 flex items-center justify-center text-[0.6875rem] font-bold font-mono tabular-nums overflow-hidden whitespace-nowrap"
                                 title={`${labelPtBr}: ${pct}%`}
                               >
                                 {pct >= 12 ? `${labelPtBr} ${pct}%` : ""}
@@ -2776,16 +2803,33 @@ export function TrainerView({
                         ))}
                       </div>
 
-                      {/* Botão AI Coach */}
-                      <button
-                        type="button"
-                        onClick={askCoach}
-                        disabled={coachLoading}
-                        className="flex items-center gap-1.5 rounded-lg bg-[#2563EB] hover:bg-[#3B82F6] disabled:opacity-50 px-3 py-1.5 text-[0.6875rem] font-bold text-white transition"
-                      >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        {coachLoading ? "Analisando..." : "Explicar com AI Coach"}
-                      </button>
+                      {/* Botões TheNerdEinsten */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={askCoach}
+                          disabled={coachLoading}
+                          className="flex items-center gap-1.5 rounded-lg bg-[#2563EB] hover:bg-[#3B82F6] disabled:opacity-50 px-3 py-1.5 text-[0.6875rem] font-bold text-white transition"
+                        >
+                          <TheNerdEinstenIcon className="w-3.5 h-3.5" />
+                          {coachLoading ? "Analisando..." : `Perguntar ao ${ASSISTANT_NAME}`}
+                        </button>
+                        {onSendHandToAssistant && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              stopTraining();
+                              onSendHandToAssistant({
+                                prompt: `Analise minha decisão (${chosenAction ?? "sem ação"}) com ${handClass} em ${currentSpot.name} (${currentSpot.effectiveStackBb} BB).`,
+                                evidence: currentHandEvidence,
+                              });
+                            }}
+                            className="flex items-center gap-1.5 rounded-lg bg-[#0F1B33] hover:bg-[#162647] border border-[#2563EB]/50 px-2.5 py-1.5 text-[0.6875rem] font-semibold text-sky-200 transition"
+                          >
+                            Enviar mão para análise pós-sessão
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {/* BOTÕES DE REVELAÇÃO PROGRESSIVA (Sob Demanda) */}
@@ -2961,7 +3005,7 @@ export function TrainerView({
                                   <div className="flex items-center justify-between font-bold text-white">
                                     <span>{opt.actionName}</span>
                                     <span className="font-mono text-[#60A5FA]">
-                                      {Math.round(opt.frequency * 100)}%
+                                      {formatActionFrequencyPtBr(opt.frequency)}
                                     </span>
                                   </div>
                                   <div className="font-mono text-[0.6875rem] text-[#94A3B8] mt-1">
@@ -3054,21 +3098,28 @@ export function TrainerView({
                     )}
 
                     {coachExplanation && (
-                      <div className="rounded-xl bg-[#05070B] border border-indigo-500/40 p-3.5 text-sm text-slate-200 space-y-2">
-                        <div className="flex items-center justify-between text-xs text-indigo-300 font-semibold border-b border-[#1E293B] pb-2">
-                          <span className="flex items-center gap-1.5">
-                            <Brain className="w-4 h-4" /> Análise do AI Poker Coach (
-                            {model})
-                          </span>
-                          {coachSources.length > 0 && (
-                            <span className="text-slate-400 font-normal">
-                              Fontes: {Array.from(new Set(coachSources)).join(", ")}
-                            </span>
-                          )}
-                        </div>
-                        <div className="whitespace-pre-wrap leading-relaxed text-[0.8125rem]">
-                          {coachExplanation}
-                        </div>
+                      <div className="rounded-xl bg-[#05070B] border border-[#2563EB]/40 p-3.5 text-sm text-slate-200">
+                        <AssistantResponseCard
+                          text={coachExplanation}
+                          provider={provider}
+                          model={model}
+                          evidence={currentHandEvidence}
+                          sourcesUsed={coachSources}
+                          onRepeatSpot={repeatCurrentHand}
+                          onTrainSimilarHands={() => dealNextHand()}
+                          onReviewDecision={() => setOpenWhyPanel(true)}
+                          onSendToPostSessionAnalysis={
+                            onSendHandToAssistant
+                              ? () => {
+                                  stopTraining();
+                                  onSendHandToAssistant({
+                                    prompt: `Analise minha decisão (${chosenAction ?? "sem ação"}) com ${handClass} em ${currentSpot.name} (${currentSpot.effectiveStackBb} BB).`,
+                                    evidence: currentHandEvidence,
+                                  });
+                                }
+                              : undefined
+                          }
+                        />
                       </div>
                     )}
                   </div>

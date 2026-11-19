@@ -97,9 +97,11 @@ export function validateCanonicalHand(value: unknown): CanonicalHand {
   const h = object(value,"mão",["schemaVersion","profile","recordId","source","variant","gameFormat","amountPolicy","table","players","sourceActions","events","ending","pots","results","integrity","metadata"]);
   literal(h.schemaVersion,"1.0.0","schemaVersion"); literal(h.profile,"PHH_NT_SUBSET_1","profile"); literal(h.variant,"NLHE","variant");
   const source = object(h.source,"source",["format","targetStandardVersion","sha256","byteLength","fileName","handId","importedAtUtc"]);
-  literal(source.format,"PHH","source.format"); literal(source.targetStandardVersion,"0.0.2","source.targetStandardVersion");
+  need(source.format==="PHH"||source.format==="POKERSTARS","source.format","valor incompatível (PHH | POKERSTARS).");
+  const sourceFormat = source.format as "PHH" | "POKERSTARS";
+  literal(source.targetStandardVersion,sourceFormat==="PHH"?"0.0.2":"PS_TEXT_1","source.targetStandardVersion");
   need(typeof source.sha256 === "string" && /^[a-f0-9]{64}$/.test(source.sha256),"source.sha256","SHA-256 inválido.");
-  literal(h.recordId,`phh-sha256:${source.sha256}`,"recordId"); integer(source.byteLength,"source.byteLength",1,1_048_576);
+  literal(h.recordId,`${sourceFormat==="PHH"?"phh":"ps"}-sha256:${source.sha256}`,"recordId"); integer(source.byteLength,"source.byteLength",1,1_048_576);
   observed(source.fileName,"source.fileName",(v,p) => { text(v,p); });
   observed(source.handId,"source.handId",(v,p) => { if (typeof v === "string") text(v,p); else integer(v,p,-Number.MAX_SAFE_INTEGER,Number.MAX_SAFE_INTEGER); });
   need(typeof source.importedAtUtc === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|\+00:00)$/.test(source.importedAtUtc) && Number.isFinite(Date.parse(source.importedAtUtc)),"source.importedAtUtc","timestamp UTC inválido.");
@@ -146,13 +148,13 @@ export function validateCanonicalHand(value: unknown): CanonicalHand {
     const path = `events[${index}]`;
     const e = object(value,path,["sequence","sourceActionIndex","origin","kind","playerIndex","amountAtoms","cards","paidAtoms","returnedAtoms","awardedAtoms","before","after"]);
     literal(e.sequence,index,`${path}.sequence`);
-    need(e.origin === "PHH" || e.origin === "RULE_DERIVED",path,"origem de evento inválida.");
+    need(e.origin === sourceFormat || e.origin === "RULE_DERIVED",path,"origem de evento inválida.");
     text(e.kind,`${path}.kind`,80);
-    need((e.origin === "PHH" ? reportedKinds : derivedKinds).includes(String(e.kind)),path,"operação fora do perfil/origem.");
+    need((e.origin === sourceFormat ? reportedKinds : derivedKinds).includes(String(e.kind)),path,"operação fora do perfil/origem.");
     const kind = String(e.kind);
     let actor: number|null = null;
     if (actorKinds.includes(kind)) actor = integer(e.playerIndex,`${path}.playerIndex`,0,n-1); else literal(e.playerIndex,null,`${path}.playerIndex`);
-    if (e.origin === "PHH") {
+    if (e.origin === sourceFormat) {
       const sourceIndex = integer(e.sourceActionIndex,`${path}.sourceActionIndex`,0,actions.length-1);
       need(sourceIndex === sourceIndices.size,path,"índices da fonte fora de ordem ou duplicados."); sourceIndices.add(sourceIndex); lastSource = sourceIndex;
     } else literal(e.sourceActionIndex,lastSource,`${path}.sourceActionIndex`);
@@ -170,7 +172,7 @@ export function validateCanonicalHand(value: unknown): CanonicalHand {
     need(streets.indexOf(after.street)>=streets.indexOf(before.street),path,"street retrocedeu no histórico.");
     if (kind==="Folding") need(actor!==null && !before.folded[actor] && after.folded[actor],path,"evento fold sem alteração correspondente.");
     if (kind==="HoleCardsShowingOrMucking") need(actor!==null && dealt[actor] && !before.mucked[actor] && (cards.length>0 || after.mucked[actor]),path,"muck/revelação incoerente.");
-    if (e.origin === "PHH" && !["HoleDealing","NoOperation"].includes(kind)) need(dealt.every(Boolean),path,"ação antes da distribuição inicial completa.");
+    if (e.origin === sourceFormat && !["HoleDealing","NoOperation"].includes(kind)) need(dealt.every(Boolean),path,"ação antes da distribuição inicial completa.");
     need(after.board.slice(0,before.board.length).every((c,i)=>c===before.board[i]) && after.board.length>=before.board.length,path,"board retroativo.");
     if (kind === "HoleDealing" || (kind === "HoleCardsShowingOrMucking" && cards.length)) {
       need(actor !== null && cards.length === 2,path,"distribuição/revelação exige jogador e duas cartas.");

@@ -55,7 +55,7 @@ export function CollapsiblePanel({
 
   return (
     <section
-      className={`rounded-2xl bg-[#0A0E17]/95 border ${borderTone} shadow-lg overflow-hidden ${className}`}
+      className={`studio-panel rounded-2xl bg-[#0A0E17]/95 border ${borderTone} shadow-lg overflow-hidden ${className}`}
     >
       <button
         type="button"

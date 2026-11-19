@@ -1,0 +1,19 @@
+
+> projeto-poker-gto@1.0.0 typecheck
+> tsc --noEmit
+
+error TS6053: File 'C:/Users/lmnaz/OneDrive/Desktop/Repositório Github/Projeto-Poker/app/.next/types/app/api/coach/route.ts' not found.
+  The file is in the program because:
+    Matched by include pattern '.next/types/**/*.ts' in 'C:/Users/lmnaz/OneDrive/Desktop/Repositório Github/Projeto-Poker/app/tsconfig.json'
+error TS6053: File 'C:/Users/lmnaz/OneDrive/Desktop/Repositório Github/Projeto-Poker/app/.next/types/app/layout.ts' not found.
+  The file is in the program because:
+    Matched by include pattern '.next/types/**/*.ts' in 'C:/Users/lmnaz/OneDrive/Desktop/Repositório Github/Projeto-Poker/app/tsconfig.json'
+error TS6053: File 'C:/Users/lmnaz/OneDrive/Desktop/Repositório Github/Projeto-Poker/app/.next/types/app/page.ts' not found.
+  The file is in the program because:
+    Matched by include pattern '.next/types/**/*.ts' in 'C:/Users/lmnaz/OneDrive/Desktop/Repositório Github/Projeto-Poker/app/tsconfig.json'
+error TS6053: File 'C:/Users/lmnaz/OneDrive/Desktop/Repositório Github/Projeto-Poker/app/.next/types/cache-life.d.ts' not found.
+  The file is in the program because:
+    Matched by include pattern '.next/types/**/*.ts' in 'C:/Users/lmnaz/OneDrive/Desktop/Repositório Github/Projeto-Poker/app/tsconfig.json'
+error TS6053: File 'C:/Users/lmnaz/OneDrive/Desktop/Repositório Github/Projeto-Poker/app/.next/types/validator.ts' not found.
+  The file is in the program because:
+    Matched by include pattern '.next/types/**/*.ts' in 'C:/Users/lmnaz/OneDrive/Desktop/Repositório Github/Projeto-Poker/app/tsconfig.json'

@@ -6,6 +6,8 @@ import {
   cellToHand,
   countAvailableCombosByClass,
   formatActionLabelPtBr,
+  formatActionFrequencyPtBr,
+  getActionDistributionVisual,
   getActionVisualStyle,
   getHandCombos,
   isMixedHand,
@@ -58,7 +60,7 @@ export function RangeMatrix({
 
   const inspectedHand = hoveredHand || selectedTouchHand || activeHand || "AA";
   const inspectedInMatrix = Boolean(spot.matrix[inspectedHand]);
-  const inspectedDist = spot.matrix[inspectedHand] || (isPartialPostflopRange ? {} : { Fold: 1 });
+  const inspectedDist = spot.matrix[inspectedHand] || {};
   const inspectedEv = matrixEv?.[inspectedHand] ?? null;
   const inspectedCombos = comboBreakdown?.[inspectedHand] ?? null;
   const baseCombos = getHandCombos(inspectedHand);
@@ -98,31 +100,18 @@ export function RangeMatrix({
         const hand = cellToHand(r, c);
         const hasEntry = Boolean(spot.matrix[hand]);
         const isOutOfRange = isPartialPostflopRange && !hasEntry;
-        const dist = spot.matrix[hand] || (isOutOfRange ? {} : { Fold: 1 });
+        const dist = spot.matrix[hand] || {};
         const isActive = activeHand === hand;
         const isInspected = hoveredHand === hand;
         const avail = comboStats.byClass[hand] ?? getHandCombos(hand);
 
-        let cursor = 0;
-        const stops: string[] = [];
-        if (isOutOfRange) {
-          stops.push("#0f172a 0% 100%");
-        } else {
-          for (const act of spot.actions) {
-            const pct = (dist[act.name] ?? 0) * 100;
-            if (pct > 0.3) {
-              const next = Math.min(100, cursor + pct);
-              const colorHex = getActionVisualStyle(act.name).bg;
-              stops.push(`${colorHex} ${cursor.toFixed(1)}% ${next.toFixed(1)}%`);
-              cursor = next;
-            }
-          }
-          if (stops.length === 0) {
-            stops.push("#1E3A5F 0% 100%");
-          } else if (cursor < 99.5) {
-            stops.push(`#1E3A5F ${cursor.toFixed(1)}% 100%`);
-          }
-        }
+        const visual = getActionDistributionVisual(dist, spot.actions.map((act) => act.name));
+        const description = isOutOfRange
+          ? `${hand} (${avail}/${getHandCombos(hand)} combos): Fora do range pré-flop neste nó`
+          : `${hand} (${avail}/${getHandCombos(hand)} combos): ${Object.entries(dist)
+              .filter(([, v]) => v > 0)
+              .map(([k, v]) => `${formatActionLabelPtBr(k)} ${formatActionFrequencyPtBr(v)}`)
+              .join(" | ")}${visual.incomplete ? ` | Distribuição incompleta ou inválida: total ${formatActionFrequencyPtBr(visual.total)}; sem normalização` : ""}`;
 
         const foldFreq = dist["Fold"] ?? 0;
         const dimmed =
@@ -143,12 +132,13 @@ export function RangeMatrix({
               setSelectedTouchHand((prev) => (prev === hand ? null : hand));
               onSelectHand?.(hand);
             }}
-            style={{ background: `linear-gradient(to right, ${stops.join(", ")})` }}
+            style={{ background: isOutOfRange ? "#0f172a" : visual.background, color: visual.text }}
+            aria-label={description}
             className={`relative flex items-center justify-center select-none transition-all duration-100 rounded-[3px] border touch-manipulation ${
               compact
                 ? "min-h-[24px] sm:h-6 text-[0.65rem] sm:text-[0.6875rem]"
                 : "min-h-[27px] sm:h-9 text-[0.6875rem] sm:text-xs"
-            } font-bold font-mono tabular-nums text-white shadow-inner ${
+            } font-bold font-mono tabular-nums shadow-inner ${
               isActive
                 ? "ring-2 ring-amber-300 border-amber-200 z-10 scale-105 shadow-lg shadow-amber-500/30"
                 : isTapped || isInspected
@@ -157,16 +147,9 @@ export function RangeMatrix({
                     ? "border-slate-800/70 border-dashed"
                     : "border-black/45 hover:border-white/75"
             } ${dimmed ? (isOutOfRange ? "opacity-35" : "opacity-20") : "opacity-100"}`}
-            title={
-              isOutOfRange
-                ? `${hand} (${avail}/${getHandCombos(hand)} combos): Fora do range pré-flop neste nó`
-                : `${hand} (${avail}/${getHandCombos(hand)} combos): ${Object.entries(dist)
-                    .filter(([, v]) => v > 0.01)
-                    .map(([k, v]) => `${formatActionLabelPtBr(k)} ${Math.round(v * 100)}%`)
-                    .join(" | ")}`
-            }
+            title={description}
           >
-            <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] tracking-tight leading-none">
+            <span className="tracking-tight leading-none rounded-sm px-0.5" style={{ backgroundColor: visual.labelBackground }}>
               {hand}
             </span>
           </button>,
@@ -189,8 +172,8 @@ export function RangeMatrix({
                 className="flex items-center gap-1.5 rounded-md bg-[#090D16] border border-[#26334A] px-2.5 py-1 text-xs"
               >
                 <span
-                  className="inline-flex items-center justify-center w-4 h-4 rounded-sm text-[0.6875rem] font-mono font-bold text-white border border-white/25"
-                  style={{ backgroundColor: visual.bg }}
+                  className="inline-flex items-center justify-center w-4 h-4 rounded-sm text-[0.6875rem] font-mono font-bold border border-white/25"
+                  style={{ backgroundColor: visual.bg, color: visual.text }}
                   aria-hidden="true"
                 >
                   {visual.shortGlyph}
@@ -282,7 +265,7 @@ export function RangeMatrix({
             </span>
           ) : (
             Object.entries(inspectedDist)
-              .filter(([, v]) => v >= 0.01)
+              .filter(([, v]) => v > 0)
               .sort((a, b) => b[1] - a[1])
               .map(([action, prob]) => {
                 const visual = getActionVisualStyle(action);
@@ -296,7 +279,7 @@ export function RangeMatrix({
                     <span className="text-[#F8FAFC] font-semibold">
                       {formatActionLabelPtBr(action)}:
                     </span>
-                    <span className="text-white">{Math.round(prob * 100)}%</span>
+                    <span className="text-white">{formatActionFrequencyPtBr(prob)}</span>
                     {evVal !== undefined && evUnit && (
                       <span className="text-sky-300/95 text-[0.6875rem]">
                         ({evVal >= 0 ? "+" : ""}
@@ -325,9 +308,9 @@ export function RangeMatrix({
                 >
                   <strong className="text-amber-300">{combo}</strong>:{" "}
                   {Object.entries(dist)
-                    .filter(([, p]) => p >= 0.01)
+                    .filter(([, p]) => p > 0)
                     .sort((a, b) => b[1] - a[1])
-                    .map(([a, p]) => `${formatActionLabelPtBr(a)} ${Math.round(p * 100)}%`)
+                    .map(([a, p]) => `${formatActionLabelPtBr(a)} ${formatActionFrequencyPtBr(p)}`)
                     .join(" / ")}
                 </span>
               ))}

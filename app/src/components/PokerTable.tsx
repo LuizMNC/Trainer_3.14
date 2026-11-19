@@ -3,6 +3,7 @@
 import React from "react";
 import {
   formatActionLabelPtBr,
+  getActionVisualStyle,
   POSITIONS_8MAX,
   type PlayingCard as Card,
   type LegacyRangeSpot,
@@ -249,6 +250,7 @@ type SeatVisualState = {
   kind: "hero" | "villain" | "awaiting" | "folded";
   statusText: string;
   showChips: boolean;
+  action?: string;
 };
 
 function resolveSeatVisualState(
@@ -265,6 +267,7 @@ function resolveSeatVisualState(
         kind: heroAction.toLowerCase() === "fold" ? "folded" : "hero",
         statusText: `${spot.stackBb}bb · ${formatted}`,
         showChips: heroAction.toLowerCase() !== "fold",
+        action: heroAction,
       };
     }
     return {
@@ -287,6 +290,7 @@ function resolveSeatVisualState(
       kind: "villain",
       statusText: `${spot.stackBb}bb · ${label}`,
       showChips: true,
+      action: label === "Vilão" ? undefined : label,
     };
   }
 
@@ -310,6 +314,7 @@ function resolveSeatVisualState(
     kind: "folded",
     statusText: "Fold",
     showChips: false,
+    action: "Fold",
   };
 }
 
@@ -351,6 +356,15 @@ function buildActionBreadcrumbs(
     active: true,
   });
   return steps;
+}
+
+function actionBadgeStyle(action: string): React.CSSProperties | undefined {
+  const visual = getActionVisualStyle(action);
+  return visual.role === "neutral" ? undefined : {
+    backgroundColor: visual.bg,
+    color: visual.text,
+    borderColor: visual.border,
+  };
 }
 
 export function PokerTable({
@@ -400,6 +414,7 @@ export function PokerTable({
         {breadcrumbs.map((step, i) => (
           <div
             key={`${step.pos}-${i}`}
+            style={step.isStreet ? undefined : actionBadgeStyle(step.action)}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono whitespace-nowrap border ${
               step.active
                 ? "bg-[#2563EB]/25 border-[#3B82F6] text-[#93C5FD] font-bold shadow-[0_0_12px_rgba(37,99,235,0.28)]"
@@ -409,7 +424,7 @@ export function PokerTable({
             }`}
           >
             <span className="text-[0.6875rem] uppercase">{step.pos}</span>
-            <span className="text-xs font-bold text-[#F8FAFC]">{step.action}</span>
+            <span className="text-xs font-bold">{step.action}</span>
           </div>
         ))}
 
@@ -560,7 +575,10 @@ export function PokerTable({
                   {seatState.showChips && (
                     <PokerChipStack chipStyle={appearance.chipStyle} count={2} compact />
                   )}
-                  <span>{seatState.statusText}</span>
+                  <span
+                    className={seatState.action ? "rounded px-1 py-0.5 border font-bold" : undefined}
+                    style={seatState.action ? actionBadgeStyle(seatState.action) : undefined}
+                  >{seatState.statusText}</span>
                 </div>
               </div>
 
@@ -591,7 +609,7 @@ export function PokerTable({
         })}
 
         {heroAction && (
-          <div className="poker-action-toast" role="status">
+          <div className="poker-action-toast" role="status" style={actionBadgeStyle(heroAction)}>
             Sua ação: <strong>{formatActionLabelPtBr(heroAction)}</strong>
           </div>
         )}

@@ -1,19 +1,20 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { BookOpen, Download, Search, SlidersHorizontal, Star, Upload } from "lucide-react";
+import { AlertTriangle, BookOpen, CheckCircle2, Download, FileArchive, Search, SlidersHorizontal, Star, Upload, XCircle } from "lucide-react";
 import {
   downloadLocal,
-  importLibraryBatch,
   libraryRequest,
   libraryWrite,
+  runBatchImportStream,
   runLatest,
-  type BatchResult,
+  type BatchImportSummary,
+  type BatchProgress,
   type LibraryListing,
   type LibrarySummary,
   type StudyMetadata,
 } from "@/lib/handLibraryClient";
-import { formatAtoms } from "@/lib/poker/handReplay";
+import { safeFormatAtoms } from "@/lib/poker/handReplay";
 
 const input =
   "w-full rounded-lg border border-[#1E293B] bg-[#05070B] px-3 py-2 text-xs text-[#F8FAFC] outline-none focus:border-[#3B82F6]";
@@ -23,6 +24,8 @@ const primary =
   "rounded-lg border border-[#3B82F6] bg-gradient-to-r from-[#DC2626] to-[#2563EB] px-3.5 py-1.5 text-xs font-extrabold text-white hover:brightness-110 disabled:opacity-40 transition";
 const emptyFilters = {
   q: "",
+  tournament: "",
+  format: "",
   player: "",
   players: "",
   position: "",
@@ -38,13 +41,33 @@ const emptyFilters = {
   pending: "",
   sort: "imported_desc",
 };
-const statusLabels = {
-  IMPORTED: "Importado",
-  DUPLICATE: "Duplicado",
-  INVALID: "Inválido",
-  UNSUPPORTED: "Não suportado",
-  ERROR: "Erro de leitura/armazenamento",
-};
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MiB`;
+}
+function formatBadgeMeta(gameFormat: string | null) {
+  if (gameFormat === "MTT") {
+    return { label: "MTT comprovado", cls: "border-[#3B82F6]/60 bg-[#2563EB]/20 text-[#93C5FD]" };
+  }
+  if (gameFormat === "SNG") {
+    return { label: "Spin & Go / SNG (fora MTT)", cls: "border-[#F59E0B]/60 bg-[#F59E0B]/15 text-[#FCD34D]" };
+  }
+  if (gameFormat === "CASH") {
+    return { label: "Cash Game (fora MTT)", cls: "border-[#F59E0B]/60 bg-[#F59E0B]/15 text-[#FCD34D]" };
+  }
+  return { label: "Formato desconhecido", cls: "border-[#334155] bg-[#0F172A] text-[#CBD5E1]" };
+}
+function provenanceLabel(provenance: LibrarySummary["provenance"]) {
+  if (provenance === "POKERSTARS_RECONSTRUCTED") return "PokerStars (.txt) conferido via PokerKit · sem avaliação GTO";
+  if (provenance === "PHH_RECONSTRUCTED") return "PHH conferido pelo motor · autoria não autenticada";
+  return "JSON · conferência estrutural; origem não autenticada";
+}
+function sourceExtLabel(provenance: LibrarySummary["provenance"]) {
+  if (provenance === "POKERSTARS_RECONSTRUCTED") return "TXT";
+  if (provenance === "PHH_RECONSTRUCTED") return "PHH";
+  return "JSON";
+}
 function stamp(value: string | null) {
   return value
     ? new Date(value).toLocaleString("pt-BR", { timeZone: "UTC" }) + " UTC"
@@ -70,13 +93,18 @@ export function HandLibraryView({
   const [loading, setLoading] = useState(true),
     [busy, setBusy] = useState(false),
     [error, setError] = useState<string | null>(null);
-  const [results, setResults] = useState<BatchResult[]>([]),
-    [selected, setSelected] = useState<LibrarySummary | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [progress, setProgress] = useState<BatchProgress | null>(null);
+  const [preview, setPreview] = useState<BatchImportSummary | null>(null);
+  const [commitResult, setCommitResult] = useState<BatchImportSummary | null>(null);
+  const [selected, setSelected] = useState<LibrarySummary | null>(null);
   const [confirmation, setConfirmation] = useState<{
     item: LibrarySummary;
     kind: "delete" | "clearStudy";
   } | null>(null);
   const gate = useRef({ version: 0 });
+  const abortRef = useRef<AbortController | null>(null);
   const refresh = useCallback(() => {
     setLoading(true);
     setError(null);
@@ -96,22 +124,105 @@ export function HandLibraryView({
     void refresh();
     return () => {
       controller.version++;
+      abortRef.current?.abort();
     };
   }, [refresh, refreshVersion]);
-  async function importFiles(files: File[]) {
+  function chooseFiles(files: File[]) {
+    if (!files.length) return;
+    setSelectedFiles(files);
+    setImportOpen(true);
+    setPreview(null);
+    setCommitResult(null);
+    setProgress(null);
+    setError(null);
+  }
+  async function analyzeSelection() {
+    if (!selectedFiles.length) return;
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
     setBusy(true);
     setError(null);
-    setResults([]);
+    setPreview(null);
+    setCommitResult(null);
+    setProgress({
+      phase: "analyze",
+      processedFiles: 0,
+      totalFiles: selectedFiles.length,
+      currentFile: selectedFiles[0]?.name ?? "",
+      filesFound: 0,
+      zipEntries: 0,
+      txtFiles: 0,
+      phhFiles: 0,
+      jsonFiles: 0,
+      handsIdentified: 0,
+      validHands: 0,
+      problemHands: 0,
+      duplicates: 0,
+      totalToImport: 0,
+      importedHands: 0,
+      cancelled: false,
+    });
     try {
-      await importLibraryBatch(files, (result) =>
-        setResults((old) => [...old, result]),
+      const summary = await runBatchImportStream(
+        "analyzeBatch",
+        selectedFiles,
+        (p) => setProgress(p),
+        ctrl.signal,
       );
-      setQuery((old) => ({ ...old, page: "1" }));
+      setPreview(summary);
+      setProgress(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Importação recusada.");
+      setProgress(null);
+      if (ctrl.signal.aborted) {
+        setError("Análise cancelada com segurança; nenhuma mão foi gravada no banco.");
+      } else {
+        setError(e instanceof Error ? e.message : "Falha ao analisar os arquivos selecionados.");
+      }
     } finally {
+      abortRef.current = null;
       setBusy(false);
     }
+  }
+  async function confirmBatchImport() {
+    if (!selectedFiles.length || !preview || preview.totalToImport === 0) return;
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    setBusy(true);
+    setError(null);
+    setCommitResult(null);
+    setProgress({
+      ...preview,
+      phase: "commit",
+      processedFiles: 0,
+      importedHands: 0,
+    });
+    try {
+      const result = await runBatchImportStream(
+        "commitBatch",
+        selectedFiles,
+        (p) => setProgress(p),
+        ctrl.signal,
+      );
+      setCommitResult(result);
+      setPreview(null);
+      setSelectedFiles([]);
+      setProgress(null);
+      setQuery((old) => ({ ...old, page: "1" }));
+    } catch (e) {
+      setProgress(null);
+      if (ctrl.signal.aborted) {
+        setError("Importação interrompida por cancelamento. Lotes concluídos antes da interrupção foram preservados com segurança.");
+        setQuery((old) => ({ ...old, page: "1" }));
+      } else {
+        setError(e instanceof Error ? e.message : "Falha durante a gravação das mãos.");
+      }
+    } finally {
+      abortRef.current = null;
+      setBusy(false);
+    }
+  }
+  function cancelActiveImport() {
+    abortRef.current?.abort();
   }
   async function saveStudy(value: StudyMetadata, markReviewed: boolean) {
     if (!selected) return;
@@ -261,27 +372,19 @@ export function HandLibraryView({
             Biblioteca de Mãos
           </h2>
           <p className="mt-0.5 text-xs text-[#94A3B8]">
-            Importe históricos PHH/JSON, filtre, favorite, marque para revisão ou abra direto no Replayer.
+            Importe históricos PokerStars (.zip/.txt em PT-BR ou EN), PHH ou JSON; filtre por torneio, favorite, anote ou abra no Replayer.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <label className={primary + " cursor-pointer flex items-center gap-1.5"}>
+          <button
+            type="button"
+            className={primary + " flex items-center gap-1.5"}
+            disabled={busy}
+            onClick={() => setImportOpen((o) => !o)}
+          >
             <Upload size={14} />
-            Importar arquivos
-            <input
-              className="sr-only"
-              type="file"
-              multiple
-              accept=".phh,.json"
-              aria-label="Importar históricos PHH e JSON"
-              disabled={busy}
-              onChange={(e) => {
-                const files = Array.from(e.target.files ?? []);
-                e.target.value = "";
-                if (files.length) void importFiles(files);
-              }}
-            />
-          </label>
+            Importar mãos
+          </button>
           <button
             className={button}
             disabled={busy || loading}
@@ -300,41 +403,276 @@ export function HandLibraryView({
         </div>
       </header>
 
-      {/* Avisos de processamento ou lote */}
-      {busy && (
-        <p role="status" className="text-xs font-bold text-[#60A5FA]">
-          Processando no backend local…
-        </p>
-      )}
-      {results.length > 0 && (
+      {/* Painel Guiado: Selecionar ZIP/TXT -> Analisar -> Confirmar Importação */}
+      {(importOpen || progress || preview || commitResult) && (
         <section
-          className="rounded-xl border border-[#1E293B] bg-[#090D16] p-3.5"
-          aria-label="Resultado do lote"
+          aria-label="Importador de mãos PokerStars, PHH e JSON"
+          className="rounded-2xl border border-[#3B82F6]/50 bg-[#090D16] p-4 space-y-3"
         >
-          <p className="text-xs font-bold text-[#F8FAFC]">
-            {Object.entries(statusLabels)
-              .map(
-                ([key, label]) =>
-                  `${label}: ${results.filter((r) => r.status === key).length}`,
-              )
-              .join(" · ")}
-          </p>
-          <ul className="mt-2 max-h-48 space-y-1.5 overflow-auto text-xs">
-            {results.map((result, i) => (
-              <li key={i} className="rounded-lg bg-[#05070B] border border-[#1E293B] p-2 break-words">
-                <strong
-                  className={
-                    result.status === "IMPORTED"
-                      ? "text-[#60A5FA]"
-                      : "text-[#F87171]"
-                  }
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-[0.6875rem] font-extrabold tracking-widest text-[#60A5FA]">
+                IMPORTAÇÃO LOCAL SEGURA · SEM ENVIO EXTERNO
+              </p>
+              <h3 className="text-sm font-bold text-[#F8FAFC]">
+                1. Selecionar ZIP ou TXT/PHH/JSON → 2. Analisar → 3. Confirmar importação
+              </h3>
+            </div>
+            {!busy && (
+              <button
+                type="button"
+                className={button}
+                onClick={() => {
+                  setImportOpen(false);
+                  setSelectedFiles([]);
+                  setPreview(null);
+                  setCommitResult(null);
+                }}
+              >
+                Fechar importador
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <label
+              className={
+                button +
+                " cursor-pointer border-dashed border-[#3B82F6]/60 bg-[#05070B] px-4 py-2.5 flex items-center gap-2"
+              }
+            >
+              <FileArchive size={15} className="text-[#60A5FA]" />
+              <span>Selecionar ZIP / TXT / PHH / JSON</span>
+              <input
+                className="sr-only"
+                type="file"
+                multiple
+                accept=".zip,.txt,.phh,.json"
+                aria-label="Selecionar arquivos ZIP, TXT PokerStars, PHH e JSON"
+                disabled={busy}
+                onChange={(e) => {
+                  const files = Array.from(e.target.files ?? []);
+                  e.target.value = "";
+                  chooseFiles(files);
+                }}
+              />
+            </label>
+
+            {selectedFiles.length > 0 && !busy && (
+              <>
+                <button
+                  type="button"
+                  className={primary}
+                  onClick={() => void analyzeSelection()}
                 >
-                  {result.name} · {statusLabels[result.status]}
+                  Analisar ({selectedFiles.length}{" "}
+                  {selectedFiles.length === 1 ? "arquivo" : "arquivos"})
+                </button>
+                <button
+                  type="button"
+                  className={button}
+                  onClick={() => {
+                    setSelectedFiles([]);
+                    setPreview(null);
+                    setCommitResult(null);
+                  }}
+                >
+                  Limpar seleção
+                </button>
+              </>
+            )}
+
+            {busy && progress && (
+              <button
+                type="button"
+                className={button + " border-[#EF4444]/70 text-[#FCA5A5] hover:bg-[#DC2626]/20"}
+                onClick={cancelActiveImport}
+              >
+                Cancelar operação
+              </button>
+            )}
+          </div>
+
+          {selectedFiles.length > 0 && (
+            <p className="text-xs text-[#94A3B8] break-words">
+              Selecionados: <strong className="text-[#F8FAFC]">{selectedFiles.length}</strong>{" "}
+              ({formatBytes(selectedFiles.reduce((s, f) => s + f.size, 0))}) ·{" "}
+              {selectedFiles
+                .slice(0, 4)
+                .map((f) => f.name)
+                .join(", ")}
+              {selectedFiles.length > 4 ? ` e mais ${selectedFiles.length - 4}…` : ""}
+            </p>
+          )}
+
+          {progress && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="rounded-xl border border-[#1E293B] bg-[#05070B] p-3 space-y-2"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <strong className="text-[#60A5FA]">
+                  {progress.phase === "analyze"
+                    ? "Analisando e validando mãos no motor local…"
+                    : "Gravando mãos válidas no SQLite local…"}
                 </strong>
-                <p className="text-[#94A3B8]">{result.message}</p>
-              </li>
-            ))}
-          </ul>
+                <span className="font-mono text-[#F8FAFC]">
+                  {progress.processedFiles} / {Math.max(1, progress.totalFiles)} arquivos
+                </span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-[#1E293B]">
+                <div
+                  className="h-full bg-gradient-to-r from-[#DC2626] to-[#2563EB] transition-all duration-150"
+                  style={{
+                    width: `${Math.min(100, Math.round((progress.processedFiles / Math.max(1, progress.totalFiles)) * 100))}%`,
+                  }}
+                />
+              </div>
+              <p className="text-[0.6875rem] text-[#94A3B8] break-all">
+                Atual: {progress.currentFile || "…"} · Identificadas: {progress.handsIdentified} · Válidas:{" "}
+                {progress.validHands} · Duplicatas: {progress.duplicates} · Problemas: {progress.problemHands}
+                {progress.phase === "commit" ? ` · Gravadas: ${progress.importedHands}` : ""}
+              </p>
+            </div>
+          )}
+
+          {preview && (
+            <div
+              className="rounded-xl border border-[#3B82F6]/40 bg-[#05070B] p-4 space-y-3"
+              aria-label="Prévia da análise antes de gravar"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#93C5FD]">
+                  Diagnóstico pré-importação (nenhum dado gravado ainda)
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className={primary}
+                    disabled={busy || preview.totalToImport === 0}
+                    onClick={() => void confirmBatchImport()}
+                  >
+                    Confirmar importação ({preview.totalToImport})
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+                {[
+                  ["Arquivos encontrados", String(preview.filesFound)],
+                  ["Mãos identificadas", String(preview.handsIdentified)],
+                  ["Mãos válidas", String(preview.validHands)],
+                  ["Com problemas", String(preview.problemHands)],
+                  ["Duplicatas", String(preview.duplicates)],
+                  ["Total a importar", String(preview.totalToImport)],
+                ].map(([label, val]) => (
+                  <div
+                    key={label}
+                    className="rounded-lg border border-[#1E293B] bg-[#090D16] px-3 py-2"
+                  >
+                    <span className="block text-[0.6875rem] text-[#94A3B8]">{label}</span>
+                    <strong
+                      className={`font-mono text-base font-extrabold ${
+                        label === "Total a importar"
+                          ? "text-[#60A5FA]"
+                          : label === "Com problemas" && preview.problemHands > 0
+                            ? "text-[#FCA5A5]"
+                            : "text-[#F8FAFC]"
+                      }`}
+                    >
+                      {val}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-2 text-xs text-[#CBD5E1]">
+                <span className="rounded-md border border-[#1E293B] bg-[#090D16] px-2.5 py-1">
+                  Formatos detectados: <strong>MTT comprovado {preview.formatsDetected.MTT}</strong> · Desconhecido{" "}
+                  <strong>{preview.formatsDetected.UNKNOWN}</strong> · Spin/SNG{" "}
+                  <strong>{preview.formatsDetected.SNG}</strong> · Cash{" "}
+                  <strong>{preview.formatsDetected.CASH}</strong>
+                </span>
+                <span className="rounded-md border border-[#1E293B] bg-[#090D16] px-2.5 py-1">
+                  Idiomas PokerStars: PT-BR {preview.languagesDetected["pt-BR"] ?? 0} · EN{" "}
+                  {preview.languagesDetected.en ?? 0}
+                </span>
+              </div>
+
+              {preview.formatsDetected.UNKNOWN + preview.formatsDetected.SNG + preview.formatsDetected.CASH > 0 && (
+                <p className="text-[0.6875rem] text-[#FCD34D] flex items-start gap-1.5">
+                  <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                  <span>
+                    Históricos sem comprovação multi-mesa (incluindo mesas 3-max ou 8-max sem segunda mesa comprovada) permanecem como Formato desconhecido/Spin/Cash e não são vinculados a referências estratégicas MTT.
+                  </span>
+                </p>
+              )}
+
+              {preview.problemHands > 0 && (
+                <details className="rounded-lg border border-[#EF4444]/40 bg-[#090D16] p-3 text-xs">
+                  <summary className="cursor-pointer font-bold text-[#FCA5A5]">
+                    Ver motivos de rejeição / problemas ({preview.problemHands} ocorrências)
+                  </summary>
+                  <p className="mt-1.5 text-[0.6875rem] text-[#94A3B8]">
+                    {Object.entries(preview.issueCodeCounts)
+                      .map(([code, cnt]) => `${code}: ${cnt}`)
+                      .join(" · ")}
+                  </p>
+                  <ul className="mt-2 max-h-48 space-y-1 overflow-auto text-[0.6875rem]">
+                    {preview.issues.map((iss, idx) => (
+                      <li key={idx} className="rounded border border-[#1E293B] bg-[#05070B] p-2">
+                        <strong className="text-[#FCA5A5]">
+                          {iss.handId ? `#${iss.handId} · ` : ""}
+                          {iss.fileName} · {iss.code} ({iss.status})
+                        </strong>
+                        <p className="text-[#CBD5E1]">{iss.message}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </div>
+          )}
+
+          {commitResult && (
+            <div
+              role="status"
+              className="rounded-xl border border-[#22C55E]/50 bg-[#052E16]/40 p-3.5 text-xs text-[#DCFCE7] space-y-1.5"
+            >
+              <p className="font-bold flex items-center gap-1.5">
+                {commitResult.cancelled ? (
+                  <XCircle size={15} className="text-[#FCD34D]" />
+                ) : (
+                  <CheckCircle2 size={15} className="text-[#4ADE80]" />
+                )}
+                {commitResult.cancelled
+                  ? "Importação cancelada com segurança."
+                  : "Importação concluída no acervo local."}
+              </p>
+              <p>
+                Gravadas: <strong>{commitResult.importedHands}</strong> · Duplicatas ignoradas:{" "}
+                <strong>{commitResult.duplicates}</strong> · Mãos com problemas rejeitadas:{" "}
+                <strong>{commitResult.problemHands}</strong> · Formatos: MTT {commitResult.formatsDetected.MTT} / Desconhecido{" "}
+                {commitResult.formatsDetected.UNKNOWN}
+              </p>
+              {commitResult.problemHands > 0 && (
+                <details className="pt-1">
+                  <summary className="cursor-pointer font-semibold text-[#FDE68A]">
+                    Detalhes das mãos não importadas ({commitResult.problemHands})
+                  </summary>
+                  <ul className="mt-1.5 max-h-40 space-y-1 overflow-auto text-[0.6875rem]">
+                    {commitResult.issues.map((iss, idx) => (
+                      <li key={idx} className="rounded border border-[#1E293B] bg-[#05070B] p-1.5 text-[#FCA5A5]">
+                        {iss.handId ? `#${iss.handId} · ` : ""}
+                        {iss.fileName} · {iss.code}: {iss.message}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </div>
+          )}
         </section>
       )}
 
@@ -373,18 +711,22 @@ export function HandLibraryView({
             <summary className="cursor-pointer font-bold text-[#F8FAFC]">
               Ver distribuições do acervo e notas técnicas (PHH_NT_SUBSET_1)
             </summary>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <Distribution
+                title="Por modalidade"
+                rows={data.stats.byFormat ?? []}
+              />
               <Distribution
                 title="Por quantidade de jogadores"
                 rows={data.stats.byPlayers}
               />
               <Distribution
-                title="Importações por mês UTC · últimos 12 meses com registros"
+                title="Importações por mês UTC · últimos 12 meses"
                 rows={data.stats.byImportMonth}
               />
             </div>
             <p className="mt-2 text-[0.6875rem] text-[#94A3B8]">
-              Até 20 arquivos / 20 MiB por lote · PHH 1 MiB · JSON 6 MiB · Sem envio a serviços externos. Uma mão válida não é uma solução GTO.
+              Suporta ZIP PokerStars, TXT PokerStars (PT-BR e EN), PHH e JSON até 500 arquivos / 48 MiB. Uma mão válida não constitui solução GTO.
             </p>
           </details>
         </section>
@@ -399,8 +741,22 @@ export function HandLibraryView({
         }}
         aria-label="Pesquisar e filtrar mãos"
       >
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
-          {field("q", "Identificador ou arquivo")}
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+          {field("q", "Identificador, arquivo ou torneio")}
+          {select(
+            "tournament",
+            "Torneio",
+            (data?.stats.tournaments ?? []).map((t) => [
+              t.tournamentId,
+              `#${t.tournamentId}${t.buyIn ? ` (${t.buyIn})` : ""} · ${t.count} mão(s)`,
+            ]),
+          )}
+          {select("format", "Modalidade", [
+            ["MTT", "MTT comprovado"],
+            ["UNKNOWN", "Formato desconhecido"],
+            ["SNG", "Spin & Go / SNG"],
+            ["CASH", "Cash Game"],
+          ])}
           {field("player", "Jogador")}
           {select("favorite", "Favorito", [
             ["yes", "Sim"],
@@ -536,12 +892,33 @@ export function HandLibraryView({
                           {item.handId ?? item.recordId}
                         </h3>
                         <p className="break-all text-xs text-[#94A3B8]">
+                          {item.tournamentId ? `Torneio #${item.tournamentId} · ` : ""}
                           {item.fileName ?? "Arquivo não informado"} ·{" "}
                           {item.status === "VALIDATED_COMPLETE"
                             ? "Completa"
                             : "Parcial"}{" "}
                           · {item.playerCount} jogadores · {item.variant}
                         </p>
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                          {(() => {
+                            const meta = formatBadgeMeta(item.gameFormat);
+                            return (
+                              <span className={`rounded-full border px-2 py-0.5 text-[0.6875rem] font-bold ${meta.cls}`}>
+                                {meta.label}
+                              </span>
+                            );
+                          })()}
+                          {item.language && (
+                            <span className="rounded border border-[#1E293B] bg-[#05070B] px-1.5 py-0.5 text-[0.6875rem] text-[#94A3B8]">
+                              {item.language}
+                            </span>
+                          )}
+                          {item.hasBounty && (
+                            <span className="rounded border border-[#1E293B] bg-[#05070B] px-1.5 py-0.5 text-[0.6875rem] text-[#CBD5E1]">
+                              Bounty
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
@@ -596,7 +973,7 @@ export function HandLibraryView({
                       <span className="rounded bg-[#05070B] border border-[#1E293B] px-2 py-0.5 font-mono text-[#F8FAFC]">
                         Blinds:{" "}
                         {item.blindsAtoms
-                          .map((v) => formatAtoms(v, item.decimalPlaces))
+                          .map((v) => safeFormatAtoms(v, item.decimalPlaces))
                           .join(" / ")}
                       </span>
                       <span className="rounded bg-[#05070B] border border-[#1E293B] px-2 py-0.5 font-mono text-[#60A5FA]">
@@ -623,7 +1000,7 @@ export function HandLibraryView({
                             ? p.position +
                               (p.positionStatus === "INFERRED" ? "*" : "")
                             : "s/ pos"}{" "}
-                          ({formatAtoms(p.initialStackAtoms, item.decimalPlaces)})
+                          ({safeFormatAtoms(p.initialStackAtoms, item.decimalPlaces)})
                         </span>
                       ))}
                     </div>
@@ -636,11 +1013,15 @@ export function HandLibraryView({
                         <div>
                           <dt className="inline text-[#94A3B8]">Proveniência: </dt>
                           <dd className="inline text-[#FCD34D]">
-                            {item.provenance === "PHH_RECONSTRUCTED"
-                              ? "PHH conferido pelo motor · autoria não autenticada"
-                              : "JSON · conferência estrutural; origem não autenticada"}
+                            {provenanceLabel(item.provenance)}
                           </dd>
                         </div>
+                        {item.gameFormatReason && (
+                          <div>
+                            <dt className="inline text-[#94A3B8]">Modalidade: </dt>
+                            <dd className="inline">{item.gameFormatReason}</dd>
+                          </div>
+                        )}
                         <div>
                           <dt className="inline text-[#94A3B8]">Data reportada: </dt>
                           <dd className="inline">
@@ -686,8 +1067,7 @@ export function HandLibraryView({
                         disabled={busy}
                         onClick={() => void exportData(item, "source")}
                       >
-                        Original{" "}
-                        {item.provenance === "PHH_RECONSTRUCTED" ? "PHH" : "JSON"}
+                        Original {sourceExtLabel(item.provenance)}
                       </button>
                       <button
                         className={button}

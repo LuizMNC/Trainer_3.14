@@ -1,0 +1,542 @@
+[
+  {
+    "path": "app\\src\\lib\\curriculum.ts",
+    "sha256": "59BC6635EEA8B82935D7736203A72409CA270D56EE25D37D8DB760066E4B1AF3"
+  },
+  {
+    "path": "app\\src\\lib\\handLibraryClient.ts",
+    "sha256": "2C60D90D85D9DCD817C11BCCFA71752997363E94168C31E444BB76F21E4B8176"
+  },
+  {
+    "path": "app\\src\\lib\\lab.worker.ts",
+    "sha256": "00602099839B5C48DFD9C37F537E716254100E4CBD0A605ACA812F23EA86760C"
+  },
+  {
+    "path": "app\\src\\lib\\poker.ts",
+    "sha256": "532402E256A0122EB166619D6B36B3D2B8E319F34E1EFED10BD84638B522C0AD"
+  },
+  {
+    "path": "app\\src\\lib\\rag.ts",
+    "sha256": "4C7C69BF4DF0CABF341F715C5483192698CC7B5933CF9FD0881EBB87D4AE816C"
+  },
+  {
+    "path": "app\\src\\lib\\studyNavigation.ts",
+    "sha256": "956A7B6C7931FB1AD2ABCCE8A1A27486FB83318F9A65A8D1799C1C4E2EF0FF8E"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\assistantIdentity.ts",
+    "sha256": "1378D537A88189FA29D53C3C1B67945BE780FD22CA8F7A4F6AFC8B1EE1A9BE7A"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\assistantPrompt.ts",
+    "sha256": "DD3B4071FBA08245CD9C3B18C5A2B90FBD7C572DCBEFADCBE864A701716D2DD9"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\client.ts",
+    "sha256": "7C1DA99190436252652F12579E59430D89A69A7C7A5E367DCF2F3725DEE1C5CA"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\clientStorage.ts",
+    "sha256": "397D0E7E829C788A3C06D71B7420293C749B0410FDA58517CB0ABF1B60D816DD"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\modelCatalog.ts",
+    "sha256": "5074FAC9526DD9C76D91BB7792BABC2C59D9632DCEB497A14B670750E22A6AB0"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\provenance.ts",
+    "sha256": "FBD486F235498E9C0E6B4EBE16C64F83B0640E381FC70ADBDC31CAFDA0CD4205"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\providerRegistry.ts",
+    "sha256": "E0D60E7258A5A3EAAABDF07E3F1C80489B2963DBB20E84A860C1B6504457E4A2"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\responseFormat.ts",
+    "sha256": "54CA637B9EF2837D84DF79A572E479E55444557F0C1A352182918EE1C6BD7623"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\security.ts",
+    "sha256": "61F14A8EC8CAE53D649B8F456ED2492485206374FB2590BFBA2F1888EA440BDA"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\types.ts",
+    "sha256": "E2F586536E0B658BB20A2FD242CDDC69C53525F49AD9C6FAF4D259446237B239"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\providers\\anthropic.ts",
+    "sha256": "261F33BD513CC56AF6B37DA580C1F061DDF1E4A347D310A00AF5F5EEA64D5EB5"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\providers\\chatCompletions.ts",
+    "sha256": "583573BF107D7B72F7D70BCB0DC8638551E3FE4AD8D00786BBE3D695FE189D91"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\providers\\deepseek.ts",
+    "sha256": "8FFB1F9B01EBA1EC1A32A3CF7D96949E84EB1E8F1D615E7C2363D84F4B391EBD"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\providers\\gemini.ts",
+    "sha256": "2B9EA9C2C84A70C3C45FC5F97CD43E990F811065788622E97E7766C442D0A932"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\providers\\groq.ts",
+    "sha256": "B78B2E526548AA52EC946C22DA304A27BCF00FE363643C66F1158A454ED37272"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\providers\\mistral.ts",
+    "sha256": "512C62E8C9F6B2888DC7D3ECF3B12277267EF8F92188445533FAECB0D7AE6A83"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\providers\\ollama.ts",
+    "sha256": "68567F785C0846514AFC7D07B052EB1E6662FBE353FDEFD4773A01E1E372C7C3"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\providers\\openai.ts",
+    "sha256": "A1898BE4FB11EF2AA809F4E25611DE9F31851E0F3E326C19448A0524BE73695E"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\providers\\openrouter.ts",
+    "sha256": "641DC06A25FA0890BF3AFE97664F1AEDB92C1FAA13FC52F991AB7BB77DB924EB"
+  },
+  {
+    "path": "app\\src\\lib\\ai\\providers\\transport.ts",
+    "sha256": "8C1FBD80EAA925734BAAB83A1052550E4E085430CDC1F9EAD5DB0722CC36DC1B"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\adaptiveDiagnostics.ts",
+    "sha256": "7F7883FD5308839B9FD4D70D9C1630F7BEA16CE7A889B576BC0BEF00CAAFC294"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\cards.ts",
+    "sha256": "227ED9051B278140CA43CBEAD0A8C4913C121FEED68B76C238D70302B80EBB87"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\dailyDoseCatalog.ts",
+    "sha256": "62110628A238DAF6A5444C946E5E69C0EEDA71E818B6596B0F0F21782B0CF079"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\drillEvaluator.ts",
+    "sha256": "0C15565AAC21E3C53D76671184142F3AAF0FB348680818CF665CA4A7FEC3CA45"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\fatalErrorsCatalog.ts",
+    "sha256": "BD1EDECE15F28712438565F84E0DD9A3833B1CB77E94EDB5B7EF831714DE71AC"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\fatalErrorsMath.ts",
+    "sha256": "6A21C2D5016E337AE39B55E8D57A064659B68C2DED48BD6600EC0B8D84DBED07"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\fatalErrorsStudy.ts",
+    "sha256": "8CE6A0CC39883FF69C6BE3C23F0FAE8231892D2D72D4485B79B4670575066196"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\handHistoryAdapter.ts",
+    "sha256": "9A95AABEAEC1FC887E64460A3DA3575B53644398E4BF91386867855824B7F46D"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\handHistorySchema.ts",
+    "sha256": "E54CFD5F13516633C28AF977908E25BF7F8B4E172F25F97E44312B10D5AEA6D9"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\handHistoryValidation.ts",
+    "sha256": "C62D5999E6D4026459AAED124B31E87F9D2ECF690AF61B5F124C6EC0F8007660"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\handReplay.ts",
+    "sha256": "48A6A9528E2FB390D8BF466CF59C68B50706F48AC79A8E65ACA8D03179428265"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\labEquity.ts",
+    "sha256": "D65A93A96F1858DD5318EEA1AE5DB27A9519346EB357C690623780E5B1C2CADF"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\labEv.ts",
+    "sha256": "DEB48D14754B3A83EA29D021D82A58E3C9CBD8126007427C6E757CD3CDA5A614"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\labEvaluator.ts",
+    "sha256": "B0007A0CBE637E5A4E4DDE91DEA922777B982A8C265980BD658ABADADAFAAFB5"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\labRanges.ts",
+    "sha256": "454FA5D49E5DF7CAC5512D0FBC3B7E4D2691339067867EEA5C726554C0A272B4"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\labTransfer.ts",
+    "sha256": "7868D7B56A9D3E1379C4393264DA70D296C268EE5270D2BFF6C063BEBB1727BB"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\mathEngine.ts",
+    "sha256": "7DE7785DF37B2E1E4122FFFD39E209230F7937FE39C43C7F33C8159CB79131D2"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\mttCatalog.ts",
+    "sha256": "6492F196EA00E05AD767ABEAF886D7564F23EE2A3582196A86AF46D091637BE1"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\postSessionAnalysis.ts",
+    "sha256": "724A4DD3CBCFF1301B849668B7B71DEBC8002D8A2B171B96FA89F02339CA433A"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\reglifeCatalog.ts",
+    "sha256": "D3A4DB33890FC5A8CABACF4D49EDA98C5736AD6CD111AA7C2157E5292CBF8938"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\solverAdapter.ts",
+    "sha256": "FC385839BFBFFE07447711B5B7B41494892101530D3DFC7166FB421B4BCE87D1"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\solverFormats.ts",
+    "sha256": "A046411DF1ED141A8E102B0ABB2CF9A687D58F736F0418D34E67D262E877238B"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\spotReasoning.ts",
+    "sha256": "B80602ABBC77F9A5A0EF7E92974C597D85A4BA691E071393C7460F7E7DAF34C7"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\stateEngine.ts",
+    "sha256": "CFAF5ECFE5FD08B2DD79A394091552FF90596904E633B1AC904935134AA0604D"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\strategySchema.ts",
+    "sha256": "A2B9864A96D4453D2C941C15B003BDCD257209557485D82EFB5DC4E142BA199E"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\tableAppearance.ts",
+    "sha256": "6666DD3699710B5E61BBCE7C107CD0D694CDF0065163B97A6F217AE755073E7C"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\trainerStorage.ts",
+    "sha256": "C9781D2AD6CED4CD0249AE55C86BF3476FA156C4D4707858CE4F9A49D734F2A1"
+  },
+  {
+    "path": "app\\src\\lib\\poker\\uiPresentation.ts",
+    "sha256": "981E641C897DB96ACE6FB9EB058DB4FA288A603E2D0CACF9E382F601981CDCEC"
+  },
+  {
+    "path": "app\\src\\lib\\server\\accessAuth.ts",
+    "sha256": "1F1ABAACD7934FB6C954D1AC05F6332DE5CF4F219BD0FAB84DB8083427F31CBE"
+  },
+  {
+    "path": "app\\src\\lib\\server\\canonicalValidationCli.mjs",
+    "sha256": "F6AB35F4F984A064C0F6A231E649EBF10F272A0954388CF5C70ED8CAA90036B4"
+  },
+  {
+    "path": "app\\src\\lib\\server\\libraryAccess.ts",
+    "sha256": "D4ECB921BB047F8C3F57D9368BCDDB699AEC3C473359E1A0E551153B7DBDF445"
+  },
+  {
+    "path": "app\\src\\lib\\server\\libraryBridge.ts",
+    "sha256": "1FFDE4BE299CCD5F5D83AD0CBFA9D57981BF3EF5B43811E822D3442E65E58C0B"
+  },
+  {
+    "path": "app\\src\\lib\\server\\serverSession.ts",
+    "sha256": "705471FAF5FD0F418A3CDDE828F3E1AEAD205A2921F2E070C26B1E09BF5967BD"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\accessAuth.test.ts",
+    "sha256": "5FF61CFC7B881EBB456FA597F94406F489F39AE1071F57D5BBB2B8A9808ADE5F"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\actionPalette.test.ts",
+    "sha256": "BB7F3ABBBE0880AE7315E1AA7AEA2C635E6FD2D2E2E77804B77DB3FABE60B2D2"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\aiClient.test.ts",
+    "sha256": "476073ADB156AEA4E3AB74955EDDC7FB67D9BC928924235F214F9B269B0C7EB1"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\aiCoachRoute.test.ts",
+    "sha256": "685AB99DAD0109AEEB73664341B4B78C41E91C04C4342B4B0831F5152856440E"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\aiProviders.test.ts",
+    "sha256": "048BB91133B1F0EE46C96AE9249F00FB42D44B140B276BBD9BE9B04B4ADA6FC9"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\cleanRangeTrainer.test.ts",
+    "sha256": "0DA5B711E9A6D6F43E7382EC0784EA55F1F1C7040FEAFB0C460E9AC1F3F52EA1"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\dailyDoseInteractive.test.ts",
+    "sha256": "7D5B4AE932B63BC02F3E80D2759C27033FDE6D483C25DBF2C18FDF90895B31D1"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\etapa1Audit.test.ts",
+    "sha256": "C4989371C2CF76BEAF145E2630A6CB67B50968CF276E9DEC6A6C24539F9738E4"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\etapa6RealSolver.test.ts",
+    "sha256": "53CF134A45192A07951E97CFD09EDD16325F99EA8DF051A093A7955A9C5457BA"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\etapas2To5.test.ts",
+    "sha256": "8022C3EB9AC45CA907F7363E3462E5EAC989115760AF8D2F121A59FF42A9E760"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\fase1Homologacao.test.ts",
+    "sha256": "DF1315F4265C23CA8101F69396628AD903D87362128508B7D6F9800CD9872E25"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\fatalErrors.test.ts",
+    "sha256": "F1C31F64053E45B997F80335289B7B3427FF259B542D48716DA2EBAA0D34FB0F"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\fatalErrorsNavigation.test.ts",
+    "sha256": "98026334D7265708D14D8FC4E32911E38DD1C415ECD49D30941A6D8BB4189F1E"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\handHistory.test.ts",
+    "sha256": "D33750D22AE7653C16D2178213C8C659735BEC2BD792CBDF268EE3EA1AA608D3"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\handLibrary.test.ts",
+    "sha256": "05E3AEFB72C4CFBDFF84473ACD9E7636D4112DD282BBA4C344C8A0C64085A88F"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\handReplay.test.ts",
+    "sha256": "B3104E8A1F0B6C313B87D07B1F26AED3401B01B651C2F3E8B07D643A0BF0230D"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\mathLab.test.ts",
+    "sha256": "076A98E44E3FF9F02EF5BF3E513A3E1670E451B8530BDF1FBD8070CA8CB48499"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\pokerCore.test.ts",
+    "sha256": "41EE5DA605FC86EA655D588E8B9EF0FF03398394439D7BED323C8C41E7653B3D"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\pokerstarsImport.test.ts",
+    "sha256": "03F5A589A8C178683BE60F021A663FE4C0BD599FCFFAADAD9B571212AACA6317"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\posHomologacaoMtt2026.test.ts",
+    "sha256": "4DCB4D75E4F67C04FB2C7F48C53FE42B13B74612C55DAE907250CF40B7614523"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\refinamentoMtt2026.test.ts",
+    "sha256": "C76CE96F6DCA4174010C7D4E55F6BF2292B00F743C037BF2287C801994775FB6"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\replayerCriticalAndAnalysis.test.ts",
+    "sha256": "C565AD93E476B86A26F87D6C9A4BAA11B334E4316202286B18FE114C3E039B73"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\tableAppearance.test.ts",
+    "sha256": "71A550E11EB41D40716E1601CCF9F7DD1C42DDF0F9843E0BD29BAFF898C59419"
+  },
+  {
+    "path": "app\\src\\lib\\__tests__\\theNerdEinsten.test.ts",
+    "sha256": "C16C1DB64385C3F63B555AB7F1092259EED59848408EC3E294C105DB716D2FC1"
+  },
+  {
+    "path": "app\\src\\data\\fatalErrorsCatalog.json",
+    "sha256": "48766A67795AB5A32CED0008D1B81987E8FFC141C5B1C3A5190E7F46EB29B17E"
+  },
+  {
+    "path": "app\\src\\data\\knowledge_base.json",
+    "sha256": "907D56B7F30890000561F540BBEC95AE152E75A939D9F9F924AD67946D5D66BC"
+  },
+  {
+    "path": "app\\src\\data\\ranges_gto.json",
+    "sha256": "D46652C5BFE3CED09073FA68544E134683499F18EABDABEF8202D9EE351CB60E"
+  },
+  {
+    "path": "app\\src\\data\\replayExamples.json",
+    "sha256": "D36312692BA56AC214479AB9440713F342FFFB67BE0F982C016A38F7F03CFD70"
+  },
+  {
+    "path": "app\\src\\data\\verified_ahkd7c_texassolver.json",
+    "sha256": "868EF9FB8E6371F12DDE7749170015AF4FACCA70AF92DC33AA45251CDD0B3EDA"
+  },
+  {
+    "path": "app\\src\\app\\api\\auth\\login\\route.ts",
+    "sha256": "D58DB718404A235C1D9E37026637E304879422C4F60C1ADA20C1EF9D31FAF81B"
+  },
+  {
+    "path": "app\\src\\app\\api\\auth\\logout\\route.ts",
+    "sha256": "5F4BF04C07EA79CD78173F450E7139725D1F36B79767A40BFECF62665FD79CA0"
+  },
+  {
+    "path": "app\\src\\app\\api\\coach\\route.ts",
+    "sha256": "8EB1B7902D23DFC72DC30217F7E0E8CE1ECCF697DEF1A6F03963E526FE570618"
+  },
+  {
+    "path": "app\\src\\app\\api\\hand-library\\route.ts",
+    "sha256": "18EB99E4E397A2D0EB2548ED27008970EC2498DBE7F3E799367073FD4916BBAE"
+  },
+  {
+    "path": "app\\src\\app\\api\\local-health\\route.ts",
+    "sha256": "273D109AA745DBBF308B580FDB5F26D8FD538AE3765842DE2020A4820024A456"
+  },
+  {
+    "path": "app\\src\\app\\api\\local-session\\route.ts",
+    "sha256": "B75DEB0A2E0BCE7F6D2D1723515BB755E1003C46AAD5D2C76AD0F947B167768B"
+  },
+  {
+    "path": "pipeline\\extract_knowledge.py",
+    "sha256": "ED948D0CFD0BA107C570B99D275E6213FB5356E074CBC496F3BF2A0CF3D010B2"
+  },
+  {
+    "path": "pipeline\\extract_ranges.py",
+    "sha256": "17DB3690EDDF9718E5F3D3A13D49D7FF07064F5BEC10DE74F26D977C237265A4"
+  },
+  {
+    "path": "pipeline\\solve_texassolver.py",
+    "sha256": "DE9430437D565FC446FB75D8EDC87DDCEB066924020ECDD65327C0A5A00712C1"
+  },
+  {
+    "path": "pipeline\\hand_history\\__init__.py",
+    "sha256": "A0DB5708CF5763A7DB75906331BE66E781DB1EA4EA262C5AEF6F2A0312DD9AB6"
+  },
+  {
+    "path": "pipeline\\hand_history\\.gitignore",
+    "sha256": "69062220B57A08D1F915B87F2D59E2122E81C22E9D0CE67CFA68EE66B943DA13"
+  },
+  {
+    "path": "pipeline\\hand_history\\cli.py",
+    "sha256": "8E16FC45665BDF8B1C75767887BDE60F95CE087AD101DDEE1DE074BABBA28CE0"
+  },
+  {
+    "path": "pipeline\\hand_history\\generate_replay_examples.py",
+    "sha256": "EBFD653632E85D4F8300C42F941E4E4FCC7382572BA73BF25D0086C75EF3A996"
+  },
+  {
+    "path": "pipeline\\hand_history\\importer.py",
+    "sha256": "FAF97D71A59035E4FC7F8E9ED97FBF12AD6A2BFA98226B7B794189BA462C8211"
+  },
+  {
+    "path": "pipeline\\hand_history\\library_cli.py",
+    "sha256": "E2E657699C760D2AF76F88BE82F3402A496ECE02DA432B721C5F4936558D1293"
+  },
+  {
+    "path": "pipeline\\hand_history\\library.py",
+    "sha256": "B0AD33EC2C5443986C667FD1FFD45AA3BFD80414A233176BC1711E87C05AB9E1"
+  },
+  {
+    "path": "pipeline\\hand_history\\pokerstars.py",
+    "sha256": "361071F5C07F01A7903C1B77528761C901F613DF4134E5D2D86E0C3C4BFCE871"
+  },
+  {
+    "path": "pipeline\\hand_history\\requirements.txt",
+    "sha256": "F50251EEE65167FFA5E2751012786CFDD020C26E46C23C5E9B56017A9975B1AC"
+  },
+  {
+    "path": "pipeline\\hand_history\\store.py",
+    "sha256": "580150E9E43A774EF9CEB0246F99B0AD7AFF55C77D5E4CC8E7DE93B7B15BEA4C"
+  },
+  {
+    "path": "pipeline\\hand_history\\test_hand_history.py",
+    "sha256": "60AC1DB489E8F35971B7F1FFE280B0431B6C00C3A6A60F052EA8F9358B0D2752"
+  },
+  {
+    "path": "pipeline\\hand_history\\test_homologacao.py",
+    "sha256": "5E4F1686DDFE9F94DF5CEBE7D44F69F685F8951BAF9775CBD3C63AACD851156D"
+  },
+  {
+    "path": "pipeline\\hand_history\\test_library.py",
+    "sha256": "859364542F48DDEC7C3821F270779756594C9D7A1F0208179A0919D72ADC9EE9"
+  },
+  {
+    "path": "pipeline\\hand_history\\test_pokerstars.py",
+    "sha256": "336B915D27BEA3E05C48693F3A4D9C29985B06E74674E7DF83BDD89D3ECF64DC"
+  },
+  {
+    "path": "pipeline\\hand_history\\test_replay_examples.py",
+    "sha256": "A621484055E3AC1DEFAE53318C41D916BF36DC39B8697ABD6B4D05A5AC97837D"
+  },
+  {
+    "path": "pipeline\\hand_history\\fixtures\\decimal_fold.phh",
+    "sha256": "E65CC599E7B038267E4EBA18332230BEB648103F3BDCBFBDC2A5F85FBFB67554"
+  },
+  {
+    "path": "pipeline\\hand_history\\fixtures\\folded_sidepot.phh",
+    "sha256": "FB1109EBA7251ACCEB7D8CE23D96D4A96A7F96B11B838858A84D0BBBFDE75A0C"
+  },
+  {
+    "path": "pipeline\\hand_history\\fixtures\\hu_fold.phh",
+    "sha256": "BDA62EBD116C466CC750C16B023FA6573C40B05EE877915FA71717D3C2F9337E"
+  },
+  {
+    "path": "pipeline\\hand_history\\fixtures\\invalid_missing_call.phh",
+    "sha256": "7C4449F4ECBA8D8BD827180BE04BE4891F1366D9E295FC042093FD35E088B746"
+  },
+  {
+    "path": "pipeline\\hand_history\\fixtures\\late_reveal.phh",
+    "sha256": "60856B0B1363A9AB72F4D8EA382F5B7562ABABF8F1409BAC6EE960D4FD84FE33"
+  },
+  {
+    "path": "pipeline\\hand_history\\fixtures\\partial_flop.phh",
+    "sha256": "2738AEED7EE7CC768B7354D8285A7986FB097D3279DF4159E8B81F283C282609"
+  },
+  {
+    "path": "pipeline\\hand_history\\fixtures\\showdown_muck.phh",
+    "sha256": "847EF78AE3925B9EFF22F432FC1EE6377A7E7E3B9DFCCB9732E9A8DE954A9D84"
+  },
+  {
+    "path": "pipeline\\hand_history\\fixtures\\split_odd_ante.phh",
+    "sha256": "3960DFA3A10067DCE0D72868456DC032A4F7443B98C193595C8A6BD4A2B96FB7"
+  },
+  {
+    "path": "pipeline\\hand_history\\fixtures\\three_way_allin.phh",
+    "sha256": "6E63A7658A35EC2CBF20EF9E9C40014CC5E85927BBDFF11BD61479922AF080AE"
+  },
+  {
+    "path": "pipeline\\solver_runs\\ahkd7c_btn_vs_bb_30bb_srp\\canonical_bundle.json",
+    "sha256": "868EF9FB8E6371F12DDE7749170015AF4FACCA70AF92DC33AA45251CDD0B3EDA"
+  },
+  {
+    "path": "pipeline\\solver_runs\\ahkd7c_btn_vs_bb_30bb_srp\\convergence_log.jsonl",
+    "sha256": "3C03AC7B2512C6F461D53DED4E8E1BB192B71CDD248995F54493F48353DBF043"
+  },
+  {
+    "path": "pipeline\\solver_runs\\ahkd7c_btn_vs_bb_30bb_srp\\run_manifest.json",
+    "sha256": "63AF97D68E331A9F744713FF968AE2A570FF464B9C0CFB587843E5FC98C9ABB8"
+  },
+  {
+    "path": "pipeline\\solver_runs\\ahkd7c_btn_vs_bb_30bb_srp\\solver_input.txt",
+    "sha256": "3320C8F95A9FD2E72F13D45D0FBA8E3D090496DAC726D286EE8AD32275581BAA"
+  },
+  {
+    "path": "pipeline\\solver_runs\\ahkd7c_btn_vs_bb_30bb_srp\\solver_stdout.log",
+    "sha256": "8D42363FC5AEA38873A9AB815D8309A6BEAD076C09E825C48E16331268CE3CB7"
+  },
+  {
+    "path": "pipeline\\solver_runs\\ahkd7c_btn_vs_bb_30bb_srp\\texassolver_raw.json",
+    "sha256": "B12C254B27653B943C7E03D3A37DD744F4F691B1CE46EF14A689070A36DED187"
+  },
+  {
+    "path": "windows\\gto-trainer.ico",
+    "sha256": "E56BBEC978ED48653332E670A3AC32208FF4E9FF7EAC40CB860FE3BE7C8ADF92"
+  },
+  {
+    "path": "windows\\Launch-GTOTrainer.vbs",
+    "sha256": "0A3E90DB4C9CAD311FE726AF2600F4EF77C9A8C9D360C9D1BABF80C5286945A8"
+  },
+  {
+    "path": "windows\\launcher_core.py",
+    "sha256": "EEBE2CF5D83B882A26E33822FB16622EEB452ABF169B0545551640DC5527A565"
+  },
+  {
+    "path": "windows\\launcher.pyw",
+    "sha256": "D98C140BB6CA1A93B7584E72B1AE2692AE7633C1C80919D6D1B4BF31D3F013C1"
+  },
+  {
+    "path": "windows\\Prepare-GTOTrainer.ps1",
+    "sha256": "10153D6DC85655EF19584FC5F808844D2FD3111C88411EA6B595143ACCBC9CA9"
+  },
+  {
+    "path": "windows\\test_launcher.py",
+    "sha256": "CAEC1EB23F540CDDEA2A8CCC1404BA826BADC617657EADBE9E7F82E81FE4E142"
+  },
+  {
+    "path": "windows\\Verify-GTOShortcut.ps1",
+    "sha256": "DFE49176D1C5C55558C85195CC14139EE1D4B745830211000A9A36861B9C9672"
+  },
+  {
+    "path": "app\\src\\middleware.ts",
+    "sha256": "44B635861A4EA6857EC34E988B970A3393E8E3499A5EADD5348B9E34A131C08F"
+  }
+]

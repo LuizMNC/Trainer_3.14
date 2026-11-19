@@ -13,9 +13,16 @@ import { FATAL_ERRORS } from "../poker/fatalErrorsCatalog.ts";
 // renderizar os componentes TSX reais no servidor, sem nova dependência.
 registerHooks({
   resolve(specifier, context, nextResolve) {
+    if (context.parentURL?.includes("/node_modules/")) return nextResolve(specifier, context);
+    if (specifier.endsWith(".css")) {
+      return { url: "data:text/javascript,export default new Proxy({},{get:(_,p)=>String(p)});", shortCircuit: true };
+    }
     let candidate: string | null = null;
     if (specifier.startsWith("@/")) candidate = path.resolve("src", specifier.slice(2));
     else if (specifier.startsWith(".") && context.parentURL?.startsWith("file:")) candidate = fileURLToPath(new URL(specifier, context.parentURL));
+    if (candidate?.endsWith(".json") && existsSync(candidate)) {
+      return { url: pathToFileURL(candidate).href + "?json-esm", shortCircuit: true };
+    }
     if (candidate && !path.extname(candidate)) {
       for (const extension of [".ts", ".tsx"]) {
         if (existsSync(candidate + extension)) return nextResolve(pathToFileURL(candidate + extension).href, context);
@@ -24,6 +31,9 @@ registerHooks({
     return nextResolve(specifier, context);
   },
   load(url, context, nextLoad) {
+    if (url.endsWith("?json-esm")) {
+      return { format: "module", shortCircuit: true, source: `export default ${readFileSync(fileURLToPath(url.slice(0, -9)), "utf8")};` };
+    }
     if (!url.endsWith(".tsx")) return nextLoad(url, context);
     return { format: "module", shortCircuit: true, source: ts.transpileModule(readFileSync(fileURLToPath(url), "utf8"), {
       compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
@@ -56,7 +66,7 @@ describe("Fase 1 — Navegação e renderização dos componentes reais", () => 
 
   it("inclui a nova aba e preserva as seis abas existentes", () => {
     const markup = renderToStaticMarkup(createElement(PokerStudioApp, { spots: [], totalChunks: 0, videos: [] }));
-    for (const label of ["Treiner Limpo", "Erros Fatais", "Modo Trainer", "Currículo &amp; 18 Aulas", "Explorador de Ranges", "Lab EV &amp; ICM", "AI Poker Coach", "Diagnóstico &amp; Leaks"]) assert.ok(markup.includes(label), label);
+    for (const label of ["Treiner Limpo", "Erros Fatais", "Modo Trainer", "Currículo &amp; 18 Aulas", "Explorador de Ranges", "Lab EV &amp; ICM", "TheNerdEinsten", "Diagnóstico &amp; Leaks"]) assert.ok(markup.includes(label), label);
     assert.match(markup, /TreinerLM/);
     assert.match(markup, /Desenvolvido por Luiz Miguel N\. C\./);
     assert.doesNotMatch(markup, /PDF de Poker/);

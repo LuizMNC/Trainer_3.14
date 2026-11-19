@@ -19,6 +19,7 @@ import {
   Compass,
   Grid3X3,
   Layers,
+  LogOut,
   Play,
   RotateCcw,
   Settings,
@@ -50,9 +51,12 @@ import { getDidacticAndUnsolvedSpots } from "@/lib/curriculum";
 import type { VideoEntry } from "@/lib/rag";
 import { AiCoachView } from "./AiCoachView";
 import { CleanRangeTrainerView } from "./CleanRangeTrainerView";
+import { ComponentErrorBoundary } from "./ComponentErrorBoundary";
 import { CurriculumView } from "./CurriculumView";
+import { HandLibraryView } from "./HandLibraryView";
 import { MathIcmLab } from "./MathIcmLab";
 import { RangeExplorerView } from "./RangeExplorerView";
+import { ReplayerView } from "./ReplayerView";
 import { SettingsModal } from "./SettingsModal";
 import { AccessibilityControls } from "./AccessibilityControls";
 import { SiteTour } from "./SiteTour";
@@ -62,15 +66,14 @@ import type { InteractiveDrillTabId } from "./InteractiveDrillsLab";
 import { FatalErrorsView } from "./FatalErrorsView";
 import { trainerNavigation, type TabId } from "@/lib/studyNavigation";
 import type { LabScenario } from "@/lib/poker/labTransfer";
+import type { ProviderId } from "@/lib/ai/types";
+import { ASSISTANT_NAME } from "@/lib/ai/assistantIdentity";
+import type { SpotEvidence } from "@/lib/ai/provenance";
+import { StudioSidebar } from "./StudioSidebar";
+import { StudioMotionProvider } from "./StudioMotion";
+import { TheNerdEinstenIcon } from "./AssistantResponseCard";
+import { ACTIVE_PROVIDER_KEY, PROVIDER_IDS, PROVIDER_NAMES, emptyProviderConfig, isConfigTested, loadProviderConfigs, persistProviderConfig, removeProviderConfig, type ProviderConfig, type ProviderConfigs } from "@/lib/ai/clientStorage";
 
-const ReplayerView = lazy(() =>
-  import("./ReplayerView").then((module) => ({ default: module.ReplayerView })),
-);
-const HandLibraryView = lazy(() =>
-  import("./HandLibraryView").then((module) => ({
-    default: module.HandLibraryView,
-  })),
-);
 const MathLab = lazy(() =>
   import("./MathLab").then((module) => ({ default: module.MathLab })),
 );
@@ -80,19 +83,35 @@ interface PokerStudioAppProps {
   realSolvedSpots?: CanonicalSpot[];
   totalChunks: number;
   videos: VideoEntry[];
+  authEnabled?: boolean;
 }
 
 const STORAGE_KEY_HISTORY = "projeto_poker_history_v1";
-const STORAGE_KEY_API = "projeto_poker_gemini_key_v1";
-const STORAGE_KEY_MODEL = "projeto_poker_gemini_model_v1";
 const STORAGE_KEY_VERIFIED = "projeto_poker_verified_spots_v1";
 
-export function PokerStudioApp({
+export function PokerStudioApp(props: PokerStudioAppProps) {
+  return <StudioMotionProvider><PokerStudioAppContent {...props} /></StudioMotionProvider>;
+}
+
+function PokerStudioAppContent({
   spots,
   realSolvedSpots = [],
   totalChunks,
   videos,
+  authEnabled = false,
 }: PokerStudioAppProps) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = useCallback(async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      window.location.assign(new URL("/login", window.location.origin).toString());
+    }
+  }, [loggingOut]);
   const [activeTab, setActiveTabState] = useState<TabId>("trainer");
   const [lastDomainSubTab, setLastDomainSubTab] = useState<{
     treinar: "trainer" | "clean-trainer";
@@ -125,6 +144,11 @@ export function PokerStudioApp({
     recordId: string;
     requestKey: number;
   } | null>(null);
+  const [coachDraftPrompt, setCoachDraftPrompt] = useState<{
+    text: string;
+    key: number;
+    evidence?: SpotEvidence | null;
+  } | null>(null);
   const [history, setHistory] = useState<HandHistoryItem[]>([]);
   const [adaptiveRecords, setAdaptiveRecords] = useState<
     AdaptiveExerciseRecord[]
@@ -146,9 +170,12 @@ export function PokerStudioApp({
   const [trainerRequestNonce, setTrainerRequestNonce] = useState<number>(0);
   const [libraryStudyVersion, setLibraryStudyVersion] = useState<number>(0);
 
-  const [apiKey, setApiKey] = useState<string>("");
-  const [model, setModel] = useState<string>("gemini-3.8-flash");
-  const [hasEnvKey, setHasEnvKey] = useState<boolean>(false);
+  const [aiProvider, setAiProvider] = useState<ProviderId>("gemini");
+  const [aiConfigs, setAiConfigs] = useState<ProviderConfigs>({});
+  const [aiProviders, setAiProviders] = useState<ProviderId[]>(PROVIDER_IDS.filter((id) => id !== "ollama"));
+  const activeAiConfig = aiConfigs[aiProvider] ?? emptyProviderConfig();
+  const apiKey = activeAiConfig.apiKey;
+  const model = activeAiConfig.model;
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [tourOrigin, setTourOrigin] = useState<TabId | null>(null);
 
@@ -159,6 +186,11 @@ export function PokerStudioApp({
 
   useEffect(() => {
     queueMicrotask(() => {
+      try {
+        setAiConfigs(loadProviderConfigs(sessionStorage, localStorage));
+        const savedProvider = sessionStorage.getItem(ACTIVE_PROVIDER_KEY);
+        if (savedProvider && PROVIDER_IDS.includes(savedProvider as ProviderId) && savedProvider !== "ollama") setAiProvider(savedProvider as ProviderId);
+      } catch { /* Um bloqueio de armazenamento não impede os treinos. */ }
       try {
         setNowMs(Date.now());
         const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
@@ -188,10 +220,6 @@ export function PokerStudioApp({
             setVerifiedSpots(sanitized);
           }
         }
-        const savedKey = localStorage.getItem(STORAGE_KEY_API);
-        if (savedKey) setApiKey(savedKey);
-        const savedModel = localStorage.getItem(STORAGE_KEY_MODEL);
-        if (savedModel) setModel(savedModel);
       } catch {
         // Ignora erro de localStorage
       }
@@ -202,7 +230,10 @@ export function PokerStudioApp({
     })
       .then((r) => r.json())
       .then((d) => {
-        if (typeof d?.hasEnvKey === "boolean") setHasEnvKey(d.hasEnvKey);
+        if (Array.isArray(d?.providers)) {
+          const ids = d.providers.map((p: { id: ProviderId }) => p.id).filter((id: ProviderId) => PROVIDER_IDS.includes(id) && (id !== "ollama" || d.localOllamaEnabled === true));
+          if (ids.length) setAiProviders(ids);
+        }
       })
       .catch(() => {});
   }, []);
@@ -282,16 +313,31 @@ export function PokerStudioApp({
     });
   };
 
-  const handleSaveSettings = (newKey: string, newModel: string) => {
-    setApiKey(newKey);
-    setModel(newModel);
+  const handleSelectAiProvider = (provider: ProviderId) => {
+    if (!aiProviders.includes(provider)) return;
+    setAiProvider(provider);
+    try { sessionStorage.setItem(ACTIVE_PROVIDER_KEY, provider); } catch { /* preferência não essencial */ }
+  };
+
+  const handleSaveSettings = (provider: ProviderId, config: ProviderConfig): boolean => {
     try {
-      if (newKey) localStorage.setItem(STORAGE_KEY_API, newKey);
-      else localStorage.removeItem(STORAGE_KEY_API);
-      localStorage.setItem(STORAGE_KEY_MODEL, newModel);
-    } catch {
-      // Ignora
-    }
+      persistProviderConfig(provider, config, sessionStorage, localStorage);
+      setAiConfigs((previous) => ({ ...previous, [provider]: config }));
+      handleSelectAiProvider(provider);
+      return true;
+    } catch { return false; }
+  };
+
+  const handleRemoveAiConfig = (provider: ProviderId): boolean => {
+    // Desativa imediatamente mesmo se o navegador recusar a limpeza do armazenamento.
+    setAiConfigs((previous) => { const next = { ...previous }; delete next[provider]; return next; });
+    try { removeProviderConfig(provider, sessionStorage, localStorage); return true; } catch { return false; }
+  };
+
+  const handleSelectAiModel = (nextModel: string) => {
+    const config = { ...activeAiConfig, model: nextModel, testedModel: undefined };
+    setAiConfigs((previous) => ({ ...previous, [aiProvider]: config }));
+    try { persistProviderConfig(aiProvider, config, sessionStorage, localStorage); } catch { /* permanece nesta tela */ }
   };
 
   const handleLaunchDrill = (spotId: string, preferredMode?: TrainerModeId) => {
@@ -349,7 +395,7 @@ export function PokerStudioApp({
     };
   }, [adaptiveRecords, canonicalSpots, fatalAttempts, history, nowMs]);
 
-  const hasAnyKey = Boolean(apiKey.trim()) || hasEnvKey;
+  const hasAnyKey = isConfigTested(activeAiConfig, aiProvider === "ollama");
 
   const activeDomain =
     activeTab === "trainer" || activeTab === "clean-trainer"
@@ -446,11 +492,11 @@ export function PokerStudioApp({
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#05070B] text-[#F8FAFC]">
-      <div className="h-[3px] w-full bg-gradient-to-r from-[#DC2626] via-[#2563EB] to-[#DC2626]" />
+    <div className="treiner-theme studio-shell min-h-screen flex flex-col" data-sidebar-collapsed={sidebarCollapsed}>
+      <StudioSidebar items={domainNavItems} activeDomain={activeDomain} collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed((value) => !value)} onNavigate={setActiveTab} />
       {/* Aviso de Estudo Offline (compacto e recolhível) */}
       {showOfflineNotice ? (
-        <div className="bg-[#090D16] border-b border-[#1E293B] px-3 sm:px-5 py-1 text-xs text-[#93C5FD] flex items-center justify-between gap-2">
+        <div className="studio-notice bg-[#090D16] border-b border-[#1E293B] px-3 sm:px-5 py-1 text-xs text-[#93C5FD] flex items-center justify-between gap-2">
           <div className="flex items-center justify-center gap-2 mx-auto text-center">
             <ShieldCheck className="w-3.5 h-3.5 text-[#EF4444] shrink-0" />
             <span>
@@ -472,7 +518,7 @@ export function PokerStudioApp({
           </button>
         </div>
       ) : (
-        <div className="bg-[#090D16] border-b border-[#1E293B] px-3 py-0.5 flex justify-end">
+        <div className="studio-notice bg-[#090D16] border-b border-[#1E293B] px-3 py-0.5 flex justify-end">
           <button
             type="button"
             onClick={() => setShowOfflineNotice(true)}
@@ -485,13 +531,13 @@ export function PokerStudioApp({
       )}
 
       {/* Header / Navbar Preto, Azul e Vermelho */}
-      <header className="relative lg:sticky top-0 z-30 border-b border-[#1E293B] bg-[#06080E]/95 backdrop-blur-md shadow-[0_6px_28px_rgba(0,0,0,0.65)]">
-        <div className="w-full px-3 sm:px-5 lg:px-7 py-2 flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between gap-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+      <header className="studio-header relative lg:sticky top-0 z-30 border-b border-[#1E293B] bg-[#06080E]/95 backdrop-blur-md shadow-[0_6px_28px_rgba(0,0,0,0.65)]">
+        <div className="studio-header-inner">
+          <div className="studio-header-row">
             {/* Logo */}
-            <div className="flex items-center gap-2.5 min-w-0">
+            <div className="studio-header-identity flex items-center gap-2.5 min-w-0">
               <div
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-[#DC2626] via-[#1D4ED8] to-[#2563EB] p-[1.5px] shadow-[0_0_14px_rgba(37,99,235,0.4)] shrink-0"
+                className="studio-pi"
                 aria-hidden="true"
               >
                 <div className="w-full h-full rounded-[10px] bg-[#05070B] flex items-center justify-center">
@@ -503,12 +549,12 @@ export function PokerStudioApp({
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   <h1 className="text-base sm:text-lg font-extrabold tracking-tight text-[#F8FAFC]">
-                    TreinerLM
+                    {domainNavItems.find((item) => item.domain === activeDomain)?.label ?? "TreinerLM"}
                   </h1>
                   <span className="text-[0.6875rem] px-1.5 py-0.5 rounded bg-[#2563EB]/20 border border-[#3B82F6]/50 text-[#93C5FD] font-bold">
                     Estúdio Offline MTT
                   </span>
-                  <span className="hidden md:inline-block 2xl:hidden text-[0.6875rem] px-1.5 py-0.5 rounded bg-[#DC2626]/15 border border-[#DC2626]/45 text-[#FCA5A5] font-semibold">
+                  <span className="studio-author hidden text-[0.6875rem]">
                     Desenvolvido por Luiz Miguel N. C.
                   </span>
                 </div>
@@ -566,51 +612,27 @@ export function PokerStudioApp({
                   }`}
                 />
                 <span className="hidden sm:inline">
-                  {hasAnyKey ? model : "Configurar IA"}
+                  {hasAnyKey ? `${PROVIDER_NAMES[aiProvider]} · ${model}` : `Configurar ${ASSISTANT_NAME}`}
                 </span>
                 <Settings className="w-3.5 h-3.5" />
               </button>
+              {authEnabled && (
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                  title="Encerrar sessão e voltar para a tela de senha"
+                  className="flex min-h-9 items-center gap-1.5 rounded-xl border border-[#26334A] bg-[#090D16] px-2.5 py-1.5 text-xs font-semibold text-[#CBD5E1] hover:border-[#EF4444]/60 hover:text-[#FCA5A5] hover:bg-[#131B2C] disabled:opacity-50 transition"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-[#EF4444]" aria-hidden="true" />
+                  <span className="hidden sm:inline">
+                    {loggingOut ? "Saindo..." : "Sair"}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Navegação Principal Simplificada em 7 Domínios */}
-          <nav
-            data-tour="navigation"
-            aria-label="Áreas principais de estudo"
-            className="flex flex-wrap lg:flex-nowrap overflow-x-auto no-scrollbar items-center gap-1 bg-[#0A0E17] border border-[#1E293B] rounded-xl p-1 2xl:order-2"
-          >
-            {domainNavItems.map((item) => {
-              const active = activeDomain === item.domain;
-              return (
-                <button
-                  key={item.id}
-                  data-tour={item.dataTour}
-                  aria-current={active ? "page" : undefined}
-                  type="button"
-                  onClick={() => setActiveTab(item.targetTab)}
-                  className={`shrink-0 flex items-center gap-1.5 px-2 lg:px-3 py-1.5 min-h-[36px] rounded-lg text-xs font-bold transition ${
-                    active
-                      ? "bg-gradient-to-r from-[#DC2626] to-[#2563EB] text-white shadow-[0_2px_12px_rgba(37,99,235,0.35)]"
-                      : "text-[#CBD5E1] hover:text-[#F8FAFC] hover:bg-[#131B2C]"
-                  }`}
-                >
-                  {item.icon}
-                  <span className="whitespace-nowrap">{item.label}</span>
-                  {item.badge !== undefined && (
-                    <span
-                      className={`text-[0.6875rem] px-1.5 py-0.2 rounded-full font-mono tabular-nums ${
-                        active
-                          ? "bg-black/30 text-white font-extrabold"
-                          : "bg-[#05070B] text-[#94A3B8]"
-                      }`}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
         </div>
 
         {/* Sub-barra Contextual de Submódulos por Domínio */}
@@ -723,8 +745,8 @@ export function PokerStudioApp({
                   : "bg-[#05070B] border-[#1E293B] text-[#CBD5E1] hover:text-white"
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#60A5FA]" />
-              AI Poker Coach
+              <TheNerdEinstenIcon className="w-3.5 h-3.5 text-[#60A5FA]" />
+              {ASSISTANT_NAME}
             </button>
           </div>
 
@@ -966,7 +988,7 @@ export function PokerStudioApp({
       )}
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 w-full px-3 sm:px-5 lg:px-7 py-3 sm:py-4">
+      <main className="studio-main flex-1 w-full px-3 sm:px-5 lg:px-7 py-3 sm:py-4">
         {activeTab === "clean-trainer" && (
           <CleanRangeTrainerView spots={mttSpots} />
         )}
@@ -976,6 +998,8 @@ export function PokerStudioApp({
             canonicalSpots={canonicalSpots}
             apiKey={apiKey}
             model={model}
+            provider={aiProvider}
+            credentialTested={hasAnyKey}
             requestedSpotId={requestedSpotId}
             requestedMode={requestedMode}
             requestedSubView={requestedSubView}
@@ -987,6 +1011,14 @@ export function PokerStudioApp({
             onRecordAdaptiveAttempt={handleRecordAdaptiveAttempt}
             onImportVerifiedSpot={handleImportVerifiedSpot}
             onOpenSettings={() => setSettingsOpen(true)}
+            onSendHandToAssistant={({ prompt, evidence }) => {
+              setCoachDraftPrompt((old) => ({
+                text: prompt,
+                evidence,
+                key: (old?.key ?? 0) + 1,
+              }));
+              setActiveTab("coach");
+            }}
           />
         )}
 
@@ -1002,12 +1034,10 @@ export function PokerStudioApp({
         )}
 
         {activeTab === "hand-library" && (
-          <Suspense
-            fallback={
-              <p role="status" className="text-sm text-slate-300">
-                Carregando biblioteca…
-              </p>
-            }
+          <ComponentErrorBoundary
+            title="Falha ao exibir a Biblioteca de Mãos"
+            description="Os registros do SQLite foram preservados."
+            resetKey={activeTab}
           >
             <HandLibraryView
               refreshVersion={libraryStudyVersion}
@@ -1019,28 +1049,36 @@ export function PokerStudioApp({
                 setActiveTab("replayer");
               }}
             />
-          </Suspense>
+          </ComponentErrorBoundary>
         )}
         {activeTab === "replayer" && (
-          <Suspense
-            fallback={
-              <p role="status" className="text-sm text-slate-300">
-                Carregando replayer…
-              </p>
-            }
+          <ComponentErrorBoundary
+            title="Não foi possível reproduzir esta mão. Alguns dados do histórico estão incompletos."
+            description="O erro foi isolado no Replayer. Seus dados e navegação permanecem íntegros."
+            resetKey={librarySelection ? `${librarySelection.recordId}:${librarySelection.requestKey}` : "default"}
+            onBackToLibrary={() => setActiveTab("hand-library")}
           >
             <ReplayerView
               librarySelection={librarySelection}
+              mttSpots={canonicalSpots}
               onLibraryStudyChanged={() =>
                 setLibraryStudyVersion((v) => v + 1)
               }
+              onBackToLibrary={() => setActiveTab("hand-library")}
+              onConsultAi={(draftPrompt) => {
+                setCoachDraftPrompt((old) => ({
+                  text: draftPrompt,
+                  key: (old?.key ?? 0) + 1,
+                }));
+                setActiveTab("coach");
+              }}
               onSendToLab={(scenario) => {
                 setLabScenario(scenario);
                 setLabRequest((n) => n + 1);
                 setActiveTab("math-lab");
               }}
             />
-          </Suspense>
+          </ComponentErrorBoundary>
         )}
 
         {activeTab === "explorer" && (
@@ -1069,11 +1107,16 @@ export function PokerStudioApp({
 
         {activeTab === "coach" && (
           <AiCoachView
-            apiKey={apiKey}
-            model={model}
-            hasEnvKey={hasEnvKey}
+            provider={aiProvider}
+            providers={aiProviders}
+            configs={aiConfigs}
+            onProviderChange={handleSelectAiProvider}
+            onModelChange={handleSelectAiModel}
             totalChunks={totalChunks}
             videos={videos}
+            canonicalSpots={canonicalSpots}
+            initialDraftPrompt={coachDraftPrompt}
+            onLaunchSpotDrill={handleLaunchDrill}
             onOpenSettings={() => setSettingsOpen(true)}
           />
         )}
@@ -1088,7 +1131,7 @@ export function PokerStudioApp({
         )}
       </main>
 
-      <footer className="w-full border-t border-[#1E293B] bg-[#06080E] py-3 px-3 sm:px-5 lg:px-7">
+      <footer className="studio-footer w-full border-t border-[#1E293B] bg-[#06080E] py-3 px-3 sm:px-5 lg:px-7">
         <div className="w-full flex flex-wrap items-center justify-between gap-2 text-xs text-[#94A3B8]">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-gradient-to-br from-[#DC2626] to-[#2563EB] text-white font-serif font-bold">
@@ -1116,10 +1159,11 @@ export function PokerStudioApp({
       {settingsOpen && (
         <SettingsModal
           isOpen={settingsOpen}
-          apiKey={apiKey}
-          model={model}
-          hasEnvKey={hasEnvKey}
+          provider={aiProvider}
+          providers={aiProviders}
+          configs={aiConfigs}
           onSave={handleSaveSettings}
+          onRemove={handleRemoveAiConfig}
           onClose={() => setSettingsOpen(false)}
         />
       )}

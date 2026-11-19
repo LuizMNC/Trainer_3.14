@@ -1,396 +1,192 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
 import { searchKnowledge, searchVideos } from "@/lib/rag";
-import {
-  assertCoachAccess,
-  limitedBody,
-  PayloadTooLargeError,
-} from "@/lib/server/libraryAccess";
+import { getProvider, listProviders } from "@/lib/ai/providerRegistry";
+import { DISCOVERY_NOTICE, isSafeModelId, record } from "@/lib/ai/modelCatalog";
+import { ASSISTANT_SYSTEM_PROMPT, DECISION_LEVELS, formatSpotContextForPrompt, isStrategyStatus } from "@/lib/ai/assistantPrompt";
+import { AiError, AI_SECURITY_HEADERS, AI_TIMEOUT_MS, assertAiOrigin, enforceAiRateLimit, isLoopback, MAX_AI_BODY_BYTES, ollamaEnabled, publicAiError } from "@/lib/ai/security";
+import type { AiMessage, AiRequest } from "@/lib/ai/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
-const SECURITY_HEADERS = {
-  "Cache-Control": "no-store",
-  "X-Content-Type-Options": "nosniff",
-};
-
-const MAX_COACH_BODY_BYTES = 6 * 1024 * 1024; // 6 MiB físico (texto + print)
-const MAX_PROMPT_CHARS = 8000;
-const MAX_IMAGE_BASE64_CHARS = 5_600_000;
-const ALLOWED_IMAGE_MIME = new Set([
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/gif",
-]);
-
-const COACH_RATE_WINDOW_MS = 60_000;
-const COACH_RATE_LIMIT = 20;
-const recentPostTimestamps: number[] = [];
-
-function checkCoachRateLimit(now = Date.now()): boolean {
-  while (
-    recentPostTimestamps.length > 0 &&
-    now - recentPostTimestamps[0] > COACH_RATE_WINDOW_MS
-  ) {
-    recentPostTimestamps.shift();
-  }
-  if (recentPostTimestamps.length >= COACH_RATE_LIMIT) {
-    return false;
-  }
-  recentPostTimestamps.push(now);
-  return true;
-}
-
-const ALLOWED_MODELS = new Set([
-  "gemini-3.8-flash",
-  "gemini-3.5-flash-lite",
-  "gemini-4-argon",
-  "gemini-4-carbon",
-]);
+function json(value: unknown, status = 200) { return NextResponse.json(value, { status, headers: { ...AI_SECURITY_HEADERS, ...(status === 429 ? { "Retry-After": "60" } : {}) } }); }
 
 export async function GET(req: NextRequest) {
   try {
-    assertCoachAccess(req);
-  } catch (e) {
-    return NextResponse.json(
-      { ok: false, error: e instanceof Error ? e.message : "Acesso recusado." },
-      { status: 403, headers: SECURITY_HEADERS },
-    );
-  }
-
-  const hasEnvKey = Boolean(
-    process.env.GEMINI_API_KEY?.trim() || process.env.GOOGLE_API_KEY?.trim(),
-  );
-  return NextResponse.json(
-    {
-      ok: true,
-      hasEnvKey,
-      studyOnly: true,
-      defaultModel: "gemini-3.8-flash",
-      availableModels: Array.from(ALLOWED_MODELS),
-    },
-    { headers: SECURITY_HEADERS },
-  );
+    assertAiOrigin(req);
+    const localOllamaEnabled = ollamaEnabled() && isLoopback(new URL(req.url));
+    return json({ ok: true, providers: listProviders().filter((provider) => !provider.localOnly || localOllamaEnabled), localOllamaEnabled, studyOnly: true, notice: DISCOVERY_NOTICE });
+  } catch (error) { const safe = publicAiError(error); return json({ error: safe.error }, safe.status); }
 }
 
-interface CoachRequestBody {
-  prompt: string;
-  model?: string;
-  apiKey?: string;
-  previousInteractionId?: string;
-  imageBase64?: string;
-  imageMimeType?: string;
-  spotContext?: {
-    spotName?: string;
-    stackBb?: number;
-    heroPosition?: string;
-    villainPosition?: string | null;
-    spotType?: string;
-    handClass?: string;
-    cardsText?: string;
-    chosenAction?: string;
-    gtoDistribution?: Record<string, number>;
-    rngValue?: number | null;
+async function bodyJson(req: Request, signal: AbortSignal): Promise<Record<string, unknown>> {
+  const limit = isLoopback(new URL(req.url)) && !process.env.VERCEL ? MAX_AI_BODY_BYTES : 4 * 1024 * 1024;
+  const declaredLength = req.headers.get("content-length");
+  if (declaredLength && (!/^\d+$/.test(declaredLength) || Number(declaredLength) > limit)) throw new AiError(413, "Corpo da requisição excede o limite permitido (4 MiB no site público; 6 MiB local).");
+  const reader = req.body?.getReader();
+  if (!reader) throw new AiError(400, "Envie um objeto JSON válido.");
+  const chunks: Uint8Array[] = []; let length = 0;
+  const onAbort = () => { void reader.cancel().catch(() => {}); };
+  signal.addEventListener("abort", onAbort, { once: true });
+  try {
+    while (true) {
+      signal.throwIfAborted();
+      const next = await reader.read();
+      signal.throwIfAborted();
+      if (next.done) break;
+      length += next.value.byteLength;
+      if (length > limit) throw new AiError(413, "Corpo da requisição excede o limite permitido (4 MiB no site público; 6 MiB local).");
+      chunks.push(next.value);
+    }
+    const bytes = new Uint8Array(length); let offset = 0;
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+    let value: unknown;
+    try { value = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)); } catch { throw new AiError(400, "Corpo da requisição inválido: UTF-8 ou JSON malformado."); }
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw new AiError(400, "Corpo da requisição inválido: esperado objeto JSON.");
+    return value as Record<string, unknown>;
+  } finally { signal.removeEventListener("abort", onAbort); await reader.cancel().catch(() => {}); reader.releaseLock(); }
+}
+
+const FIELDS = new Set(["action", "provider", "apiKey", "model", "prompt", "messages", "imageBase64", "imageMimeType", "stream", "spotContext", "previousInteractionId"]);
+
+function validateLegacyContext(body: Record<string, unknown>): void {
+  if (body.previousInteractionId !== undefined && body.previousInteractionId !== "" && (typeof body.previousInteractionId !== "string" || body.previousInteractionId.length > 160 || !/^[A-Za-z0-9._:-]+$/.test(body.previousInteractionId))) throw new AiError(400, "Identificador de conversa inválido.");
+  if (body.spotContext == null) return;
+  if (typeof body.spotContext !== "object" || Array.isArray(body.spotContext) || JSON.stringify(body.spotContext).length > 16_384) throw new AiError(400, "Contexto do exercício inválido ou maior que 16 KB.");
+  const spot = record(body.spotContext);
+  if (spot.stackBb !== undefined && (typeof spot.stackBb !== "number" || !Number.isFinite(spot.stackBb) || spot.stackBb <= 0 || spot.stackBb > 10_000)) throw new AiError(400, "Stack do exercício inválido.");
+  if (spot.rngValue != null && (typeof spot.rngValue !== "number" || !Number.isFinite(spot.rngValue) || spot.rngValue < 0 || spot.rngValue > 100)) throw new AiError(400, "RNG do exercício inválido.");
+  if (spot.gtoDistribution !== undefined) {
+    if (!spot.gtoDistribution || typeof spot.gtoDistribution !== "object" || Array.isArray(spot.gtoDistribution)) throw new AiError(400, "Distribuição de ações inválida.");
+    const entries = Object.entries(spot.gtoDistribution);
+    if (entries.length > 16 || entries.some(([key, value]) => key.length > 100 || typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1)) throw new AiError(400, "Frequência inválida na distribuição de ações.");
+  }
+  if (spot.strategyStatus !== undefined && !isStrategyStatus(spot.strategyStatus)) throw new AiError(400, "Status da referência estratégico inválido.");
+  if (spot.evAvailable !== undefined && typeof spot.evAvailable !== "boolean") throw new AiError(400, "Indicador de EV inválido.");
+  if (spot.chosenActionFrequency != null && (typeof spot.chosenActionFrequency !== "number" || !Number.isFinite(spot.chosenActionFrequency) || spot.chosenActionFrequency < 0 || spot.chosenActionFrequency > 1)) throw new AiError(400, "Frequência da ação escolhida inválida.");
+  if (spot.decisionLevel !== undefined && (typeof spot.decisionLevel !== "string" || !(DECISION_LEVELS as readonly string[]).includes(spot.decisionLevel))) throw new AiError(400, "Nível de avaliação da decisão inválido.");
+  if (spot.missingData !== undefined && (!Array.isArray(spot.missingData) || spot.missingData.length > 12 || spot.missingData.some((item) => typeof item !== "string" || item.length > 300))) throw new AiError(400, "Lista de dados ausentes inválida.");
+}
+
+function messages(body: Record<string, unknown>): AiMessage[] {
+  if (body.messages === undefined) return [];
+  if (!Array.isArray(body.messages) || body.messages.length > 20) throw new AiError(400, "Envie no máximo 20 mensagens anteriores por consulta.");
+  let total = 0;
+  return body.messages.map((item) => {
+    const value = record(item);
+    if ((value.role !== "user" && value.role !== "assistant") || typeof value.content !== "string" || !value.content.trim() || value.content.length > 8000 || Object.keys(value).some((key) => !["role", "content"].includes(key))) throw new AiError(400, "Histórico inválido: use mensagens de usuário/assistente com até 8.000 caracteres.");
+    total += value.content.length;
+    if (total > 32_000) throw new AiError(400, "O histórico excede 32.000 caracteres. Inicie uma nova conversa.");
+    return { role: value.role, content: value.content };
+  });
+}
+
+function image(body: Record<string, unknown>): AiRequest["image"] {
+  if (body.imageBase64 === undefined || body.imageBase64 === "") return undefined;
+  const data = body.imageBase64;
+  const mime = body.imageMimeType ?? "image/png";
+  // Evitar repetição de grupos sobre milhões de caracteres (estouro da pilha de RegExp).
+  if (typeof data !== "string" || data.length > 5_600_000 || data.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/.test(data) || typeof mime !== "string" || !["image/png", "image/jpeg", "image/webp", "image/gif"].includes(mime)) throw new AiError(400, "Imagem inválida. Use PNG, JPEG, WEBP ou GIF dentro do limite permitido.");
+  return { data, mime };
+}
+
+const SYSTEM = ASSISTANT_SYSTEM_PROMPT;
+
+/** Hold back a key-length suffix so even a reflected secret split across stream chunks is removed. */
+function secretFilter(secret: string) {
+  let buffer = "";
+  return (delta: string, final = false) => {
+    buffer += delta;
+    if (!secret) { const all = buffer; buffer = ""; return all; }
+    buffer = buffer.split(secret).join("[chave-oculta]");
+    const length = final ? buffer.length : Math.max(0, buffer.length - secret.length + 1);
+    const output = buffer.slice(0, length); buffer = buffer.slice(length); return output;
   };
 }
 
 export async function POST(req: NextRequest) {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const controller = new AbortController();
+  const signal = AbortSignal.any([req.signal, controller.signal]);
   try {
-    assertCoachAccess(req);
-  } catch (e) {
-    return NextResponse.json(
-      { ok: false, error: e instanceof Error ? e.message : "Acesso recusado." },
-      { status: 403, headers: SECURITY_HEADERS },
-    );
-  }
-
-  if (!checkCoachRateLimit()) {
-    return NextResponse.json(
-      {
-        error:
-          "Limite temporário de consultas ao AI Coach atingido (máx. 20 por minuto). Aguarde alguns segundos.",
-      },
-      { status: 429, headers: SECURITY_HEADERS },
-    );
-  }
-
-  try {
-    const rawBytes = await limitedBody(req, MAX_COACH_BODY_BYTES);
-    let parsed: unknown;
-    try {
-      const decoded = new TextDecoder("utf-8", { fatal: true }).decode(rawBytes);
-      parsed = JSON.parse(decoded);
-    } catch {
-      return NextResponse.json(
-        { error: "Corpo da requisição inválido: UTF-8 ou JSON malformado." },
-        { status: 400, headers: SECURITY_HEADERS },
-      );
-    }
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      return NextResponse.json(
-        { error: "Corpo da requisição inválido: esperado objeto JSON." },
-        { status: 400, headers: SECURITY_HEADERS },
-      );
-    }
-    const body = parsed as CoachRequestBody;
-
-    if (body.previousInteractionId !== undefined && body.previousInteractionId !== "") {
-      if (
-        typeof body.previousInteractionId !== "string" ||
-        body.previousInteractionId.length > 160 ||
-        !/^[A-Za-z0-9._:-]+$/.test(body.previousInteractionId)
-      ) {
-        return NextResponse.json(
-          { error: "Identificador previousInteractionId inválido." },
-          { status: 400, headers: SECURITY_HEADERS },
-        );
-      }
-    }
-
-    if (body.spotContext !== undefined && body.spotContext !== null) {
-      if (typeof body.spotContext !== "object" || Array.isArray(body.spotContext)) {
-        return NextResponse.json(
-          { error: "Campo spotContext inválido: esperado objeto JSON." },
-          { status: 400, headers: SECURITY_HEADERS },
-        );
-      }
-      const spotJsonLen = JSON.stringify(body.spotContext).length;
-      if (spotJsonLen > 16_384) {
-        return NextResponse.json(
-          { error: "Campo spotContext excede o limite de 16 KB." },
-          { status: 400, headers: SECURITY_HEADERS },
-        );
-      }
-      if (
-        body.spotContext.stackBb !== undefined &&
-        (typeof body.spotContext.stackBb !== "number" ||
-          !Number.isFinite(body.spotContext.stackBb) ||
-          body.spotContext.stackBb <= 0 ||
-          body.spotContext.stackBb > 10_000)
-      ) {
-        return NextResponse.json(
-          { error: "Campo spotContext.stackBb inválido." },
-          { status: 400, headers: SECURITY_HEADERS },
-        );
-      }
-      if (
-        body.spotContext.rngValue !== undefined &&
-        body.spotContext.rngValue !== null &&
-        (typeof body.spotContext.rngValue !== "number" ||
-          !Number.isFinite(body.spotContext.rngValue) ||
-          body.spotContext.rngValue < 0 ||
-          body.spotContext.rngValue > 100)
-      ) {
-        return NextResponse.json(
-          { error: "Campo spotContext.rngValue inválido." },
-          { status: 400, headers: SECURITY_HEADERS },
-        );
-      }
-      if (body.spotContext.gtoDistribution !== undefined) {
-        if (
-          !body.spotContext.gtoDistribution ||
-          typeof body.spotContext.gtoDistribution !== "object" ||
-          Array.isArray(body.spotContext.gtoDistribution)
-        ) {
-          return NextResponse.json(
-            { error: "Campo spotContext.gtoDistribution inválido." },
-            { status: 400, headers: SECURITY_HEADERS },
-          );
-        }
-        const entries = Object.entries(body.spotContext.gtoDistribution);
-        if (entries.length > 16) {
-          return NextResponse.json(
-            { error: "Campo spotContext.gtoDistribution excede 16 ações." },
-            { status: 400, headers: SECURITY_HEADERS },
-          );
-        }
-        for (const [, p] of entries) {
-          if (typeof p !== "number" || !Number.isFinite(p) || p < 0 || p > 1) {
-            return NextResponse.json(
-              { error: "Frequência inválida em spotContext.gtoDistribution." },
-              { status: 400, headers: SECURITY_HEADERS },
-            );
+    assertAiOrigin(req);
+    timeout = setTimeout(() => controller.abort(new DOMException("Tempo excedido", "TimeoutError")), AI_TIMEOUT_MS);
+    await enforceAiRateLimit(req);
+    const body = await bodyJson(req, signal);
+    if (Object.keys(body).some((field) => !FIELDS.has(field))) throw new AiError(400, "A requisição contém campos não permitidos.");
+    validateLegacyContext(body);
+    const previous = messages(body);
+    const attachedImage = image(body);
+    const action = body.action ?? "chat";
+    if (typeof action !== "string" || !["models", "test", "chat"].includes(action)) throw new AiError(400, "Operação de IA inválida.");
+    if (body.stream !== undefined && typeof body.stream !== "boolean") throw new AiError(400, "Opção de streaming inválida.");
+    const provider = getProvider(body.provider);
+    if (provider.localOnly && !isLoopback(new URL(req.url))) throw new AiError(403, "Ollama só pode ser usado pelo servidor da instalação local.");
+    const apiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
+    if ((!provider.localOnly && !apiKey) || apiKey.length > 1024 || /[\x00-\x20\x7f]/.test(apiKey)) throw new AiError(400, "Informe a chave pessoal do provedor selecionado nas configurações.");
+    if (action !== "models" && !isSafeModelId(body.model)) throw new AiError(400, "Selecione um ID de modelo válido da lista do provedor.");
+    if (body.prompt !== undefined && typeof body.prompt !== "string") throw new AiError(400, "Pergunta inválida: envie um texto.");
+    const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
+    if (prompt.length > 8000) throw new AiError(400, "Pergunta excede o limite de 8.000 caracteres.");
+    if (action === "chat" && !prompt && !attachedImage) throw new AiError(400, "Envie uma pergunta ou imagem para revisão pós-sessão.");
+    const context = { signal };
+    const availableModels = await provider.listModels(apiKey, context);
+    if (action === "models") return json({ models: availableModels, notice: DISCOVERY_NOTICE, provider: provider.id });
+    const model = availableModels.find((candidate) => candidate.id === body.model);
+    if (!model) throw new AiError(400, "Modelo indisponível, incompatível com chat ou sem acesso. Atualize a lista de modelos.");
+    if (attachedImage && !model.images) throw new AiError(400, "O modelo selecionado não tem suporte confirmado a imagens. Escolha outro modelo explicitamente ou remova a imagem.");
+    const knowledgeHits = action === "chat" ? searchKnowledge(prompt, 4) : [];
+    const videoHits = action === "chat" ? searchVideos(prompt, 3) : [];
+    const userText = action === "test" ? "Responda somente: Conexão OK." : [
+      body.spotContext ? formatSpotContextForPrompt(record(body.spotContext)) : "",
+      knowledgeHits.length ? `Trechos didáticos da biblioteca do aplicativo:\n${knowledgeHits.map((hit, index) => `[Fonte ${index + 1}: ${hit.source}]\n${hit.text}`).join("\n\n")}` : "",
+      `Pergunta do aluno:\n${prompt || "Explique esta imagem para revisão pós-sessão."}`,
+    ].filter(Boolean).join("\n\n---\n\n");
+    const request: AiRequest = { apiKey, model: model.id, system: SYSTEM, messages: [...(action === "test" ? [] : previous), { role: "user", content: userText }], image: action === "chat" ? attachedImage : undefined };
+    const metadata = { model: model.id, provider: provider.id, sourcesUsed: knowledgeHits.map((hit) => hit.source), relatedVideos: videoHits };
+    if (action === "chat" && body.stream === true && model.streaming) {
+      const filter = secretFilter(apiKey);
+      const iterator = provider.stream(request, context);
+      const encoder = new TextEncoder();
+      const activeTimeout = timeout;
+      timeout = undefined;
+      let stopped = false;
+      const stream = new ReadableStream<Uint8Array>({
+        async pull(output) {
+          if (stopped) return;
+          try {
+            // O filtro pode reter um chunk inteiro; continuar lendo até produzir saída.
+            while (!stopped) {
+              const next = await iterator.next();
+              if (stopped) return;
+              if (next.done) throw new AiError(502, "Resposta interrompida antes da conclusão. O trecho recebido pode estar incompleto.");
+              if (next.value.type === "delta") {
+                const text = filter(next.value.text);
+                if (!text) continue;
+                output.enqueue(encoder.encode(JSON.stringify({ type: "delta", text }) + "\n"));
+                return;
+              }
+              const remaining = filter("", true);
+              if (remaining) output.enqueue(encoder.encode(JSON.stringify({ type: "delta", text: remaining }) + "\n"));
+              output.enqueue(encoder.encode(JSON.stringify({ type: "done", ...metadata, usage: next.value.usage }) + "\n"));
+              stopped = true; output.close(); clearTimeout(activeTimeout); await iterator.return(undefined);
+            }
+          } catch (error) {
+            if (stopped) return;
+            const safe = publicAiError(error);
+            output.enqueue(encoder.encode(JSON.stringify({ type: "error", error: safe.error }) + "\n"));
+            stopped = true; output.close(); clearTimeout(activeTimeout); controller.abort();
           }
-        }
-      }
-    }
-
-    const apiKey =
-      (typeof body.apiKey === "string" ? body.apiKey.trim() : "") ||
-      process.env.GEMINI_API_KEY?.trim() ||
-      process.env.GOOGLE_API_KEY?.trim();
-
-    if (!apiKey) {
-      return NextResponse.json(
-        {
-          error:
-            "Nenhuma chave da API do Google AI Studio configurada. Adicione GEMINI_API_KEY no arquivo .env.local ou informe sua chave nas Configurações (ícone de engrenagem).",
         },
-        { status: 400, headers: SECURITY_HEADERS },
-      );
+        async cancel() { stopped = true; controller.abort(); clearTimeout(activeTimeout); await iterator.return(undefined); },
+      });
+      return new Response(stream, { headers: { ...AI_SECURITY_HEADERS, "Content-Type": "application/x-ndjson; charset=utf-8", "X-Accel-Buffering": "no" } });
     }
-
-    const cleanPrompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
-    const hasImage = typeof body.imageBase64 === "string" && body.imageBase64.length > 0;
-
-    if (!cleanPrompt && !hasImage) {
-      return NextResponse.json(
-        { error: "Envie uma pergunta ou uma imagem para análise." },
-        { status: 400, headers: SECURITY_HEADERS },
-      );
-    }
-
-    if (cleanPrompt.length > MAX_PROMPT_CHARS) {
-      return NextResponse.json(
-        { error: `Pergunta excede o limite de ${MAX_PROMPT_CHARS} caracteres.` },
-        { status: 400, headers: SECURITY_HEADERS },
-      );
-    }
-
-    if (hasImage) {
-      if ((body.imageBase64?.length ?? 0) > MAX_IMAGE_BASE64_CHARS) {
-        return NextResponse.json(
-          { error: "Imagem anexada excede o limite permitido." },
-          { status: 400, headers: SECURITY_HEADERS },
-        );
-      }
-      if (!/^[A-Za-z0-9+/=\r\n]+$/.test(body.imageBase64 ?? "")) {
-        return NextResponse.json(
-          { error: "Codificação base64 da imagem inválida." },
-          { status: 400, headers: SECURITY_HEADERS },
-        );
-      }
-      const mime = body.imageMimeType || "image/png";
-      if (!ALLOWED_IMAGE_MIME.has(mime)) {
-        return NextResponse.json(
-          { error: "Formato de imagem não suportado. Use PNG, JPEG, WEBP ou GIF." },
-          { status: 400, headers: SECURITY_HEADERS },
-        );
-      }
-    }
-
-    const model =
-      body.model && ALLOWED_MODELS.has(body.model) ? body.model : "gemini-3.8-flash";
-
-    // Busca contexto real nos PDFs e livros da pasta Projeto-Poker
-    const ragQuery = [
-      cleanPrompt,
-      body.spotContext?.spotName ?? "",
-      body.spotContext?.heroPosition ?? "",
-      body.spotContext?.villainPosition ?? "",
-      body.spotContext?.spotType ?? "",
-    ]
-      .join(" ")
-      .trim();
-
-    const knowledgeHits = searchKnowledge(ragQuery, 4);
-    const videoHits = searchVideos(ragQuery, 3);
-
-    const knowledgeBlock =
-      knowledgeHits.length > 0
-        ? knowledgeHits
-            .map((k, i) => `[Fonte ${i + 1}: ${k.source}]\n${k.text}`)
-            .join("\n\n")
-        : "Sem trechos específicos encontrados no índice local.";
-
-    const videoBlock =
-      videoHits.length > 0
-        ? videoHits.map((v) => `- ${v.title} (${v.relativePath})`).join("\n")
-        : "";
-
-    let spotSummary = "";
-    if (body.spotContext) {
-      const s = body.spotContext;
-      const distText = s.gtoDistribution
-        ? Object.entries(s.gtoDistribution)
-            .sort((a, b) => b[1] - a[1])
-            .map(([act, p]) => `${act}: ${Math.round(p * 100)}%`)
-            .join(" | ")
-        : "";
-      spotSummary = [
-        `SPOT ATUAL DO TRAINER:`,
-        `- Cenário: ${s.spotName ?? "N/A"} (Stack: ${s.stackBb ?? "?"}BB)`,
-        `- Herói: ${s.heroPosition ?? "?"}${s.villainPosition ? ` vs Vilão: ${s.villainPosition}` : ""}`,
-        s.handClass ? `- Mão: ${s.cardsText ?? s.handClass} (${s.handClass})` : "",
-        s.chosenAction ? `- Decisão do Aluno: ${s.chosenAction}` : "",
-        distText ? `- Estratégia GTO Real do Solver: ${distText}` : "",
-        s.rngValue != null ? `- RNG Sorteado: ${s.rngValue}` : "",
-      ]
-        .filter(Boolean)
-        .join("\n");
-    }
-
-    const systemInstruction = `Você é um Coach Profissional de Poker GTO e Explorativo focado em torneios MTT (em Português do Brasil), exclusivo para ESTUDO OFFLINE e REVISÃO PÓS-SESSÃO.
-Suas explicações devem ser didáticas, objetivas e matematicamente rigorosas.
-REGRAS FUNDAMENTAIS:
-1. Recuse qualquer pedido de assistência em tempo real (RTA) durante mesas ou torneios ativos; oriente exclusivamente para estudo e revisão.
-2. Quando receber a "Estratégia GTO Real do Solver", NUNCA contradiga ou invente frequências diferentes — use-as como verdade absoluta e explique o PORQUÊ teórico por trás daquela frequência (ex: bloqueadores, realizabilidade de equidade, posição IP/OOP, pot odds, MDF, pressão de ICM/PKO em MTT, SPR ou construção de range polarizado/linear).
-3. Quando citar conceitos teóricos, apoie-se estritamente nos trechos do material de estudo fornecidos abaixo e NÃO invente livros ou fontes ausentes.
-4. Estruture a resposta com títulos curtos, bullets objetivos e uma conclusão prática aplicável ao estudo de MTT.`;
-
-    const fullUserText = [
-      spotSummary,
-      `TRECHOS DO MATERIAL DE ESTUDO DO ALUNO (Projeto-Poker):\n${knowledgeBlock}`,
-      videoBlock ? `AULAS EM VÍDEO RELACIONADAS NA PASTA:\n${videoBlock}` : "",
-      `PERGUNTA / PEDIDO DO ALUNO:\n${cleanPrompt || "Analise esta imagem de poker para revisão pós-sessão de MTT e explique os conceitos envolvidos."}`,
-    ]
-      .filter(Boolean)
-      .join("\n\n---\n\n");
-
-    const ai = new GoogleGenAI({ apiKey });
-
-    const inputPayload = hasImage
-      ? [
-          { type: "text" as const, text: fullUserText },
-          {
-            type: "image" as const,
-            data: body.imageBase64!,
-            mime_type: body.imageMimeType || "image/png",
-          },
-        ]
-      : fullUserText;
-
-    const interaction = await ai.interactions.create({
-      model,
-      input: inputPayload,
-      system_instruction: systemInstruction,
-      ...(typeof body.previousInteractionId === "string" && body.previousInteractionId
-        ? { previous_interaction_id: body.previousInteractionId }
-        : {}),
-    });
-
-    const text =
-      interaction.output_text ||
-      "Não foi possível extrair resposta textual do modelo.";
-
-    return NextResponse.json(
-      {
-        text,
-        interactionId: interaction.id,
-        model,
-        sourcesUsed: knowledgeHits.map((k) => k.source),
-        relatedVideos: videoHits,
-      },
-      { headers: SECURITY_HEADERS },
-    );
-  } catch (err: unknown) {
-    if (err instanceof PayloadTooLargeError) {
-      return NextResponse.json(
-        { error: "Corpo da requisição excede o limite máximo de 6 MiB." },
-        { status: 413, headers: SECURITY_HEADERS },
-      );
-    }
-    const rawMsg =
-      err instanceof Error ? err.message : "Erro ao consultar a API do Google AI Studio.";
-    const safeMsg = rawMsg
-      .replace(/AIza[0-9A-Za-z_-]{10,}/g, "[chave-oculta]")
-      .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, "Bearer [chave-oculta]")
-      .replace(/(?:api[_-]?key|x-goog-api-key)[=:\s]+[^\s,;]+/gi, "apiKey=[chave-oculta]");
-    return NextResponse.json(
-      { error: safeMsg },
-      { status: 500, headers: SECURITY_HEADERS },
-    );
-  }
+    const answer = action === "test" ? await provider.verifyCredentials(request, context) : await provider.send(request, context);
+    const text = apiKey ? answer.text.split(apiKey).join("[chave-oculta]") : answer.text;
+    return json({ ...answer, text, ...metadata, ...(action === "test" ? { ok: true } : {}) });
+  } catch (error) {
+    const safe = publicAiError(error); return json({ error: safe.error }, safe.status);
+  } finally { if (timeout) clearTimeout(timeout); }
 }

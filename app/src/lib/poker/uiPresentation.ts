@@ -15,7 +15,7 @@ export type ActionVisualRole =
 
 export interface ActionVisualStyle {
   role: ActionVisualRole;
-  /** Cor de fundo hexadecimal WCAG AA para texto claro. */
+  /** Cor de fundo hexadecimal; utilizar sempre o par `text` correspondente. */
   bg: string;
   /** Cor de fundo ao passar o cursor ou selecionar. */
   hoverBg: string;
@@ -34,58 +34,58 @@ export interface ActionVisualStyle {
 const ACTION_STYLES: Record<ActionVisualRole, ActionVisualStyle> = {
   fold: {
     role: "fold",
-    bg: "#1E3A5F",
-    hoverBg: "#254875",
+    bg: "#1D4ED8",
+    hoverBg: "#1E40AF",
     border: "#3B82F6",
-    text: "#F8FAFC",
+    text: "#FFFFFF",
     shortGlyph: "F",
     categoryLabel: "Fold",
     buttonClass:
-      "bg-[#1E3A5F] hover:bg-[#254875] border-[#3B82F6] text-[#F8FAFC]",
+      "bg-[#1D4ED8] hover:bg-[#1E40AF] border-[#3B82F6] text-white",
   },
   call: {
     role: "call",
-    bg: "#15803D",
-    hoverBg: "#166534",
+    bg: "#047857",
+    hoverBg: "#065F46",
     border: "#22C55E",
     text: "#FFFFFF",
     shortGlyph: "C",
     categoryLabel: "Call",
     buttonClass:
-      "bg-[#15803D] hover:bg-[#166534] border-[#22C55E] text-white",
+      "bg-[#047857] hover:bg-[#065F46] border-[#22C55E] text-white",
   },
   check: {
     role: "check",
-    bg: "#15803D",
-    hoverBg: "#166534",
-    border: "#22C55E",
+    bg: "#475569",
+    hoverBg: "#334155",
+    border: "#94A3B8",
     text: "#FFFFFF",
     shortGlyph: "X",
     categoryLabel: "Check",
     buttonClass:
-      "bg-[#15803D] hover:bg-[#166534] border-[#22C55E] text-white",
+      "bg-[#475569] hover:bg-[#334155] border-[#94A3B8] text-white",
   },
   limp: {
     role: "limp",
-    bg: "#A16207",
-    hoverBg: "#854D0E",
+    bg: "#FACC15",
+    hoverBg: "#EAB308",
     border: "#FACC15",
-    text: "#FFFFFF",
+    text: "#111827",
     shortGlyph: "L",
     categoryLabel: "Limp",
     buttonClass:
-      "bg-[#A16207] hover:bg-[#854D0E] border-[#FACC15] text-white",
+      "bg-[#FACC15] hover:bg-[#EAB308] border-[#FACC15] text-[#111827]",
   },
   bet: {
     role: "bet",
-    bg: "#B91C1C",
-    hoverBg: "#DC2626",
-    border: "#F87171",
+    bg: "#C2410C",
+    hoverBg: "#9A3412",
+    border: "#FB923C",
     text: "#FFFFFF",
     shortGlyph: "B",
     categoryLabel: "Bet",
     buttonClass:
-      "bg-[#B91C1C] hover:bg-[#DC2626] border-[#F87171] text-white",
+      "bg-[#C2410C] hover:bg-[#9A3412] border-[#FB923C] text-white",
   },
   raise: {
     role: "raise",
@@ -100,14 +100,14 @@ const ACTION_STYLES: Record<ActionVisualRole, ActionVisualStyle> = {
   },
   allin: {
     role: "allin",
-    bg: "#7F1D1D",
-    hoverBg: "#991B1B",
-    border: "#FCA5A5",
+    bg: "#6D28D9",
+    hoverBg: "#5B21B6",
+    border: "#A78BFA",
     text: "#FFFFFF",
     shortGlyph: "A",
     categoryLabel: "All-in",
     buttonClass:
-      "bg-[#7F1D1D] hover:bg-[#991B1B] border-[#FCA5A5] text-white",
+      "bg-[#6D28D9] hover:bg-[#5B21B6] border-[#A78BFA] text-white",
   },
   neutral: {
     role: "neutral",
@@ -125,14 +125,15 @@ const ACTION_STYLES: Record<ActionVisualRole, ActionVisualStyle> = {
 export function classifyActionRole(action: string): ActionVisualRole {
   const norm = action.trim().toLowerCase();
   if (!norm) return "neutral";
-  if (norm === "fold") return "fold";
-  if (norm === "check") return "check";
-  if (norm === "call") return "call";
+  if (norm.startsWith("fold")) return "fold";
+  if (norm.startsWith("check")) return "check";
+  if (norm.startsWith("call")) return "call";
   if (norm.includes("limp")) return "limp";
   if (
     norm.includes("allin") ||
     norm.includes("all-in") ||
     norm.includes("all_in") ||
+    norm.includes("all in") ||
     norm.includes("shove")
   ) {
     return "allin";
@@ -155,6 +156,51 @@ export function classifyActionRole(action: string): ActionVisualRole {
 
 export function getActionVisualStyle(action: string): ActionVisualStyle {
   return ACTION_STYLES[classifyActionRole(action)];
+}
+
+/** Apresentação apenas: mantém as frequências originais, inclusive os resíduos. */
+export function getActionDistributionVisual(
+  distribution: Record<string, number>,
+  actionOrder: readonly string[] = [],
+): {
+  background: string;
+  text: string;
+  labelBackground: string | undefined;
+  incomplete: boolean;
+  total: number;
+} {
+  const orderedActions = [...new Set([...actionOrder, ...Object.keys(distribution)])];
+  const stops: string[] = [];
+  let total = 0;
+  let singleStyle: ActionVisualStyle | undefined;
+  for (const action of orderedActions) {
+    const frequency = distribution[action];
+    if (!Number.isFinite(frequency) || frequency <= 0) continue;
+    const visual = getActionVisualStyle(action);
+    // Não arredonda os limites nem preenche com Fold o que não foi informado.
+    stops.push(`${visual.bg} ${total * 100}% ${(total + frequency) * 100}%`);
+    total += frequency;
+    singleStyle = visual;
+  }
+  const incomplete = Math.abs(total - 1) > 0.000001;
+  const mixedBackground = stops.length > 1 || incomplete;
+  if (total < 1) {
+    stops.push(`${ACTION_STYLES.neutral.bg} ${total * 100}% 100%`);
+  }
+  return {
+    background: `linear-gradient(to right, ${stops.join(", ")})`,
+    text: mixedBackground ? "#FFFFFF" : (singleStyle?.text ?? "#FFFFFF"),
+    // Em células mistas o rótulo tem fundo próprio para não cruzar o amarelo com texto branco.
+    labelBackground: mixedBackground ? "#111827" : undefined,
+    incomplete,
+    total,
+  };
+}
+
+export function formatActionFrequencyPtBr(frequency: number): string {
+  return `${Number((frequency * 100).toPrecision(12)).toLocaleString("pt-BR", {
+    maximumFractionDigits: 10,
+  })}%`;
 }
 
 /**

@@ -25,7 +25,7 @@ export interface HandSnapshot {
 export interface HandEvent {
   sequence: number;
   sourceActionIndex: number | null;
-  origin: "PHH" | "RULE_DERIVED";
+  origin: "PHH" | "POKERSTARS" | "RULE_DERIVED";
   kind: string; // Nome da operação PokerKit ou UncollectedBetReturn documentado.
   playerIndex: number | null;
   amountAtoms: AtomicAmount | null; // cbr é alvo total da street, não incremento.
@@ -50,8 +50,8 @@ export interface CanonicalHand {
   profile: "PHH_NT_SUBSET_1";
   recordId: string;
   source: {
-    format: "PHH";
-    targetStandardVersion: "0.0.2"; // Alvo do parser; a fonte PHH não declara versão.
+    format: "PHH" | "POKERSTARS";
+    targetStandardVersion: "0.0.2" | "PS_TEXT_1"; // Alvo do parser; PHH não declara versão e PokerStars usa PS_TEXT_1.
     sha256: string;
     byteLength: number;
     fileName: Observed<string>;

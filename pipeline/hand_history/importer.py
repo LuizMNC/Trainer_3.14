@@ -207,6 +207,9 @@ class Session:
         self.settlement_started = False
         self.pots_captured = False
         self.retained_matched = [0] * self.n
+        self.event_origin = "PHH"
+        self.allow_fold_on_check = False
+        self.extra_warnings: list[str] = []
         self.initial = [self.atoms(v) for v in doc["starting_stacks"]]
         self.state = NoLimitTexasHoldem.create_state(
             (), doc.get("ante_trimming_status", False), [self.atoms(v) for v in doc["antes"]],
@@ -259,10 +262,10 @@ class Session:
                 self.mucked[actor] = True
         elif kind == "ChipsPushing":
             awarded = list(op.amounts)
-            if op.pot_index == 0:
+            if op.pot_index == 0 and any(self.retained_matched):
                 awarded = [amount + self.retained_matched[i] for i, amount in enumerate(awarded)]
-            for i, amount in enumerate(awarded):
-                self.pots[op.pot_index]["awardsAtoms"][i] = str(int(self.pots[op.pot_index]["awardsAtoms"][i]) + amount)
+                self.retained_matched = [0] * self.n
+            self._allocate_pot_awards(op.pot_index, awarded)
         if any(v < 0 for v in paid + returned):
             raise ImportFailure("LEDGER", "Movimentação negativa inesperada no ledger.")
         for i in range(self.n):
@@ -274,12 +277,47 @@ class Session:
         if len(known) != len(set(known)):
             raise ImportFailure("DUPLICATE_CARD", "Carta conhecida repetida entre mãos e board.", "actions", source_index)
         cards = (op.card,) if kind == "CardBurning" else getattr(op, "cards", getattr(op, "hole_cards", ()))
-        event = {"sequence": len(self.events), "sourceActionIndex": source_index, "origin": "PHH" if reported else "RULE_DERIVED",
+        event = {"sequence": len(self.events), "sourceActionIndex": source_index, "origin": self.event_origin if reported else "RULE_DERIVED",
                  "kind": kind, "playerIndex": actor, "amountAtoms": str(op.amount) if hasattr(op, "amount") else None,
                  "cards": [None if repr(c) == "??" else repr(c) for c in cards],
                  "paidAtoms": list(map(str, paid)), "returnedAtoms": list(map(str, returned)), "awardedAtoms": list(map(str, awarded)),
                  "before": before, "after": self.snapshot()}
         self.events.append(event)
+
+    def _allocate_pot_awards(self, pot_index: int, awarded: list[int]) -> None:
+        """Distribui ChipsPushing nos potes antes de HandKilling, tratando sweeps mesclados pelo PokerKit."""
+        remaining = list(awarded)
+        for pot in self.pots[pot_index:]:
+            if not any(remaining):
+                return
+            current_sum = sum(int(x) for x in pot["awardsAtoms"])
+            capacity = int(pot["amountAtoms"]) - current_sum
+            if capacity <= 0:
+                continue
+            eligible = pot["eligiblePlayerIndices"]
+            winners_here = [i for i in eligible if remaining[i] > 0]
+            if not winners_here:
+                continue
+            # Caso direto (sem sweep multi-pote): todo restante cabe exatamente neste pote e elegíveis batem.
+            if sum(remaining) <= capacity and all(i in eligible for i, amt in enumerate(remaining) if amt > 0):
+                for i, amt in enumerate(remaining):
+                    if amt > 0:
+                        pot["awardsAtoms"][i] = str(int(pot["awardsAtoms"][i]) + amt)
+                        remaining[i] = 0
+                return
+            if len(winners_here) == 1:
+                wi = winners_here[0]
+                give = min(capacity, remaining[wi])
+                pot["awardsAtoms"][wi] = str(int(pot["awardsAtoms"][wi]) + give)
+                remaining[wi] -= give
+            else:
+                share, odd = divmod(capacity, len(winners_here))
+                for idx_w, wi in enumerate(winners_here):
+                    give = min(remaining[wi], share + (1 if idx_w < odd else 0))
+                    pot["awardsAtoms"][wi] = str(int(pot["awardsAtoms"][wi]) + give)
+                    remaining[wi] -= give
+        if any(remaining):
+            raise ImportFailure("SETTLEMENT_CONSERVATION", "Prêmio do ChipsPushing excede a capacidade/elegibilidade dos potes.")
 
     def drain(self, source_index: int | None) -> None:
         # Somente tarefas obrigatórias do motor. Não insere check, fold ou cartas de mão.
@@ -347,7 +385,20 @@ class Session:
             if target - max(s.bets) < threshold:
                 self.short_raise_street = s.street_index
         try:
-            self.step(lambda: parse_action_return(s, " ".join(words), self.atoms), index, reported=True)
+            if self.allow_fold_on_check and len(words) == 2 and words[1] == "f":
+                with warnings.catch_warnings(record=True) as caught:
+                    warnings.simplefilter("always")
+                    self.step(lambda: parse_action_return(s, " ".join(words), self.atoms), index, reported=True)
+                for w in caught:
+                    msg = str(w.message)
+                    if isinstance(w.message, UserWarning) and msg.startswith("There is no reason for this player to fold"):
+                        note = "Jogador registrou fold mesmo podendo pedir check sem custo adicional."
+                        if note not in self.extra_warnings:
+                            self.extra_warnings.append(note)
+                    else:
+                        raise w.message
+            else:
+                self.step(lambda: parse_action_return(s, " ".join(words), self.atoms), index, reported=True)
             self.drain(index)
         except (ValueError, UserWarning, IndexError) as exc:
             raise ImportFailure("ILLEGAL_ACTION", "Ação rejeitada pelo motor: " + str(exc), "actions", index) from exc
@@ -361,7 +412,82 @@ def parse_action_return(state: Any, action: str, parse_value: Any) -> Any:
     return state.operations[-1]
 
 
-def import_phh(raw: bytes, source_name: str | None = None) -> ImportResult:
+def finalize_session_result(
+    session: Session,
+    doc: dict[str, Any],
+    scale: int,
+    raw_len: int,
+    raw_sha256: str,
+    source_name: str | None = None,
+    *,
+    record_id_override: str | None = None,
+    source_override: dict[str, Any] | None = None,
+    game_format_field: dict[str, Any] | None = None,
+    extra_metadata: dict[str, Any] | None = None,
+    extra_warnings: list[str] | None = None,
+    roles_override: list[str] | None = None,
+) -> ImportResult:
+    ending = session.snapshot()
+    complete = not session.state.status
+    if "finishing_stacks" in doc and [session.atoms(v) for v in doc["finishing_stacks"]] != session.state.stacks:
+        raise ImportFailure("FINAL_STACKS_MISMATCH", "finishing_stacks diverge do estado reconstruído; não foi ajustado para fazê-lo fechar.", "finishing_stacks")
+    net = [session.gross[i] - session.returns[i] for i in range(session.n)]
+    if complete and (sum(net) != sum(session.awards) or any(session.initial[i] - net[i] + session.awards[i] != session.state.stacks[i] for i in range(session.n))):
+        raise ImportFailure("SETTLEMENT_CONSERVATION", "Contribuições, devoluções, prêmios e stacks finais não fecham.")
+    status = "VALIDATED_COMPLETE" if complete else "VALIDATED_PARTIAL"
+    roles = roles_override if roles_override is not None else (["BB", "BTN/SB"] if session.n == 2 else ["SB", "BB"] + ["OTHER"] * (session.n - 3) + ["BTN"])
+    pos_reason = "Ordem da mesa na fonte PokerStars." if roles_override is not None else "Ordem PHH; HU inverte blinds/antes, sem inventar assento físico."
+    all_warnings = [] if complete else ["Histórico é prefixo legal, não uma mão terminada; nenhum resultado final foi inventado."]
+    for w in [*session.extra_warnings, *(extra_warnings or [])]:
+        if w not in all_warnings:
+            all_warnings.append(w)
+    source_obj = source_override if source_override is not None else {
+        "format": "PHH", "targetStandardVersion": "0.0.2", "sha256": raw_sha256, "byteLength": raw_len,
+        "fileName": field(source_name, present=source_name is not None), "handId": field(doc.get("hand"), present="hand" in doc),
+        "importedAtUtc": datetime.now(timezone.utc).isoformat(),
+    }
+    metadata = {key: metadata_json(value) for key, value in doc.items() if key not in REQUIRED}
+    if extra_metadata:
+        metadata.update(extra_metadata)
+    hand = {"schemaVersion": SCHEMA_VERSION, "profile": PROFILE, "recordId": record_id_override or ("phh-sha256:" + raw_sha256),
+        "source": source_obj,
+        "variant": "NLHE", "gameFormat": game_format_field if game_format_field is not None else field(present=False),
+        "amountPolicy": {"encoding": "UNSIGNED_INTEGER_STRING", "decimalPlaces": scale, "currency": field(doc.get("currency"), present="currency" in doc)},
+        "table": {"playerCount": session.n, "seatCount": field(doc.get("seat_count"), present="seat_count" in doc),
+                  "rawBlindsAtoms": list(map(lambda v: str(session.atoms(v)), doc["blinds_or_straddles"])),
+                  "rawAntesAtoms": list(map(lambda v: str(session.atoms(v)), doc["antes"])), "minBetAtoms": str(session.atoms(doc["min_bet"])),
+                  "anteTrimming": field(doc.get("ante_trimming_status", False), inferred=None if "ante_trimming_status" in doc else "Padrão documentado do perfil: false.")},
+        "players": [{"index": i, "sourceLabel": f"p{i+1}", "name": field(doc.get("players", [None]*session.n)[i], present="players" in doc),
+                     "seat": field(doc.get("seats", [None]*session.n)[i], present="seats" in doc),
+                     "position": field(roles[i], inferred=pos_reason),
+                     "initialStackAtoms": str(session.initial[i]), "holeCards": session.holes[i]} for i in range(session.n)],
+        "sourceActions": doc["actions"], "events": session.events, "ending": ending, "pots": session.pots,
+        "results": {"complete": complete, "computedFinalStacksAtoms": list(map(str, session.state.stacks)) if complete else None,
+                    "reportedEndingStacksAtoms": field([str(session.atoms(v)) for v in doc.get("finishing_stacks", [])], present="finishing_stacks" in doc),
+                    "grossContributionsAtoms": list(map(str, session.gross)), "returnedAtoms": list(map(str, session.returns)),
+                    "netContributionsAtoms": list(map(str, net)), "awardsAtoms": list(map(str, session.awards))},
+        "integrity": {"status": status, "validator": "PokerKit", "validatorVersion": POKERKIT_VERSION,
+                      "engineMode": "CASH_GAME", "gtoAnalysis": "NOT_EVALUATED", "evLoss": None,
+                      "assumptions": ["Sem rake; uma única corrida de board; divisão inteira por ordem PHH no motor; sem reparo de ações.",
+                                      "Modo do motor é política de execução, não evidência de modalidade da mão."],
+                      "warnings": all_warnings},
+        "metadata": metadata}
+    return {"ok": True, "status": status, "issues": [], "hand": hand}
+
+
+def reconstruct_from_phh_bytes(
+    raw: bytes,
+    source_name: str | None = None,
+    *,
+    allow_fold_on_check: bool = False,
+    record_id_override: str | None = None,
+    source_override: dict[str, Any] | None = None,
+    game_format_field: dict[str, Any] | None = None,
+    extra_metadata: dict[str, Any] | None = None,
+    extra_warnings: list[str] | None = None,
+    event_origin: str = "PHH",
+    roles_override: list[str] | None = None,
+) -> ImportResult:
     try:
         if version("pokerkit") != POKERKIT_VERSION:
             raise ImportFailure("DEPENDENCY_VERSION", "Este perfil exige PokerKit " + POKERKIT_VERSION, unsupported=True)
@@ -369,45 +495,22 @@ def import_phh(raw: bytes, source_name: str | None = None) -> ImportResult:
         with warnings.catch_warnings():
             warnings.simplefilter("error")
             session = Session(doc, scale)
+            session.event_origin = event_origin
+            session.allow_fold_on_check = allow_fold_on_check
             session.drain(None)
             for words, index in actions:
                 session.action(words, index)
-        ending = session.snapshot()
-        complete = not session.state.status
-        if "finishing_stacks" in doc and [session.atoms(v) for v in doc["finishing_stacks"]] != session.state.stacks:
-            raise ImportFailure("FINAL_STACKS_MISMATCH", "finishing_stacks diverge do estado reconstruído; não foi ajustado para fazê-lo fechar.", "finishing_stacks")
-        net = [session.gross[i] - session.returns[i] for i in range(session.n)]
-        if complete and (sum(net) != sum(session.awards) or any(session.initial[i] - net[i] + session.awards[i] != session.state.stacks[i] for i in range(session.n))):
-            raise ImportFailure("SETTLEMENT_CONSERVATION", "Contribuições, devoluções, prêmios e stacks finais não fecham.")
-        status = "VALIDATED_COMPLETE" if complete else "VALIDATED_PARTIAL"
-        roles = ["BB", "BTN/SB"] if session.n == 2 else ["SB", "BB"] + ["OTHER"] * (session.n - 3) + ["BTN"]
-        hand = {"schemaVersion": SCHEMA_VERSION, "profile": PROFILE, "recordId": "phh-sha256:" + sha256(raw).hexdigest(),
-            "source": {"format": "PHH", "targetStandardVersion": "0.0.2", "sha256": sha256(raw).hexdigest(), "byteLength": len(raw),
-                       "fileName": field(source_name, present=source_name is not None), "handId": field(doc.get("hand"), present="hand" in doc),
-                       "importedAtUtc": datetime.now(timezone.utc).isoformat()},
-            "variant": "NLHE", "gameFormat": field(present=False),
-            "amountPolicy": {"encoding": "UNSIGNED_INTEGER_STRING", "decimalPlaces": scale, "currency": field(doc.get("currency"), present="currency" in doc)},
-            "table": {"playerCount": session.n, "seatCount": field(doc.get("seat_count"), present="seat_count" in doc),
-                      "rawBlindsAtoms": list(map(lambda v: str(session.atoms(v)), doc["blinds_or_straddles"])),
-                      "rawAntesAtoms": list(map(lambda v: str(session.atoms(v)), doc["antes"])), "minBetAtoms": str(session.atoms(doc["min_bet"])),
-                      "anteTrimming": field(doc.get("ante_trimming_status", False), inferred=None if "ante_trimming_status" in doc else "Padrão documentado do perfil: false.")},
-            "players": [{"index": i, "sourceLabel": f"p{i+1}", "name": field(doc.get("players", [None]*session.n)[i], present="players" in doc),
-                         "seat": field(doc.get("seats", [None]*session.n)[i], present="seats" in doc),
-                         "position": field(roles[i], inferred="Ordem PHH; HU inverte blinds/antes, sem inventar assento físico."),
-                         "initialStackAtoms": str(session.initial[i]), "holeCards": session.holes[i]} for i in range(session.n)],
-            "sourceActions": doc["actions"], "events": session.events, "ending": ending, "pots": session.pots,
-            "results": {"complete": complete, "computedFinalStacksAtoms": list(map(str, session.state.stacks)) if complete else None,
-                        "reportedEndingStacksAtoms": field([str(session.atoms(v)) for v in doc.get("finishing_stacks", [])], present="finishing_stacks" in doc),
-                        "grossContributionsAtoms": list(map(str, session.gross)), "returnedAtoms": list(map(str, session.returns)),
-                        "netContributionsAtoms": list(map(str, net)), "awardsAtoms": list(map(str, session.awards))},
-            "integrity": {"status": status, "validator": "PokerKit", "validatorVersion": POKERKIT_VERSION,
-                          "engineMode": "CASH_GAME", "gtoAnalysis": "NOT_EVALUATED", "evLoss": None,
-                          "assumptions": ["Sem rake; uma única corrida de board; divisão inteira por ordem PHH no motor; sem reparo de ações.",
-                                          "Modo do motor é política de execução, não evidência de modalidade da mão."],
-                          "warnings": [] if complete else ["Histórico é prefixo legal, não uma mão terminada; nenhum resultado final foi inventado."]},
-            "metadata": {key: metadata_json(value) for key, value in doc.items() if key not in REQUIRED}}
-        return {"ok": True, "status": status, "issues": [], "hand": hand}
+        return finalize_session_result(
+            session, doc, scale, len(raw), sha256(raw).hexdigest(), source_name,
+            record_id_override=record_id_override, source_override=source_override,
+            game_format_field=game_format_field, extra_metadata=extra_metadata,
+            extra_warnings=extra_warnings, roles_override=roles_override,
+        )
     except ImportFailure as exc:
         return {"ok": False, "status": "UNSUPPORTED" if exc.unsupported else "INVALID", "issues": [exc.issue], "hand": None}
     except (ValueError, UserWarning, InvalidOperation, OverflowError, IndexError) as exc:
         return {"ok": False, "status": "INVALID", "issues": [{"code": "ENGINE_VALIDATION", "message": str(exc), "field": None, "actionIndex": None}], "hand": None}
+
+
+def import_phh(raw: bytes, source_name: str | None = None) -> ImportResult:
+    return reconstruct_from_phh_bytes(raw, source_name)

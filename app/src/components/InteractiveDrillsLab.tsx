@@ -22,6 +22,9 @@ import {
 import {
   filterConfirmedMttCanonicalSpots,
   formatActionLabelPtBr,
+  formatActionFrequencyPtBr,
+  getActionDistributionVisual,
+  getActionVisualStyle,
   formatStrategySourceBadgePtBr,
   type CanonicalSpot,
   type TrainerModeId,
@@ -119,6 +122,7 @@ export function InteractiveDrillsLab({
   );
 
   const [targetActionName, setTargetActionName] = useState<string>("ACTIVE_NON_FOLD");
+  const builderVisual = getActionVisualStyle(targetActionName);
   const [brushWeight, setBrushWeight] = useState<number>(1);
   const [userWeights, setUserWeights] = useState<Record<string, number>>({});
   const [isPainting, setIsPainting] = useState(false);
@@ -647,7 +651,8 @@ export function InteractiveDrillsLab({
               </span>
               <div className="flex items-center gap-3 text-[0.6875rem] text-[#94A3B8]">
                 <span className="flex items-center gap-1">
-                  <i className="inline-block w-2.5 h-2.5 rounded-sm bg-[#2563EB]" /> Selecionado
+                  <i className="inline-block w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: builderVisual.bg }} />
+                  {targetActionName === "ACTIVE_NON_FOLD" ? "Selecionado (ações sem Fold)" : formatActionLabelPtBr(targetActionName)}
                 </span>
                 {rangeCompared && (
                   <>
@@ -674,6 +679,10 @@ export function InteractiveDrillsLab({
                   const tWeight = targetWeights[hand] ?? 0;
                   const displayWeight =
                     rangeCompared && showReferenceOverlay ? tWeight : uWeight;
+                  const cellVisual = getActionDistributionVisual({ [targetActionName]: displayWeight });
+                  const cellDescription = `${hand}: ${targetActionName === "ACTIVE_NON_FOLD" ? "Ações sem Fold" : formatActionLabelPtBr(targetActionName)}; seu peso ${formatActionFrequencyPtBr(uWeight)}${
+                    rangeCompared ? ` | Referência: ${formatActionFrequencyPtBr(tWeight)}` : ""
+                  }`;
 
                   let borderClass = "border-[#1E293B]";
                   if (rangeCompared && !showReferenceOverlay) {
@@ -704,17 +713,14 @@ export function InteractiveDrillsLab({
                         applyCellPaint(hand);
                       }}
                       style={{
-                        background:
-                          displayWeight > 0
-                            ? `linear-gradient(to top, rgba(37, 99, 235, 0.85) ${displayWeight * 100}%, #090D16 ${displayWeight * 100}%)`
-                            : "#090D16",
+                        background: cellVisual.background,
+                        color: cellVisual.text,
                       }}
-                      title={`${hand}: Seu peso ${Math.round(uWeight * 100)}%${
-                        rangeCompared ? ` | Ref: ${Math.round(tWeight * 100)}%` : ""
-                      }`}
-                      className={`aspect-square rounded-[3px] border ${borderClass} flex flex-col items-center justify-center text-[0.6875rem] font-mono tabular-nums font-bold text-[#F8FAFC] transition-colors touch-manipulation`}
+                      title={cellDescription}
+                      aria-label={cellDescription}
+                      className={`aspect-square rounded-[3px] border ${borderClass} flex flex-col items-center justify-center text-[0.6875rem] font-mono tabular-nums font-bold transition-colors touch-manipulation`}
                     >
-                      <span>{hand}</span>
+                      <span className="rounded-sm px-0.5" style={{ backgroundColor: cellVisual.labelBackground }}>{hand}</span>
                     </button>
                   );
                 }),
